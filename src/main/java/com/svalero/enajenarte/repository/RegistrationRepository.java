@@ -11,6 +11,8 @@ import java.util.List;
 @Repository
 public interface RegistrationRepository extends CrudRepository<Registration, Long> {
 
+    boolean existsByUserIdAndWorkshopId(Long userId, Long workshopId);
+
     List<Registration> findAll();
 
     // Filtros (3 campos)

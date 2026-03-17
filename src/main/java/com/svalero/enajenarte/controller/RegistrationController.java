@@ -2,10 +2,7 @@ package com.svalero.enajenarte.controller;
 
 import com.svalero.enajenarte.dto.RegistrationInDto;
 import com.svalero.enajenarte.dto.RegistrationOutDto;
-import com.svalero.enajenarte.exception.ErrorResponse;
-import com.svalero.enajenarte.exception.RegistrationNotFoundException;
-import com.svalero.enajenarte.exception.UserNotFoundException;
-import com.svalero.enajenarte.exception.WorkshopNotFoundException;
+import com.svalero.enajenarte.exception.*;
 import com.svalero.enajenarte.service.RegistrationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,6 +91,14 @@ public class RegistrationController {
     public ResponseEntity<ErrorResponse> handleException(WorkshopNotFoundException wnfe) {
         ErrorResponse errorResponse = ErrorResponse.notFound("The workshop does not exist");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    // 400 - Inscripción duplicada
+    @ExceptionHandler(DuplicateRegistrationException.class)
+    public ResponseEntity<ErrorResponse> handleException(DuplicateRegistrationException dre) {
+        Map<String, String> errors = new HashMap<>();
+        ErrorResponse errorResponse = ErrorResponse.validationError(errors);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     // 400 - Validaciones

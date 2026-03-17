@@ -5,6 +5,7 @@ import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.domain.Workshop;
 import com.svalero.enajenarte.dto.RegistrationInDto;
 import com.svalero.enajenarte.dto.RegistrationOutDto;
+import com.svalero.enajenarte.exception.DuplicateRegistrationException;
 import com.svalero.enajenarte.exception.RegistrationNotFoundException;
 import com.svalero.enajenarte.exception.UserNotFoundException;
 import com.svalero.enajenarte.exception.WorkshopNotFoundException;
@@ -41,6 +42,16 @@ public class RegistrationService {
 
         Workshop workshop = workshopRepository.findById(registrationInDto.getWorkshopId())
                 .orElseThrow(WorkshopNotFoundException::new);
+
+        // Validación: evitar inscripción duplicada
+        boolean exists = registrationRepository.existsByUserIdAndWorkshopId(
+                registrationInDto.getUserId(),
+                registrationInDto.getWorkshopId()
+        );
+
+        if (exists) {
+            throw new DuplicateRegistrationException();
+        }
 
         Registration registration = modelMapper.map(registrationInDto, Registration.class);
         registration.setUser(user);

@@ -137,6 +137,8 @@ public class RegistrationService {
             boolean paid = existingRegistration.isPaid();
             float amountPaid = existingRegistration.getAmountPaid();
             Integer rating = existingRegistration.getRating();
+            String status = existingRegistration.getStatus();
+            String paymentStatus = existingRegistration.getPaymentStatus();
 
             modelMapper.map(registrationInDto, existingRegistration);
             existingRegistration.setId(id);
@@ -149,7 +151,8 @@ public class RegistrationService {
             existingRegistration.setPaid(paid);
             existingRegistration.setAmountPaid(amountPaid);
             existingRegistration.setRating(rating);
-
+            existingRegistration.setStatus(status);
+            existingRegistration.setPaymentStatus(paymentStatus);
 
             Registration updateRegistration = registrationRepository.save(existingRegistration);
 

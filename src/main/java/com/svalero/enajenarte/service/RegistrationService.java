@@ -52,6 +52,8 @@ public class RegistrationService {
         registration.setPaid(false);
         registration.setAmountPaid(0);
         registration.setRating(null);
+        registration.setStatus("PENDING");
+        registration.setPaymentStatus("PENDING");
 
         Registration newRegistration = registrationRepository.save(registration);
 
@@ -147,6 +149,7 @@ public class RegistrationService {
             existingRegistration.setPaid(paid);
             existingRegistration.setAmountPaid(amountPaid);
             existingRegistration.setRating(rating);
+
 
             Registration updateRegistration = registrationRepository.save(existingRegistration);
 

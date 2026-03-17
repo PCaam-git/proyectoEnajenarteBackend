@@ -1,0 +1,11 @@
+{
+  "id": 1,
+  "registrationDate": "2026-01-10",
+  "confirmationCode": "CONF-12345",
+  "isPaid": false,
+  "numberOfTickets": 2,
+  "amountPaid": 0,
+  "rating": 5,
+  "userId": 1,
+  "workshopId": 10
+}

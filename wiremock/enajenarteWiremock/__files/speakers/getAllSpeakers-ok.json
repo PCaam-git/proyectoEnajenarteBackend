@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "firstName": "Cristina",
+    "lastName": "Lopez", "email": "cristina@mail.com",
+    "speciality": "mindfulness",
+    "yearsExperience": 5
+  },
+  { "id": 2,
+    "firstName": "Monica",
+    "lastName": "Martinez",
+    "email": "monica@mail.com",
+    "speciality": "oratoria",
+    "yearsExperience": 7
+  },
+  { "id": 3,
+    "firstName": "Angel",
+    "lastName": "Ferrer",
+    "email": "angel@mail.com",
+    "speciality": "inteligencia emocional",
+    "yearsExperience": 4
+  }
+]

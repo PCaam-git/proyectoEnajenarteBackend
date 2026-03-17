@@ -1,0 +1,9 @@
+{
+  "priority": 1,
+  "request": { "method": "GET", "url": "/registrations/1" },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "bodyFileName": "registrations/getRegistrationDetail-ok.json"
+  }
+}

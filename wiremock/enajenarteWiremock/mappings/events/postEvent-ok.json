@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/events"
+  },
+  "response": {
+    "status": 201,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "events/postEvent-ok.json"
+  }
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "name": "Oratoria básica",
+    "description": "Taller de oratoria y comunicación",
+    "startDate": "2026-02-10",
+    "durationMinutes": 90,
+    "price": 20,
+    "isOnline": true,
+    "speakerId": 1
+  },
+  {
+    "id": 2,
+    "name": "Comunicación emocional",
+    "description": "Expresión emocional a través de los relatos",
+    "startDate": "2026-03-15",
+    "durationMinutes": 120,
+    "price": 0,
+    "isOnline": false,
+    "speakerId": 2
+  },
+  {
+    "id": 3,
+    "name": "Mindfulness práctico",
+    "description": "Práctica guiada de mindfulness",
+    "startDate": "2026-04-01",
+    "durationMinutes": 60,
+    "price": 50,
+    "isOnline": false,
+    "speakerId": 1
+  }
+]

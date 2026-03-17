@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/events"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "events/getAllEvents-ok.json"
+  }
+}

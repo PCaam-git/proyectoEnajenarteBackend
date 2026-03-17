@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/workshops"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "workshops/getAllWorkshops-ok.json"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": 1,
+  "name": "Oratoria básica actualizada",
+  "description": "Taller de oratoria y comunicación actualizada",
+  "startDate": "2026-02-18",
+  "durationMinutes": 120,
+  "price": 25,
+  "isOnline": true,
+  "speakerId": 1
+}

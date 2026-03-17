@@ -1,0 +1,9 @@
+{
+  "priority": 10,
+  "request": { "method": "PUT", "url": "/workshops/400" },
+  "response": {
+    "status": 400,
+    "headers": { "Content-Type": "application/json" },
+    "bodyFileName": "errors/badRequest-400.json"
+  }
+}

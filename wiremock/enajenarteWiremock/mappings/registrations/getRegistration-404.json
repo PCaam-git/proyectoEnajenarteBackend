@@ -1,0 +1,12 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "url": "/registrations/999"
+  },
+  "response": {
+    "status": 404,
+    "headers": { "Content-Type": "application/json" },
+    "bodyFileName": "errors/notFound-404.json"
+  }
+}

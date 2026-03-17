@@ -1,0 +1,1834 @@
+{
+  "info": {
+    "_postman_id": "dbbb7a22-cddd-4b11-a87d-d7cdff0bd419",
+    "name": "Enajenarte RUNNER (8089)",
+    "description": "API para la empresa Enajenarte",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48848621",
+    "_collection_link": "https://go.postman.co/collection/48848621-dbbb7a22-cddd-4b11-a87d-d7cdff0bd419?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "users",
+      "item": [
+        {
+          "name": "Errors",
+          "item": [
+            {
+              "name": "Get users by id - 404 (404)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 404\", function () {\r",
+                      "  pm.response.to.have.status(404);\r",
+                      "});\r",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{notFoundId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "users",
+                    "{{notFoundId}}"
+                  ]
+                },
+                "description": "Devuelve un usuario específico por su ID"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Get users by id - OK (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response has id\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"id\");\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "description": "Devuelve un usuario específico por su ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Put users by id - OK (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response has id\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"id\");\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\",\n  \"email\": \"{{email}}\",\n  \"fullName\": \"{{fullName}} UPDATED\",\n  \"age\": {{age}}\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "description": "Actualiza un usuario existente"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete users by id - OK (204)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {\r",
+                  "  pm.response.to.have.status(204);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const postRequest = {\r",
+                  "  url: pm.collectionVariables.get(\"baseUrl\") + \"/users\",\r",
+                  "  method: 'POST',\r",
+                  "  header: { 'Content-Type': 'application/json' },\r",
+                  "  body: {\r",
+                  "    mode: 'raw',\r",
+                  "    raw: JSON.stringify({\r",
+                  "      username: \"temp_user\",\r",
+                  "      password: \"temp123\",\r",
+                  "      email: \"temp@delete.com\",\r",
+                  "      fullName: \"Temporal User\",\r",
+                  "      age: 99\r",
+                  "    })\r",
+                  "  }\r",
+                  "};\r",
+                  "\r",
+                  "pm.sendRequest(postRequest, function (err, response) {\r",
+                  "  if (!err) {\r",
+                  "    pm.collectionVariables.set(\"userToDelete\", response.json().id);\r",
+                  "  }\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userToDelete}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userToDelete}}"
+              ]
+            },
+            "description": "Elimina un usuario del sistema"
+          },
+          "response": []
+        },
+        {
+          "name": "Get users - OK (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is array and first item has id\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "  pm.expect(json).to.be.an(\"array\");\r",
+                  "  pm.expect(json.length).to.be.above(0);\r",
+                  "  pm.expect(json[0]).to.have.property(\"id\");\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"email\": \"admin@mail.com\",\n  \"fullName\": \"Admin User\",\n  \"role\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Post users - OK (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\r",
+                  "  pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response has id\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"id\");\r",
+                  "});\r",
+                  "\r",
+                  "// Guardar ID para usar después\r",
+                  "pm.collectionVariables.set(\"userId\", pm.response.json().id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\",\n  \"email\": \"{{email}}\",\n  \"fullName\": \"{{fullName}}\",\n  \"age\": {{age}}\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            },
+            "description": "Registra un nuevo usuario en el sistema"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "events",
+      "item": [
+        {
+          "name": "Errors",
+          "item": [
+            {
+              "name": "Get events by id -  404 (404)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 404\", function () {\r",
+                      "  pm.response.to.have.status(404);\r",
+                      "});\r",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/events/{{notFoundId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "events",
+                    "{{notFoundId}}"
+                  ]
+                },
+                "description": "Devuelve un evento específico por su ID"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Get events by id -  OK (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response has id\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"id\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Event has speakerId\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"speakerId\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{eventId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{eventId}}"
+              ]
+            },
+            "description": "Devuelve un evento específico por su ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Put events by id - OK (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response has id\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"id\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Title was updated\", function () {\r",
+                  "  pm.expect(pm.response.json().title).to.include(\"UPDATED\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"{{title}} UPDATED\",\n  \"location\": \"{{location}}\",\n  \"eventDate\": \"{{eventDate}}\",\n  \"entryFee\": {{entryFee}},\n  \"isPublic\": {{isPublic}},\n  \"expectedAttendance\": {{expectedAttendance}},\n  \"speakerId\": {{speakerId}}\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/events/{{eventId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{eventId}}"
+              ]
+            },
+            "description": "Actualiza un evento existente"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete events by id - OK (204)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {\r",
+                  "  pm.response.to.have.status(204);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const postRequest = {\r",
+                  "  url: pm.collectionVariables.get(\"baseUrl\") + \"/events\",\r",
+                  "  method: 'POST',\r",
+                  "  header: { 'Content-Type': 'application/json' },\r",
+                  "  body: {\r",
+                  "    mode: 'raw',\r",
+                  "    raw: JSON.stringify({\r",
+                  "      title: \"Temporal Event\",\r",
+                  "      location: \"Test Location\",\r",
+                  "      eventDate: \"2026-12-31T10:00:00\",\r",
+                  "      entryFee: 0,\r",
+                  "      isPublic: true,\r",
+                  "      expectedAttendance: 10,\r",
+                  "      speakerId: 1\r",
+                  "    })\r",
+                  "  }\r",
+                  "};\r",
+                  "\r",
+                  "pm.sendRequest(postRequest, function (err, response) {\r",
+                  "  if (!err) {\r",
+                  "    pm.collectionVariables.set(\"eventToDelete\", response.json().id);\r",
+                  "  }\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{eventToDelete}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{eventToDelete}}"
+              ]
+            },
+            "description": "Elimina un evento del sistema"
+          },
+          "response": []
+        },
+        {
+          "name": "Get events - OK (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is array\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.be.an('array');\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Array has at least one event\", function () {\r",
+                  "  pm.expect(pm.response.json().length).to.be.above(0);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events"
+              ],
+              "query": [
+                {
+                  "key": "title",
+                  "value": "string",
+                  "description": "Filtrar por título",
+                  "disabled": true
+                },
+                {
+                  "key": "location",
+                  "value": "string",
+                  "description": "Filtrar por ubicación",
+                  "disabled": true
+                },
+                {
+                  "key": "isPublic",
+                  "value": "string",
+                  "description": "Filtrar por asistencia pública",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Devuelve una lista de eventos con opciones de filtrado"
+          },
+          "response": []
+        },
+        {
+          "name": "Post events - OK (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\r",
+                  "  pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response has id\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"id\");\r",
+                  "});\r",
+                  "\r",
+                  "// Guarda el ID del evento creado\r",
+                  "pm.collectionVariables.set(\"eventId\", pm.response.json().id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"{{title}}\",\n  \"location\": \"{{location}}\",\n  \"eventDate\": \"{{eventDate}}\",\n  \"entryFee\": {{entryFee}},\n  \"isPublic\": {{isPublic}},\n  \"expectedAttendance\": {{expectedAttendance}},\n  \"speakerId\": {{speakerId}}\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events"
+              ]
+            },
+            "description": "Registra un nuevo evento en el sistema"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "speakers",
+      "item": [
+        {
+          "name": "Errors",
+          "item": [
+            {
+              "name": "Get speakers by id - 404 (404)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/speakers/{{notFoundId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "speakers",
+                    "{{notFoundId}}"
+                  ]
+                },
+                "description": "Devuelve un ponente específico por su ID"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Get speakers by id - OK (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response has id\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"id\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Speaker ID matches\", function () {\r",
+                  "  pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get(\"speakerId\"));\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/speakers/{{speakerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "speakers",
+                "{{speakerId}}"
+              ]
+            },
+            "description": "Devuelve un ponente específico por su ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete speakers by id - OK (204)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const postRequest = {\r",
+                  "  url: pm.collectionVariables.get(\"baseUrl\") + \"/speakers\",\r",
+                  "  method: 'POST',\r",
+                  "  header: { 'Content-Type': 'application/json' },\r",
+                  "  body: {\r",
+                  "    mode: 'raw',\r",
+                  "    raw: JSON.stringify({\r",
+                  "      firstName: \"Temporal\",\r",
+                  "      lastName: \"Delete\",\r",
+                  "      email: \"temp@delete.com\",\r",
+                  "      speciality: \"temporal\",\r",
+                  "      yearsExperience: 1,\r",
+                  "      available: true,\r",
+                  "      joinDate: \"2026-01-01\"\r",
+                  "    })\r",
+                  "  }\r",
+                  "};\r",
+                  "\r",
+                  "pm.sendRequest(postRequest, function (err, response) {\r",
+                  "  if (!err) {\r",
+                  "    pm.collectionVariables.set(\"speakerToDelete\", response.json().id);\r",
+                  "  }\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {\r",
+                  "  pm.response.to.have.status(204);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/speakers/{{speakerToDelete}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "speakers",
+                "{{speakerToDelete}}"
+              ]
+            },
+            "description": "Elimina un ponente del sistema"
+          },
+          "response": []
+        },
+        {
+          "name": "Put speakers by id - OK (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response has id\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"id\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"LastName was updated\", function () {\r",
+                  "  pm.expect(pm.response.json().lastName).to.include(\"UPDATED\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"{{firstName}}\",\n  \"lastName\": \"{{lastName}} UPDATED\",\n  \"email\": \"{{email}}\",\n  \"speciality\": \"{{speciality}}\",\n  \"yearsExperience\": {{yearsExperience}},\n  \"available\": {{available}},\n  \"joinDate\": \"{{joinDate}}\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/speakers/{{speakerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "speakers",
+                "{{speakerId}}"
+              ]
+            },
+            "description": "Actualiza un ponente existente"
+          },
+          "response": []
+        },
+        {
+          "name": "Get speakers - OK (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is array\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.be.an('array');\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Array has at least one speaker\", function () {\r",
+                  "  pm.expect(pm.response.json().length).to.be.above(0);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/speakers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "speakers"
+              ],
+              "query": [
+                {
+                  "key": "speciality",
+                  "value": "string",
+                  "description": "Filtrar por especialidad",
+                  "disabled": true
+                },
+                {
+                  "key": "available",
+                  "value": "string",
+                  "description": "Filtrar por disponibilidad",
+                  "disabled": true
+                },
+                {
+                  "key": "yearsExperience",
+                  "value": "string",
+                  "description": "Filtrar por años de experiencia",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Devuelve una lista de ponentes con opciones de filtrado"
+          },
+          "response": []
+        },
+        {
+          "name": "Post speakers - OK (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\r",
+                  "  pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response has id\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"id\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.collectionVariables.set(\"speakerId\", pm.response.json().id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"{{firstName}}\",\n  \"lastName\": \"{{lastName}}\",\n  \"email\": \"{{email}}\",\n  \"speciality\": \"{{speciality}}\",\n  \"yearsExperience\": {{yearsExperience}},\n  \"available\": {{available}},\n  \"joinDate\": \"{{joinDate}}\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/speakers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "speakers"
+              ]
+            },
+            "description": "Registra un nuevo ponente en el sistema"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "workshops",
+      "item": [
+        {
+          "name": "Errors",
+          "item": [
+            {
+              "name": "Get workshops by id - 404 (404)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 404\", function () {\r",
+                      "  pm.response.to.have.status(404);\r",
+                      "});\r",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/workshops/{{notFoundId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "workshops",
+                    "{{notFoundId}}"
+                  ]
+                },
+                "description": "Devuelve un taller específico por su ID"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Get workshops - OK (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is array\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.be.an('array');\r",
+                  "});\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/workshops",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workshops"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "string",
+                  "description": "Filtrar por nombre (contiene)",
+                  "disabled": true
+                },
+                {
+                  "key": "isOnline",
+                  "value": "string",
+                  "description": "Filtrar por modalidad online",
+                  "disabled": true
+                },
+                {
+                  "key": "speakerId",
+                  "value": "string",
+                  "description": "Filtrar por ID del ponente",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Devuelve una lista de talleres con opciones de filtrado"
+          },
+          "response": []
+        },
+        {
+          "name": "Post workshops - OK (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\r",
+                  "  pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response has id\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"id\");\r",
+                  "});\r",
+                  "\r",
+                  "// Guarda el ID del workshop creado\r",
+                  "pm.collectionVariables.set(\"workshopId\", pm.response.json().id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{name}}\",\n  \"description\": \"{{description}}\",\n  \"startDate\": \"{{startDate}}\",\n  \"durationMinutes\": {{durationMinutes}},\n  \"price\": {{price}},\n  \"maxCapacity\": {{maxCapacity}},\n  \"isOnline\": {{isOnline}},\n  \"speakerId\": {{speakerId}}\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/workshops",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workshops"
+              ]
+            },
+            "description": "Registra un nuevo taller en el sistema"
+          },
+          "response": []
+        },
+        {
+          "name": "Get workshops by id - OK (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response has id\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"id\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/workshops/{{workshopId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workshops",
+                "{{workshopId}}"
+              ]
+            },
+            "description": "Devuelve un taller específico por su ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Put workshops by id - OK (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response has id\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"id\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Name was updated\", function () {\r",
+                  "  pm.expect(pm.response.json().name).to.include(\"UPDATED\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{name}} UPDATED\",\n  \"description\": \"{{description}}\",\n  \"startDate\": \"{{startDate}}\",\n  \"durationMinutes\": {{durationMinutes}},\n  \"price\": {{price}},\n  \"maxCapacity\": {{maxCapacity}},\n  \"isOnline\": {{isOnline}},\n  \"speakerId\": {{speakerId}}\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/workshops/{{workshopId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workshops",
+                "{{workshopId}}"
+              ]
+            },
+            "description": "Actualiza un taller existente"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete workshops by id - OK (204)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {\r",
+                  "  pm.response.to.have.status(204);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const postRequest = {\r",
+                  "  url: pm.collectionVariables.get(\"baseUrl\") + \"/workshops\",\r",
+                  "  method: 'POST',\r",
+                  "  header: { 'Content-Type': 'application/json' },\r",
+                  "  body: {\r",
+                  "    mode: 'raw',\r",
+                  "    raw: JSON.stringify({\r",
+                  "      name: \"Temporal Workshop\",\r",
+                  "      description: \"Test\",\r",
+                  "      startDate: \"2026-12-31\",\r",
+                  "      durationMinutes: 60,\r",
+                  "      price: 10,\r",
+                  "      maxCapacity: 10,\r",
+                  "      isOnline: true,\r",
+                  "      speakerId: 1\r",
+                  "    })\r",
+                  "  }\r",
+                  "};\r",
+                  "\r",
+                  "pm.sendRequest(postRequest, function (err, response) {\r",
+                  "  if (!err) {\r",
+                  "    pm.collectionVariables.set(\"workshopToDelete\", response.json().id);\r",
+                  "  }\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/workshops/{{workshopToDelete}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workshops",
+                "{{workshopToDelete}}"
+              ]
+            },
+            "description": "Elimina un taller del sistema"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "registrations",
+      "item": [
+        {
+          "name": "Errors",
+          "item": [
+            {
+              "name": "Get registrations by id - 404 (404)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 404\", function () {\r",
+                      "  pm.response.to.have.status(404);\r",
+                      "});\r",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/registrations/{{notFoundId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "registrations",
+                    "{{notFoundId}}"
+                  ]
+                },
+                "description": "Devuelve un registro específico por su ID"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Get registrations - OK (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 204\", function () {\r",
+                  "  pm.expect([200, 204]).to.include(pm.response.code);\r",
+                  "});\r",
+                  "\r",
+                  "// Solo verificar que es array si hay contenido\r",
+                  "if (pm.response.code === 200) {\r",
+                  "  pm.test(\"Response is array\", function () {\r",
+                  "    pm.expect(pm.response.json()).to.be.an('array');\r",
+                  "  });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/registrations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "string",
+                  "description": "Filtrar por ID del usuario",
+                  "disabled": true
+                },
+                {
+                  "key": "workshopId",
+                  "value": "string",
+                  "description": "Filtrar por ID del taller",
+                  "disabled": true
+                },
+                {
+                  "key": "isPaid",
+                  "value": "string",
+                  "description": "Filtrar por estado de pago",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Devuelve una lista de registros con opciones de filtrado"
+          },
+          "response": []
+        },
+        {
+          "name": "Post registrations - OK (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {\r",
+                  "  pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response has id\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"id\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Paid is false by default\", function () {\r",
+                  "  pm.expect(pm.response.json().paid).to.eql(false);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"AmountPaid is 0 by default\", function () {\r",
+                  "  pm.expect(pm.response.json().amountPaid).to.eql(0);\r",
+                  "});\r",
+                  "\r",
+                  "pm.collectionVariables.set(\"registrationId\", pm.response.json().id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numberOfTickets\": {{numberOfTickets}},\n  \"userId\": {{userId}},\n  \"workshopId\": {{workshopId}}\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/registrations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations"
+              ]
+            },
+            "description": "Registra un nuevo registro en el sistema"
+          },
+          "response": []
+        },
+        {
+          "name": "Get registrations by id - OK (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response has id\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"id\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Has userId\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"userId\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Has workshopId\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"workshopId\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/registrations/{{registrationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations",
+                "{{registrationId}}"
+              ]
+            },
+            "description": "Devuelve un registro específico por su ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Put registrations by id - OK (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response has id\", function () {\r",
+                  "  pm.expect(pm.response.json()).to.have.property(\"id\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"NumberOfTickets was updated\", function () {\r",
+                  "  pm.expect(pm.response.json().numberOfTickets).to.eql(5);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Paid is still false (protected)\", function () {\r",
+                  "  pm.expect(pm.response.json().paid).to.eql(false);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numberOfTickets\": 5,\n  \"userId\": {{userId}},\n  \"workshopId\": {{workshopId}}\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/registrations/{{registrationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations",
+                "{{registrationId}}"
+              ]
+            },
+            "description": "Actualiza un registro existente"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete registrations by id - OK (204)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {\r",
+                  "  pm.response.to.have.status(204);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const postRequest = {\r",
+                  "  url: pm.collectionVariables.get(\"baseUrl\") + \"/registrations\",\r",
+                  "  method: 'POST',\r",
+                  "  header: { 'Content-Type': 'application/json' },\r",
+                  "  body: {\r",
+                  "    mode: 'raw',\r",
+                  "    raw: JSON.stringify({\r",
+                  "      numberOfTickets: 1,\r",
+                  "      userId: 1,\r",
+                  "      workshopId: 1\r",
+                  "    })\r",
+                  "  }\r",
+                  "};\r",
+                  "\r",
+                  "pm.sendRequest(postRequest, function (err, response) {\r",
+                  "  if (!err) {\r",
+                  "    pm.collectionVariables.set(\"registrationToDelete\", response.json().id);\r",
+                  "  }\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/registrations/{{registrationToDelete}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations",
+                "{{registrationToDelete}}"
+              ]
+            },
+            "description": "Elimina un registro del sistema"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://enajenarte.com"
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "eventId",
+      "value": ""
+    },
+    {
+      "key": "speakerId",
+      "value": ""
+    },
+    {
+      "key": "workshopId",
+      "value": ""
+    },
+    {
+      "key": "registrationId",
+      "value": ""
+    },
+    {
+      "key": "notFoundId",
+      "value": ""
+    },
+    {
+      "key": "userToDelete",
+      "value": ""
+    },
+    {
+      "key": "speakerToDelete",
+      "value": ""
+    },
+    {
+      "key": "eventToDelete",
+      "value": ""
+    },
+    {
+      "key": "workshopToDelete",
+      "value": ""
+    },
+    {
+      "key": "registrationToDelete",
+      "value": ""
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "priority": 1,
+  "request": { "method": "PUT", "url": "/workshops/1" },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "bodyFileName": "workshops/putWorkshop-ok.json"
+  }
+}

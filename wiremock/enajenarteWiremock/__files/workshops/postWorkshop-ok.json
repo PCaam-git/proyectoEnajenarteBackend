@@ -1,0 +1,10 @@
+{
+  "id": 1,
+  "name": "Oratoria básica",
+  "description": "Taller de oratoria y comunicación",
+  "startDate": "2026-02-10",
+  "durationMinutes": 90,
+  "price": 20,
+  "isOnline": true,
+  "speakerId": 1
+}

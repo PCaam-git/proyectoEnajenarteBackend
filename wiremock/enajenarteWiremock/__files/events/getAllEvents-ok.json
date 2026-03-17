@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "title": "Beneficios del mindfulness",
+    "location": "Zaragoza",
+    "eventDate": "2026-02-01T10:00:00",
+    "entryFee": 22.5,
+    "isPublic": false,
+    "speakerId": 1
+  },
+  {
+    "id": 2,
+    "title": "Guía de autoconocimiento",
+    "location": "Huesca",
+    "eventDate": "2026-06-01T10:00:00",
+    "entryFee": 0,
+    "isPublic": true,
+    "speakerId": 2
+  },
+  {
+    "id": 3,
+    "title": "Feria del libro",
+    "location": "Albarracín",
+    "eventDate": "2026-04-23T10:00:00",
+    "entryFee": 0,
+    "isPublic": true,
+    "speakerId": 3
+  }
+]

@@ -101,6 +101,14 @@ public class RegistrationController {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    // 400 - Workshop sin plazas disponibles
+    @ExceptionHandler(WorkshopCapacityExceededException.class)
+    public ResponseEntity<ErrorResponse> handleException(WorkshopCapacityExceededException wcee) {
+        Map<String, String> errors = new HashMap<>();
+        ErrorResponse errorResponse = ErrorResponse.validationError(errors);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
     // 400 - Validaciones
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleException(MethodArgumentNotValidException manve) {

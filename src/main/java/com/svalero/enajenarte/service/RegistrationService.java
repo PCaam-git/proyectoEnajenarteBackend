@@ -53,6 +53,11 @@ public class RegistrationService {
             throw new DuplicateRegistrationException();
         }
 
+        long currentRegistrations = registrationRepository.countByWorkshop(workshop);
+        if (currentRegistrations >= workshop.getMaxCapacity()) {
+            throw new WorkshopCapacityExceededException();
+        }
+
         Registration registration = modelMapper.map(registrationInDto, Registration.class);
         registration.setUser(user);
         registration.setWorkshop(workshop);

@@ -11,10 +11,13 @@ import java.util.List;
 @Repository
 public interface RegistrationRepository extends CrudRepository<Registration, Long> {
 
+    // Para evitar duplicados
     boolean existsByUserIdAndWorkshopId(Long userId, Long workshopId);
 
-    List<Registration> findAll();
+    //Para validaciones por número de inscritos
+    long countByWorkshop(Workshop workshop);
 
+    List<Registration> findAll();
     // Filtros (3 campos)
     List<Registration> findByWorkshop(Workshop workshop);
     List<Registration> findByUser(User user);

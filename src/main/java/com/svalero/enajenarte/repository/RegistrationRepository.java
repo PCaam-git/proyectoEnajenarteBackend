@@ -14,8 +14,6 @@ public interface RegistrationRepository extends CrudRepository<Registration, Lon
     // Para evitar duplicados
     boolean existsByUserIdAndWorkshopId(Long userId, Long workshopId);
 
-    //Para validaciones por número de inscritos
-    long countByWorkshop(Workshop workshop);
 
     List<Registration> findAll();
     // Filtros (3 campos)

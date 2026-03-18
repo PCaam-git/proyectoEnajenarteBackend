@@ -186,7 +186,7 @@ public class WorkshopControllerTests {
 
     @Test
     public void testAdd() throws Exception {
-        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria", "Taller de desarrollo", LocalDate.now().plusDays(30), 90, 25, 20, true, 1L
+        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria", "Taller de desarrollo", LocalDate.now().plusDays(30), 90, 25, 1, 20, true, 1L
         );
 
         WorkshopOutDto workshopOutDto = new WorkshopOutDto(10L, "Oratoria", "Taller de desarrollo", LocalDate.now().plusDays(30), 90, 25, true, 1L
@@ -207,7 +207,7 @@ public class WorkshopControllerTests {
     // Name vacío
     @Test
     public void testAdd_BadRequest() throws Exception {
-        WorkshopInDto invalidWorkshop = new WorkshopInDto("", "Taller de prueba", LocalDate.now().plusDays(30), 90, 25, 20, true, 1L
+        WorkshopInDto invalidWorkshop = new WorkshopInDto("", "Taller de prueba", LocalDate.now().plusDays(30), 90, 25,1, 20, true, 1L
         );
 
         String body = objectMapper.writeValueAsString(invalidWorkshop);
@@ -223,7 +223,7 @@ public class WorkshopControllerTests {
 
     @Test
     public void testModify() throws Exception {
-        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.now().plusDays(30), 120, 30, 15, false, 1L
+        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.now().plusDays(30), 120, 30,1,  15, false, 1L
         );
 
         WorkshopOutDto workshopOutDto = new WorkshopOutDto(5L, "Oratoria actualizada", "Descripción actualizada", LocalDate.now().plusDays(30), 120, 30, false, 1L
@@ -242,7 +242,7 @@ public class WorkshopControllerTests {
 
     @Test
     public void testModify_NotFound() throws Exception {
-        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.now().plusDays(30), 120, 30, 15, false, 1L
+        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.now().plusDays(30), 120, 30,1,  15, false, 1L
         );
 
         doThrow(new WorkshopNotFoundException()).when(workshopService).modify(eq(99L), any(WorkshopInDto.class));

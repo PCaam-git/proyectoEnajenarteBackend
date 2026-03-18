@@ -42,8 +42,8 @@ public class WorkshopServiceTests {
     @Test
     public void testFindAll() throws Exception {
         List<Workshop> mockWorkshopList = List.of(
-                new Workshop(1L, "Oratoria básica", "Taller de oratoria y comunicación", LocalDate.of(2026, 2, 10), 90, 25, 20, true, null, null),
-                new Workshop(2L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2026, 3, 5), 120, 30, 15, false, null, null)
+                new Workshop(1L, "Oratoria básica", "Taller de oratoria y comunicación", LocalDate.of(2026, 2, 10), 90, 25,1, 20, true, null, null),
+                new Workshop(2L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2026, 3, 5), 120, 30,1, 15, false, null, null)
         );
 
         List<WorkshopOutDto> modelMapperOut = List.of(
@@ -68,8 +68,8 @@ public class WorkshopServiceTests {
     @Test
     public void testFindAllByName() throws Exception {
         List<Workshop> allWorkshops = List.of(
-                new Workshop(1L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2026, 3, 5), 120, 30, 15, false, null, null),
-                new Workshop(2L, "Arte terapia avanzada", "Taller creativo avanzado", LocalDate.of(2026, 3, 20), 120, 35, 15, false, null, null)
+                new Workshop(1L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2026, 3, 5), 120, 30,1, 15, false, null, null),
+                new Workshop(2L, "Arte terapia avanzada", "Taller creativo avanzado", LocalDate.of(2026, 3, 20), 120, 35,1,  15, false, null, null)
         );
 
         List<WorkshopOutDto> modelMapperOut = List.of(
@@ -93,9 +93,9 @@ public class WorkshopServiceTests {
     public void testFindAllByIsOnline() throws Exception {
         List<Workshop> allWorkshops = List.of(
                 new Workshop(1L, "Oratoria básica", "Taller de oratoria", LocalDate.of(2026, 2, 10),
-                        90, 25, 20, true, null, null),
+                        90, 25,1,  20, true, null, null),
                 new Workshop(3L, "Coaching online", "Taller de coaching", LocalDate.of(2026, 3, 15),
-                        120, 30, 15, true, null, null)
+                        120, 30,1,  15, true, null, null)
         );
 
         List<WorkshopOutDto> modelMapperWorkshopOutDto = List.of(
@@ -125,9 +125,9 @@ public class WorkshopServiceTests {
 
         List<Workshop> allWorkshops = List.of(
                 new Workshop(1L, "Oratoria básica", "Taller de oratoria", LocalDate.of(2026, 2, 10),
-                        90, 25, 20, true, speaker, null),
+                        90, 25,1,  20, true, speaker, null),
                 new Workshop(2L, "Oratoria avanzada", "Taller avanzado", LocalDate.of(2026, 3, 5),
-                        120, 30, 15, false, speaker, null)
+                        120, 30,1,  15, false, speaker, null)
         );
 
         List<WorkshopOutDto> modelMapperWorkshopOutDto = List.of(
@@ -164,7 +164,7 @@ public class WorkshopServiceTests {
     @Test
     public void testFindById() throws WorkshopNotFoundException {
         Workshop workshop = new Workshop(7L, "Oratoria", "Taller de desarrollo",
-                LocalDate.of(2026, 2, 10), 90, 25, 20, true, null, null);
+                LocalDate.of(2026, 2, 10), 90, 25,1,  20, true, null, null);
 
         WorkshopOutDto workshopOutDto = new WorkshopOutDto(7L, "Oratoria", "Taller de desarrollo",
                 LocalDate.of(2026, 2, 10), 90, 25, true, 1L);
@@ -191,7 +191,7 @@ public class WorkshopServiceTests {
 
     @Test
     public void testAdd() throws SpeakerNotFoundException {
-        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria", "Taller de desarrollo", LocalDate.of(2026, 2, 10), 90, 25, 20, true, 1L
+        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria", "Taller de desarrollo", LocalDate.of(2026, 2, 10), 90, 25,1,  20, true, 1L
         );
 
         Speaker speaker = new Speaker();
@@ -220,7 +220,7 @@ public class WorkshopServiceTests {
 
     @Test
     public void testAdd_SpeakerNotFound() {
-        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria", "Taller de desarrollo", LocalDate.of(2026, 2, 10), 90, 25, 20, true, 99L
+        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria", "Taller de desarrollo", LocalDate.of(2026, 2, 10), 90, 25,1, 20, true, 99L
         );
 
         when(speakerRepository.findById(99L)).thenReturn(Optional.empty());
@@ -241,7 +241,7 @@ public class WorkshopServiceTests {
         Speaker speaker = new Speaker();
         speaker.setId(1L);
 
-        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.of(2026, 3, 10), 120, 30, 15, false, 1L
+        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.of(2026, 3, 10), 120, 30,1,  15, false, 1L
         );
 
         Workshop savedWorkshop = new Workshop();
@@ -274,7 +274,7 @@ public class WorkshopServiceTests {
     public void testModify_WorkshopNotFound() {
         long id = 5L;
 
-        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.of(2026, 3, 10), 120, 30, 15, false, 1L
+        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.of(2026, 3, 10), 120, 30,1,  15, false, 1L
         );
 
         when(workshopRepository.findById(id)).thenReturn(Optional.empty());
@@ -292,7 +292,7 @@ public class WorkshopServiceTests {
         Workshop existingWorkshop = new Workshop();
         existingWorkshop.setId(id);
 
-        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.of(2026, 3, 10), 120, 30, 15, false, 99L
+        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.of(2026, 3, 10), 120, 30,1,  15, false, 99L
         );
 
         when(workshopRepository.findById(id)).thenReturn(Optional.of(existingWorkshop));

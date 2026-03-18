@@ -159,19 +159,26 @@ public class RegistrationControllerTests {
         RegistrationInDto registrationInDto = new RegistrationInDto(2, 1L, 10L);
 
         RegistrationOutDto registrationOutDto =
-                new RegistrationOutDto(100L, LocalDate.of(2026, 1, 10),"CONF-10",  false, 2, 0, 0,"pending", "pending",  1L, 10L);
+                new RegistrationOutDto(100L, LocalDate.of(2026, 1, 10), "CONF-10", false, 2, 0, 0, "CONFIRMED", "PENDING", 1L, 10L);
 
         when(registrationService.add(any(RegistrationInDto.class))).thenReturn(registrationOutDto);
 
         String body = objectMapper.writeValueAsString(registrationInDto);
 
-        mockMvc.perform(
+        MvcResult result = mockMvc.perform(
                         MockMvcRequestBuilders.post("/registrations")
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(body)
                 )
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        RegistrationOutDto response =
+                objectMapper.readValue(result.getResponse().getContentAsString(), RegistrationOutDto.class);
+
+        assertEquals("CONFIRMED", response.getStatus());
+        assertEquals("PENDING", response.getPaymentStatus());
     }
 
     @Test
@@ -227,7 +234,7 @@ public class RegistrationControllerTests {
         RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 10L);
 
         RegistrationOutDto registrationOutDto =
-                new RegistrationOutDto(5L, LocalDate.of(2026, 1, 10),"CONF-10", false, 3, 0, 0,"pending", "pending",  1L, 10L);
+                new RegistrationOutDto(5L, LocalDate.of(2026, 1, 10),"CONF-10", false, 3, 0, 0,"CONFIRMED", "PENDING",  1L, 10L);
 
         when(registrationService.modify(5L, registrationInDto)).thenReturn(registrationOutDto);
 

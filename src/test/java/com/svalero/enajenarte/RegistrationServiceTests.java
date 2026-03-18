@@ -5,11 +5,7 @@ import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.domain.Workshop;
 import com.svalero.enajenarte.dto.RegistrationInDto;
 import com.svalero.enajenarte.dto.RegistrationOutDto;
-import com.svalero.enajenarte.exception.RegistrationNotFoundException;
-import com.svalero.enajenarte.exception.UserNotFoundException;
-import com.svalero.enajenarte.exception.WorkshopNotFoundException;
-import com.svalero.enajenarte.exception.DuplicateRegistrationException;
-import com.svalero.enajenarte.exception.WorkshopCapacityExceededException;
+import com.svalero.enajenarte.exception.*;
 import com.svalero.enajenarte.repository.RegistrationRepository;
 import com.svalero.enajenarte.repository.UserRepository;
 import com.svalero.enajenarte.repository.WorkshopRepository;
@@ -518,6 +514,31 @@ public class RegistrationServiceTests {
 
         assertThrows(WorkshopCapacityExceededException.class, () -> registrationService.add(registrationInDto));
 
+        verify(registrationRepository, times(1)).findByWorkshop(workshopRepositoryWorkshop);
+        verify(registrationRepository, times(0)).save(any(Registration.class));
+    }
+
+    @Test
+    public void testAdd_InvalidNumberOfTickets() {
+        RegistrationInDto registrationInDto = new RegistrationInDto(0, 1L, 10L);
+
+        User userRepositoryUser = new User();
+        userRepositoryUser.setId(1L);
+
+        Workshop workshopRepositoryWorkshop = new Workshop();
+        workshopRepositoryWorkshop.setId(10L);
+        workshopRepositoryWorkshop.setMaxCapacity(20);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(userRepositoryUser));
+        when(workshopRepository.findById(10L)).thenReturn(Optional.of(workshopRepositoryWorkshop));
+        when(registrationRepository.existsByUserIdAndWorkshopId(1L, 10L)).thenReturn(false);
+        when(registrationRepository.findByWorkshop(workshopRepositoryWorkshop)).thenReturn(List.of());
+
+        assertThrows(InvalidRegistrationStateException.class, () -> registrationService.add(registrationInDto));
+
+        verify(userRepository, times(1)).findById(1L);
+        verify(workshopRepository, times(1)).findById(10L);
+        verify(registrationRepository, times(1)).existsByUserIdAndWorkshopId(1L, 10L);
         verify(registrationRepository, times(1)).findByWorkshop(workshopRepositoryWorkshop);
         verify(registrationRepository, times(0)).save(any(Registration.class));
     }

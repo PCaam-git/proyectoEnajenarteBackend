@@ -4,11 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.svalero.enajenarte.controller.RegistrationController;
 import com.svalero.enajenarte.dto.RegistrationInDto;
 import com.svalero.enajenarte.dto.RegistrationOutDto;
-import com.svalero.enajenarte.exception.RegistrationNotFoundException;
-import com.svalero.enajenarte.exception.UserNotFoundException;
-import com.svalero.enajenarte.exception.WorkshopNotFoundException;
-import com.svalero.enajenarte.exception.DuplicateRegistrationException;
-import com.svalero.enajenarte.exception.WorkshopCapacityExceededException;
+import com.svalero.enajenarte.exception.*;
 import com.svalero.enajenarte.service.RegistrationService;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
@@ -318,5 +314,22 @@ public class RegistrationControllerTests {
                         MockMvcRequestBuilders.delete("/registrations/99")
                 )
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testAdd_InvalidRegistrationState() throws Exception {
+        RegistrationInDto registrationInDto = new RegistrationInDto(0, 1L, 10L);
+
+        when(registrationService.add(any(RegistrationInDto.class))).thenThrow(new InvalidRegistrationStateException());
+
+        String body = objectMapper.writeValueAsString(registrationInDto);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/registrations")
+                                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                                .accept(MediaType.APPLICATION_JSON_VALUE)
+                                .content(body)
+                )
+                .andExpect(status().isBadRequest());
     }
 }

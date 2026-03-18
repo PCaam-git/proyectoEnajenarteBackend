@@ -33,7 +33,7 @@ public class RegistrationService {
     private ModelMapper modelMapper;
 
     // POST
-    public RegistrationOutDto add(RegistrationInDto registrationInDto) throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException {
+    public RegistrationOutDto add(RegistrationInDto registrationInDto) throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException, InvalidRegistrationStateException {
         User user = userRepository.findById(registrationInDto.getUserId())
                 .orElseThrow(UserNotFoundException::new);
 
@@ -57,6 +57,10 @@ public class RegistrationService {
                 .sum();
 
         int requestedTickets = registrationInDto.getNumberOfTickets();
+
+        if (requestedTickets <= 0) {
+            throw new InvalidRegistrationStateException();
+        }
 
         if (currentCapacity + requestedTickets > workshop.getMaxCapacity()) {
             throw new WorkshopCapacityExceededException();

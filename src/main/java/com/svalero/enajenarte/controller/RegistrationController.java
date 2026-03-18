@@ -50,7 +50,7 @@ public class RegistrationController {
     // POST
     @PostMapping("/registrations")
     public ResponseEntity<RegistrationOutDto> addRegistration(@Valid @RequestBody RegistrationInDto registrationInDto)
-            throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException {
+            throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException, InvalidRegistrationStateException {
 
         RegistrationOutDto newRegistration = registrationService.add(registrationInDto);
         return new ResponseEntity<>(newRegistration, HttpStatus.CREATED);
@@ -104,6 +104,13 @@ public class RegistrationController {
     @ExceptionHandler(WorkshopCapacityExceededException.class)
     public ResponseEntity<ErrorResponse> handleException(WorkshopCapacityExceededException wcee) {
         ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", wcee.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // 400 - Estado de inscripción no válido
+    @ExceptionHandler(InvalidRegistrationStateException.class)
+    public ResponseEntity<ErrorResponse> handleException(InvalidRegistrationStateException irse) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", irse.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 

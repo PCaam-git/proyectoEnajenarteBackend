@@ -69,7 +69,7 @@ public class EventServiceTests {
 
     @Test
     public void testFindAllByTitle() {
-        List<Event> mockEventList = List.of(
+        List<Event> allEvents = List.of(
                 new Event(1L, "Mindfulness", "Zaragoza", LocalDateTime.of(2026, 2, 1, 10, 0), 0, true, 30, null),
                 new Event(2L, "Mindfulness avanzado", "Zaragoza", LocalDateTime.of(2026, 2, 15, 10, 0), 0, true, 20, null)
         );
@@ -79,8 +79,8 @@ public class EventServiceTests {
                 new EventOutDto(2L, "Mindfulness avanzado", "Zaragoza", LocalDateTime.of(2026, 2, 15, 10, 0), 0, true, 1L)
         );
 
-        when(eventRepository.findByTitleContainingIgnoreCase("mind")).thenReturn(mockEventList);
-        when(modelMapper.map(mockEventList, new TypeToken<List<EventOutDto>>() {}.getType())).thenReturn(modelMapperEventOutDto);
+        when(eventRepository.findAll()).thenReturn(allEvents);
+        when(modelMapper.map(allEvents, new TypeToken<List<EventOutDto>>() {}.getType())).thenReturn(modelMapperEventOutDto);
 
         List<EventOutDto> actualEventList = eventService.findAll("mind", "", "");
 
@@ -88,13 +88,12 @@ public class EventServiceTests {
         assertEquals("Mindfulness", actualEventList.getFirst().getTitle());
         assertEquals("Mindfulness avanzado", actualEventList.getLast().getTitle());
 
-        verify(eventRepository, times(0)).findAll();
-        verify(eventRepository, times(1)).findByTitleContainingIgnoreCase("mind");
+        verify(eventRepository, times(1)).findAll();
     }
 
     @Test
     public void testFindAllByLocation() {
-        List<Event> mockEventList = List.of(
+        List<Event> allEvents = List.of(
                 new Event(1L, "Mindfulness", "Zaragoza", LocalDateTime.of(2026, 2, 1, 10, 0),
                         0, true, 30, null),
                 new Event(3L, "Yoga", "Zaragoza", LocalDateTime.of(2026, 2, 20, 18, 0),
@@ -108,8 +107,8 @@ public class EventServiceTests {
                         5, true, 1L)
         );
 
-        when(eventRepository.findByLocationContainingIgnoreCase("zaragoza")).thenReturn(mockEventList);
-        when(modelMapper.map(mockEventList, new TypeToken<List<EventOutDto>>() {}.getType()))
+        when(eventRepository.findAll()).thenReturn(allEvents);
+        when(modelMapper.map(allEvents, new TypeToken<List<EventOutDto>>() {}.getType()))
                 .thenReturn(modelMapperEventOutDto);
 
         List<EventOutDto> actualEventList = eventService.findAll("", "zaragoza", "");
@@ -118,15 +117,12 @@ public class EventServiceTests {
         assertEquals("Mindfulness", actualEventList.getFirst().getTitle());
         assertEquals("Yoga", actualEventList.getLast().getTitle());
 
-        verify(eventRepository, times(0)).findAll();
-        verify(eventRepository, times(0)).findByTitleContainingIgnoreCase(anyString());
-        verify(eventRepository, times(1)).findByLocationContainingIgnoreCase("zaragoza");
-        verify(eventRepository, times(0)).findByIsPublic(anyBoolean());
+        verify(eventRepository, times(1)).findAll();
     }
 
     @Test
     public void testFindAllByIsPublic() {
-        List<Event> mockEventList = List.of(
+        List<Event> allEvents = List.of(
                 new Event(1L, "Mindfulness", "Zaragoza", LocalDateTime.of(2026, 2, 1, 10, 0),
                         0, true, 30, null),
                 new Event(2L, "Arte terapia", "Madrid", LocalDateTime.of(2026, 3, 1, 18, 0),
@@ -140,8 +136,8 @@ public class EventServiceTests {
                         10, true, 1L)
         );
 
-        when(eventRepository.findByIsPublic(true)).thenReturn(mockEventList);
-        when(modelMapper.map(mockEventList, new TypeToken<List<EventOutDto>>() {}.getType()))
+        when(eventRepository.findAll()).thenReturn(allEvents);
+        when(modelMapper.map(allEvents, new TypeToken<List<EventOutDto>>() {}.getType()))
                 .thenReturn(modelMapperEventOutDto);
 
         List<EventOutDto> actualEventList = eventService.findAll("", "", "true");
@@ -150,10 +146,7 @@ public class EventServiceTests {
         assertEquals("Mindfulness", actualEventList.getFirst().getTitle());
         assertEquals("Arte terapia", actualEventList.getLast().getTitle());
 
-        verify(eventRepository, times(0)).findAll();
-        verify(eventRepository, times(0)).findByTitleContainingIgnoreCase(anyString());
-        verify(eventRepository, times(0)).findByLocationContainingIgnoreCase(anyString());
-        verify(eventRepository, times(1)).findByIsPublic(true);
+        verify(eventRepository, times(1)).findAll();
     }
 
     @Test

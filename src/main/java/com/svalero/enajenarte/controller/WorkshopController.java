@@ -29,7 +29,7 @@ public class WorkshopController {
     public ResponseEntity<List<WorkshopOutDto>> getAll(
             @RequestParam(value = "name", defaultValue = "") String name,
             @RequestParam(value = "isOnline", defaultValue = "") String isOnline,
-            @RequestParam(value = "speakerId", defaultValue = "") String speakerId) throws SpeakerNotFoundException {
+            @RequestParam(value = "speakerId", defaultValue = "") String speakerId) {
 
         List<WorkshopOutDto> workshopOutDto = workshopService.findAll(name, isOnline, speakerId);
         // Si la lista está vacía, devuelve 204 No Content

@@ -2,10 +2,7 @@ package com.svalero.enajenarte.controller;
 
 import com.svalero.enajenarte.dto.RegistrationInDto;
 import com.svalero.enajenarte.dto.RegistrationOutDto;
-import com.svalero.enajenarte.exception.ErrorResponse;
-import com.svalero.enajenarte.exception.RegistrationNotFoundException;
-import com.svalero.enajenarte.exception.UserNotFoundException;
-import com.svalero.enajenarte.exception.WorkshopNotFoundException;
+import com.svalero.enajenarte.exception.*;
 import com.svalero.enajenarte.service.RegistrationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,12 +25,12 @@ public class RegistrationController {
     // GET (con filtros: hasta 3 campos)
     @GetMapping("/registrations")
     public ResponseEntity<List<RegistrationOutDto>> getAll(
-            @RequestParam(value = "userId", defaultValue = "") String userId,
             @RequestParam(value = "workshopId", defaultValue = "") String workshopId,
+            @RequestParam(value = "userId", defaultValue = "") String userId,
             @RequestParam(value = "isPaid", defaultValue = "") String isPaid)
     {
 
-        List<RegistrationOutDto> registrationsOutDto = registrationService.findAll(userId, workshopId, isPaid);
+        List<RegistrationOutDto> registrationsOutDto = registrationService.findAll(workshopId, userId, isPaid);
 
         // Si la lista está vacía, devuelve 204 No content
         if (registrationsOutDto.isEmpty()) {
@@ -53,7 +50,7 @@ public class RegistrationController {
     // POST
     @PostMapping("/registrations")
     public ResponseEntity<RegistrationOutDto> addRegistration(@Valid @RequestBody RegistrationInDto registrationInDto)
-            throws UserNotFoundException, WorkshopNotFoundException {
+            throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException {
 
         RegistrationOutDto newRegistration = registrationService.add(registrationInDto);
         return new ResponseEntity<>(newRegistration, HttpStatus.CREATED);
@@ -94,6 +91,20 @@ public class RegistrationController {
     public ResponseEntity<ErrorResponse> handleException(WorkshopNotFoundException wnfe) {
         ErrorResponse errorResponse = ErrorResponse.notFound("The workshop does not exist");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    // 400 - Inscripción duplicada
+    @ExceptionHandler(DuplicateRegistrationException.class)
+    public ResponseEntity<ErrorResponse> handleException(DuplicateRegistrationException dre) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", dre.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // 400 - Workshop sin plazas disponibles
+    @ExceptionHandler(WorkshopCapacityExceededException.class)
+    public ResponseEntity<ErrorResponse> handleException(WorkshopCapacityExceededException wcee) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", wcee.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     // 400 - Validaciones

@@ -63,7 +63,7 @@ public class SpeakerServiceTests {
 
     @Test
     public void testFindAllBySpeciality() {
-        List<Speaker> mockSpeakerList = List.of(
+        List<Speaker> allSpeakers = List.of(
                 new Speaker(1L, "Ana", "Lopez", "ana@mail.com", "mindfulness", 5, 0, true, LocalDate.of(2025, 1, 1), null),
                 new Speaker(2L, "Lucia", "Martin", "lucia@mail.com", "mindfulness", 3, 0, true, LocalDate.of(2025, 2, 1), null)
         );
@@ -73,8 +73,8 @@ public class SpeakerServiceTests {
                 new SpeakerOutDto(2L, "Lucia", "Martin", "lucia@mail.com", "mindfulness", 3)
         );
 
-        when(speakerRepository.findBySpecialityContainingIgnoreCase("mind")).thenReturn(mockSpeakerList);
-        when(modelMapper.map(mockSpeakerList, new TypeToken<List<SpeakerOutDto>>() {}.getType())).thenReturn(modelMapperOut);
+        when(speakerRepository.findAll()).thenReturn(allSpeakers);
+        when(modelMapper.map(allSpeakers, new TypeToken<List<SpeakerOutDto>>() {}.getType())).thenReturn(modelMapperOut);
 
         List<SpeakerOutDto> actualSpeakerList = speakerService.findAll("mind", "", "");
 
@@ -82,13 +82,12 @@ public class SpeakerServiceTests {
         assertEquals("Ana", actualSpeakerList.getFirst().getFirstName());
         assertEquals("Lucia", actualSpeakerList.getLast().getFirstName());
 
-        verify(speakerRepository, times(0)).findAll();
-        verify(speakerRepository, times(1)).findBySpecialityContainingIgnoreCase("mind");
+        verify(speakerRepository, times(1)).findAll();
     }
 
     @Test
     public void testFindAllByAvailable() {
-        List<Speaker> mockSpeakerList = List.of(
+        List<Speaker> allSpeakers = List.of(
                 new Speaker(1L, "Ana", "Lopez", "ana@mail.com", "mindfulness", 5, 0, true,
                         LocalDate.of(2025, 1, 1), null),
                 new Speaker(3L, "Lucia", "Martin", "lucia@mail.com", "oratoria", 3, 0, true,
@@ -100,8 +99,8 @@ public class SpeakerServiceTests {
                 new SpeakerOutDto(3L, "Lucia", "Martin", "lucia@mail.com", "oratoria", 3)
         );
 
-        when(speakerRepository.findByAvailable(true)).thenReturn(mockSpeakerList);
-        when(modelMapper.map(mockSpeakerList, new TypeToken<List<SpeakerOutDto>>() {}.getType()))
+        when(speakerRepository.findAll()).thenReturn(allSpeakers);
+        when(modelMapper.map(allSpeakers, new TypeToken<List<SpeakerOutDto>>() {}.getType()))
                 .thenReturn(modelMapperSpeakerOutDto);
 
         List<SpeakerOutDto> actualSpeakerList = speakerService.findAll("", "true", "");
@@ -110,15 +109,12 @@ public class SpeakerServiceTests {
         assertEquals("Ana", actualSpeakerList.getFirst().getFirstName());
         assertEquals("Lucia", actualSpeakerList.getLast().getFirstName());
 
-        verify(speakerRepository, times(0)).findAll();
-        verify(speakerRepository, times(0)).findBySpecialityContainingIgnoreCase(anyString());
-        verify(speakerRepository, times(1)).findByAvailable(true);
-        verify(speakerRepository, times(0)).findByYearsExperience(anyInt());
+        verify(speakerRepository, times(1)).findAll();
     }
 
     @Test
     public void testFindAllByYearsExperience() {
-        List<Speaker> mockSpeakerList = List.of(
+        List<Speaker> allSpeakers = List.of(
                 new Speaker(1L, "Ana", "Lopez", "ana@mail.com", "mindfulness", 5, 0, true,
                         LocalDate.of(2025, 1, 1), null),
                 new Speaker(2L, "Pedro", "Sanchez", "pedro@mail.com", "coaching", 5, 0, true,
@@ -130,8 +126,8 @@ public class SpeakerServiceTests {
                 new SpeakerOutDto(2L, "Pedro", "Sanchez", "pedro@mail.com", "coaching", 5)
         );
 
-        when(speakerRepository.findByYearsExperience(5)).thenReturn(mockSpeakerList);
-        when(modelMapper.map(mockSpeakerList, new TypeToken<List<SpeakerOutDto>>() {}.getType()))
+        when(speakerRepository.findAll()).thenReturn(allSpeakers);
+        when(modelMapper.map(allSpeakers, new TypeToken<List<SpeakerOutDto>>() {}.getType()))
                 .thenReturn(modelMapperSpeakerOutDto);
 
         List<SpeakerOutDto> actualSpeakerList = speakerService.findAll("", "", "5");
@@ -140,10 +136,7 @@ public class SpeakerServiceTests {
         assertEquals("Ana", actualSpeakerList.getFirst().getFirstName());
         assertEquals("Pedro", actualSpeakerList.getLast().getFirstName());
 
-        verify(speakerRepository, times(0)).findAll();
-        verify(speakerRepository, times(0)).findBySpecialityContainingIgnoreCase(anyString());
-        verify(speakerRepository, times(0)).findByAvailable(anyBoolean());
-        verify(speakerRepository, times(1)).findByYearsExperience(5);
+        verify(speakerRepository, times(1)).findAll();
     }
 
     @Test

@@ -5,9 +5,7 @@ import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.domain.Workshop;
 import com.svalero.enajenarte.dto.RegistrationInDto;
 import com.svalero.enajenarte.dto.RegistrationOutDto;
-import com.svalero.enajenarte.exception.RegistrationNotFoundException;
-import com.svalero.enajenarte.exception.UserNotFoundException;
-import com.svalero.enajenarte.exception.WorkshopNotFoundException;
+import com.svalero.enajenarte.exception.*;
 import com.svalero.enajenarte.repository.RegistrationRepository;
 import com.svalero.enajenarte.repository.UserRepository;
 import com.svalero.enajenarte.repository.WorkshopRepository;
@@ -35,12 +33,27 @@ public class RegistrationService {
     private ModelMapper modelMapper;
 
     // POST
-    public RegistrationOutDto add(RegistrationInDto registrationInDto) throws UserNotFoundException, WorkshopNotFoundException {
+    public RegistrationOutDto add(RegistrationInDto registrationInDto) throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException {
         User user = userRepository.findById(registrationInDto.getUserId())
                 .orElseThrow(UserNotFoundException::new);
 
         Workshop workshop = workshopRepository.findById(registrationInDto.getWorkshopId())
                 .orElseThrow(WorkshopNotFoundException::new);
+
+        // Validación: evitar inscripción duplicada
+        boolean exists = registrationRepository.existsByUserIdAndWorkshopId(
+                registrationInDto.getUserId(),
+                registrationInDto.getWorkshopId()
+        );
+
+        if (exists) {
+            throw new DuplicateRegistrationException();
+        }
+
+        long currentRegistrations = registrationRepository.countByWorkshop(workshop);
+        if (currentRegistrations >= workshop.getMaxCapacity()) {
+            throw new WorkshopCapacityExceededException();
+        }
 
         Registration registration = modelMapper.map(registrationInDto, Registration.class);
         registration.setUser(user);
@@ -52,6 +65,8 @@ public class RegistrationService {
         registration.setPaid(false);
         registration.setAmountPaid(0);
         registration.setRating(null);
+        registration.setStatus("PENDING");
+        registration.setPaymentStatus("PENDING");
 
         Registration newRegistration = registrationRepository.save(registration);
 
@@ -135,6 +150,8 @@ public class RegistrationService {
             boolean paid = existingRegistration.isPaid();
             float amountPaid = existingRegistration.getAmountPaid();
             Integer rating = existingRegistration.getRating();
+            String status = existingRegistration.getStatus();
+            String paymentStatus = existingRegistration.getPaymentStatus();
 
             modelMapper.map(registrationInDto, existingRegistration);
             existingRegistration.setId(id);
@@ -147,6 +164,8 @@ public class RegistrationService {
             existingRegistration.setPaid(paid);
             existingRegistration.setAmountPaid(amountPaid);
             existingRegistration.setRating(rating);
+            existingRegistration.setStatus(status);
+            existingRegistration.setPaymentStatus(paymentStatus);
 
             Registration updateRegistration = registrationRepository.save(existingRegistration);
 

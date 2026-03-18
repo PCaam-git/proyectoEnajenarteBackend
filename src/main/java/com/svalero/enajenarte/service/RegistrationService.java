@@ -50,8 +50,15 @@ public class RegistrationService {
             throw new DuplicateRegistrationException();
         }
 
-        long currentRegistrations = registrationRepository.countByWorkshop(workshop);
-        if (currentRegistrations >= workshop.getMaxCapacity()) {
+        List<Registration> registrations = registrationRepository.findByWorkshop(workshop);
+
+        int currentCapacity = registrations.stream()
+                .mapToInt(Registration::getNumberOfTickets)
+                .sum();
+
+        int requestedTickets = registrationInDto.getNumberOfTickets();
+
+        if (currentCapacity + requestedTickets > workshop.getMaxCapacity()) {
             throw new WorkshopCapacityExceededException();
         }
 
@@ -59,14 +66,22 @@ public class RegistrationService {
         registration.setUser(user);
         registration.setWorkshop(workshop);
 
-        //Aquí se establecen los datos de sistema
+        // Aquí se establecen los datos de sistema
         registration.setRegistrationDate(LocalDate.now());
         registration.setConfirmationCode(UUID.randomUUID().toString());
         registration.setPaid(false);
         registration.setAmountPaid(0);
         registration.setRating(null);
-        registration.setStatus("PENDING");
-        registration.setPaymentStatus("PENDING");
+
+        // Por ahora, todas las inscripciones se confirman automáticamente y el pago queda pendiente por defecto.
+        // minimumParticipants existe en Workshop, pero todavía no se usa en la lógica.
+        if (workshop.isOnline()) {
+            registration.setStatus("CONFIRMED");
+            registration.setPaymentStatus("PENDING");
+        } else {
+            registration.setStatus("CONFIRMED");
+            registration.setPaymentStatus("PENDING");
+        }
 
         Registration newRegistration = registrationRepository.save(registration);
 

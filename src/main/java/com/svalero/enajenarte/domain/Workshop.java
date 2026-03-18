@@ -46,6 +46,10 @@ public class Workshop {
     @Min(value = 0, message = "price must be a positive number")
     private float price;
 
+    @Column(name = "minimum_participants")
+    @Min(value = 1, message = "Minimum participants must be greater than or equal to 1")
+    private Integer minimumParticipants;
+
     @Column(name = "max_capacity")
     @Min(value = 1, message = "maxCapacity must be at least 1")
     private int maxCapacity;

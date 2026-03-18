@@ -1,5 +1,6 @@
 package com.svalero.enajenarte.dto;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
@@ -30,6 +31,9 @@ public class WorkshopInDto {
 
     @Min(value = 0, message = "Price must be 0 or positive")
     private float price;
+
+    @Min(value = 1, message = "Minimum participants must be greater than or equal to 1")
+    private Integer minimumParticipants;
 
     @Min(value = 1, message = "Capacity must be at least 1")
     private int maxCapacity;

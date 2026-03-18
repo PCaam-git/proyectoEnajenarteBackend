@@ -304,11 +304,12 @@ public class RegistrationServiceTests {
 
         RegistrationOutDto modelMapperRegistrationOutDto = new RegistrationOutDto();
         modelMapperRegistrationOutDto.setId(100L);
+        modelMapperRegistration.setNumberOfTickets(2);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(userRepositoryUser));
         when(workshopRepository.findById(10L)).thenReturn(Optional.of(workshopRepositoryWorkshop));
         when(registrationRepository.existsByUserIdAndWorkshopId(1L, 10L)).thenReturn(false);
-        when(registrationRepository.countByWorkshop(workshopRepositoryWorkshop)).thenReturn(0L);
+        when(registrationRepository.findByWorkshop(workshopRepositoryWorkshop)).thenReturn(List.of());
         when(modelMapper.map(registrationInDto, Registration.class)).thenReturn(modelMapperRegistration);
         when(registrationRepository.save(modelMapperRegistration)).thenReturn(registrationRepositorySavedRegistration);
         when(modelMapper.map(registrationRepositorySavedRegistration, RegistrationOutDto.class)).thenReturn(modelMapperRegistrationOutDto);
@@ -321,6 +322,8 @@ public class RegistrationServiceTests {
         verify(userRepository, times(1)).findById(1L);
         verify(workshopRepository, times(1)).findById(10L);
         verify(registrationRepository, times(1)).save(modelMapperRegistration);
+        assertEquals("CONFIRMED", modelMapperRegistration.getStatus());
+        assertEquals("PENDING", modelMapperRegistration.getPaymentStatus());
     }
 
     @Test
@@ -507,11 +510,15 @@ public class RegistrationServiceTests {
         when(userRepository.findById(1L)).thenReturn(Optional.of(userRepositoryUser));
         when(workshopRepository.findById(10L)).thenReturn(Optional.of(workshopRepositoryWorkshop));
         when(registrationRepository.existsByUserIdAndWorkshopId(1L, 10L)).thenReturn(false);
-        when(registrationRepository.countByWorkshop(workshopRepositoryWorkshop)).thenReturn(20L);
+        Registration existingRegistration = new Registration();
+        existingRegistration.setNumberOfTickets(20);
+
+        when(registrationRepository.findByWorkshop(workshopRepositoryWorkshop))
+                .thenReturn(List.of(existingRegistration));
 
         assertThrows(WorkshopCapacityExceededException.class, () -> registrationService.add(registrationInDto));
 
-        verify(registrationRepository, times(1)).countByWorkshop(workshopRepositoryWorkshop);
+        verify(registrationRepository, times(1)).findByWorkshop(workshopRepositoryWorkshop);
         verify(registrationRepository, times(0)).save(any(Registration.class));
     }
 }

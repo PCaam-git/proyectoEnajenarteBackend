@@ -5,10 +5,7 @@ import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.domain.Workshop;
 import com.svalero.enajenarte.dto.RegistrationInDto;
 import com.svalero.enajenarte.dto.RegistrationOutDto;
-import com.svalero.enajenarte.exception.DuplicateRegistrationException;
-import com.svalero.enajenarte.exception.RegistrationNotFoundException;
-import com.svalero.enajenarte.exception.UserNotFoundException;
-import com.svalero.enajenarte.exception.WorkshopNotFoundException;
+import com.svalero.enajenarte.exception.*;
 import com.svalero.enajenarte.repository.RegistrationRepository;
 import com.svalero.enajenarte.repository.UserRepository;
 import com.svalero.enajenarte.repository.WorkshopRepository;
@@ -36,7 +33,7 @@ public class RegistrationService {
     private ModelMapper modelMapper;
 
     // POST
-    public RegistrationOutDto add(RegistrationInDto registrationInDto) throws UserNotFoundException, WorkshopNotFoundException {
+    public RegistrationOutDto add(RegistrationInDto registrationInDto) throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException {
         User user = userRepository.findById(registrationInDto.getUserId())
                 .orElseThrow(UserNotFoundException::new);
 

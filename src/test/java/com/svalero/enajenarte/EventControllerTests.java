@@ -175,10 +175,10 @@ public class EventControllerTests {
     @Test
     public void testAdd() throws Exception {
         EventInDto eventInDto = new EventInDto("Mindfulness", "Zaragoza",
-                LocalDateTime.of(2026, 2, 1, 10, 0), 0, true, 30, 1L);
+                LocalDateTime.of(2028, 2, 1, 10, 0), 0, true, 30, 1L);
 
         EventOutDto eventOutDto = new EventOutDto(10L, "Mindfulness", "Zaragoza",
-                LocalDateTime.of(2026, 2, 1, 10, 0), 0, true, 1L);
+                LocalDateTime.of(2028, 2, 1, 10, 0), 0, true, 1L);
 
         when(eventService.add(any(EventInDto.class))).thenReturn(eventOutDto);
 
@@ -195,7 +195,7 @@ public class EventControllerTests {
     @Test
     public void testAdd_SpeakerNotFound() throws Exception {
         EventInDto eventInDto = new EventInDto("Mindfulness", "Zaragoza",
-                LocalDateTime.of(2026, 2, 1, 10, 0), 0, true, 30, 99L);
+                LocalDateTime.of(2028, 2, 1, 10, 0), 0, true, 30, 99L);
 
         when(eventService.add(any(EventInDto.class))).thenThrow(new SpeakerNotFoundException());
 
@@ -231,10 +231,10 @@ public class EventControllerTests {
         long id = 7L;
 
         EventInDto eventInDto = new EventInDto("Mindfulness actualizado", "Zaragoza",
-                LocalDateTime.of(2026, 2, 1, 10, 0), 0, true, 30, 1L);
+                LocalDateTime.of(2028, 2, 1, 10, 0), 0, true, 30, 1L);
 
         EventOutDto outDto = new EventOutDto(id, "Mindfulness actualizado", "Zaragoza",
-                LocalDateTime.of(2026, 2, 1, 10, 0), 0, true, 1L);
+                LocalDateTime.of(2028, 2, 1, 10, 0), 0, true, 1L);
 
         when(eventService.modify(eq(id), any(EventInDto.class))).thenReturn(outDto);
 
@@ -253,7 +253,7 @@ public class EventControllerTests {
         long id = 99L;
 
         EventInDto eventInDto = new EventInDto("Mindfulness", "Zaragoza",
-                LocalDateTime.of(2026, 2, 1, 10, 0), 0, true, 30, 1L);
+                LocalDateTime.of(2028, 2, 1, 10, 0), 0, true, 30, 1L);
 
         when(eventService.modify(eq(id), any(EventInDto.class))).thenThrow(new EventNotFoundException());
 
@@ -273,7 +273,7 @@ public class EventControllerTests {
 
         // title vacío -> @NotEmpty -> 400
         EventInDto invalidDto = new EventInDto("", "Zaragoza",
-                LocalDateTime.of(2026, 2, 1, 10, 0), 0, true, 30, 1L);
+                LocalDateTime.of(2028, 2, 1, 10, 0), 0, true, 30, 1L);
 
         String body = objectMapper.writeValueAsString(invalidDto);
 
@@ -290,7 +290,7 @@ public class EventControllerTests {
         long id = 7L;
 
         EventInDto eventInDto = new EventInDto("Mindfulness", "Zaragoza",
-                LocalDateTime.of(2026, 2, 1, 10, 0), 0, true, 30, 99L);
+                LocalDateTime.of(2028, 2, 1, 10, 0), 0, true, 30, 99L);
 
         when(eventService.modify(eq(id), any(EventInDto.class))).thenThrow(new SpeakerNotFoundException());
 

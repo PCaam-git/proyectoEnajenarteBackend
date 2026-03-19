@@ -1,17 +1,20 @@
 package com.svalero.enajenarte;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.svalero.enajenarte.controller.UserController;
 import com.svalero.enajenarte.controller.WorkshopController;
 import com.svalero.enajenarte.dto.WorkshopInDto;
 import com.svalero.enajenarte.dto.WorkshopOutDto;
 import com.svalero.enajenarte.exception.SpeakerNotFoundException;
 import com.svalero.enajenarte.exception.WorkshopNotFoundException;
+import com.svalero.enajenarte.repository.UserRepository;
 import com.svalero.enajenarte.service.WorkshopService;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -24,9 +27,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(WorkshopController.class)
+@WebMvcTest(value = WorkshopController.class, excludeAutoConfiguration = {
+    org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration.class
+})
+@WithMockUser
 public class WorkshopControllerTests {
 
     @Autowired
@@ -37,6 +44,12 @@ public class WorkshopControllerTests {
 
     @MockitoBean
     private ModelMapper modelMapper;
+
+    @MockitoBean
+    private com.svalero.enajenarte.security.JwtUtils jwtUtils;
+
+    @MockitoBean
+    private UserRepository userRepository;
 
     @Autowired
     private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
@@ -197,6 +210,7 @@ public class WorkshopControllerTests {
         String body = objectMapper.writeValueAsString(workshopInDto);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/workshops")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .accept(MediaType.APPLICATION_JSON_VALUE)
                         .content(body))
@@ -214,6 +228,7 @@ public class WorkshopControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/workshops")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(body)
@@ -234,6 +249,7 @@ public class WorkshopControllerTests {
         String body = objectMapper.writeValueAsString(workshopInDto);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/workshops/5")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .accept(MediaType.APPLICATION_JSON_VALUE)
                         .content(body))
@@ -250,6 +266,7 @@ public class WorkshopControllerTests {
         String body = objectMapper.writeValueAsString(workshopInDto);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/workshops/99")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .accept(MediaType.APPLICATION_JSON_VALUE)
                         .content(body))
@@ -259,7 +276,9 @@ public class WorkshopControllerTests {
     public void testDelete() throws Exception {
         doNothing().when(workshopService).delete(1L);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/workshops/1"))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/workshops/1")
+                .with(csrf())
+                )
                 .andExpect(status().isNoContent());
     }
 
@@ -267,7 +286,9 @@ public class WorkshopControllerTests {
     public void testDelete_NotFound() throws Exception {
         doThrow(new WorkshopNotFoundException()).when(workshopService).delete(99L);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/workshops/99"))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/workshops/99")
+                        .with(csrf())
+                )
                 .andExpect(status().isNotFound());
     }
 }

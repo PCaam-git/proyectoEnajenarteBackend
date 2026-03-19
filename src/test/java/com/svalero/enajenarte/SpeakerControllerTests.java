@@ -2,15 +2,18 @@ package com.svalero.enajenarte;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.svalero.enajenarte.controller.SpeakerController;
+import com.svalero.enajenarte.controller.UserController;
 import com.svalero.enajenarte.dto.SpeakerInDto;
 import com.svalero.enajenarte.dto.SpeakerOutDto;
 import com.svalero.enajenarte.exception.SpeakerNotFoundException;
+import com.svalero.enajenarte.repository.UserRepository;
 import com.svalero.enajenarte.service.SpeakerService;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -24,9 +27,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(SpeakerController.class)
+@WebMvcTest(value = SpeakerController.class, excludeAutoConfiguration = {
+    org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration.class
+})
+@WithMockUser
 public class SpeakerControllerTests {
 
     @Autowired
@@ -37,6 +44,12 @@ public class SpeakerControllerTests {
 
     @MockitoBean
     private ModelMapper modelMapper;
+
+    @MockitoBean
+    private com.svalero.enajenarte.security.JwtUtils jwtUtils;
+
+    @MockitoBean
+    private UserRepository userRepository;
 
     @Autowired
     private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
@@ -181,6 +194,7 @@ public class SpeakerControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/speakers")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(body)
@@ -197,6 +211,7 @@ public class SpeakerControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/speakers")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(body)
@@ -218,6 +233,7 @@ public class SpeakerControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.put("/speakers/5")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(body)
@@ -237,6 +253,7 @@ public class SpeakerControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.put("/speakers/99")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(body))
@@ -248,7 +265,8 @@ public class SpeakerControllerTests {
         doNothing().when(speakerService).delete(1L);
 
         mockMvc.perform(
-                        MockMvcRequestBuilders.delete("/speakers/1"))
+                        MockMvcRequestBuilders.delete("/speakers/1")
+                                .with(csrf()))
                 .andExpect(status().isNoContent());
     }
 
@@ -258,7 +276,8 @@ public class SpeakerControllerTests {
         doThrow(new SpeakerNotFoundException()).when(speakerService).delete(99L);
 
         mockMvc.perform(
-                        MockMvcRequestBuilders.delete("/speakers/99"))
+                        MockMvcRequestBuilders.delete("/speakers/99")
+                                .with(csrf()))
                 .andExpect(status().isNotFound());
     }
 

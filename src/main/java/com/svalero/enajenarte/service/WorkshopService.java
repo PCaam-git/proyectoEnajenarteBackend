@@ -31,6 +31,7 @@ public class WorkshopService {
                 .orElseThrow(SpeakerNotFoundException::new);
 
         Workshop workshop = modelMapper.map(workshopInDto, Workshop.class);
+        workshop.setStatus("CONFIRMED");
         workshop.setSpeaker(speaker);
 
         Workshop newWorkshop = workshopRepository.save(workshop);
@@ -104,9 +105,12 @@ public class WorkshopService {
         Speaker speaker = speakerRepository.findById(workshopInDto.getSpeakerId())
                 .orElseThrow(SpeakerNotFoundException::new);
 
+        String status = existingWorkshop.getStatus();
+
         modelMapper.map(workshopInDto, existingWorkshop);
         existingWorkshop.setId(id);
         existingWorkshop.setSpeaker(speaker);
+        existingWorkshop.setStatus(status);
 
         Workshop updatedWorkshop = workshopRepository.save(existingWorkshop);
         WorkshopOutDto updatedWorkshopOutDto = modelMapper.map(updatedWorkshop, WorkshopOutDto.class);

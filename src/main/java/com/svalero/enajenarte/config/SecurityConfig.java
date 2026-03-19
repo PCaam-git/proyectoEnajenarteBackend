@@ -30,10 +30,25 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Define las peticiones que están permitidas y las que no
+                // Get event y workshops para todos, registrarse para todos, resto de endopoints protegidos
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/users").permitAll()
-                        // permite el acceso a todos los endpoints sin restricciones
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/users").permitAll()
+
+                        // públicos
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/events/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/workshops/**").permitAll()
+
+                        // ADMIN - events
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/events").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/events/**").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/events/**").hasRole("ADMIN")
+
+                        // ADMIN - workshops
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/workshops").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/workshops/**").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/workshops/**").hasRole("ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);

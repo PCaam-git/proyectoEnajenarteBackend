@@ -47,8 +47,8 @@ public class WorkshopServiceTests {
         );
 
         List<WorkshopOutDto> modelMapperOut = List.of(
-                new WorkshopOutDto(1L, "Oratoria básica", "Taller de oratoria y comunicación", LocalDate.of(2026, 2, 10), 90, 25, true, 1L),
-                new WorkshopOutDto(2L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2026, 3, 5), 120, 30, false, 1L)
+                new WorkshopOutDto(1L, "Oratoria básica", "Taller de oratoria y comunicación", LocalDate.of(2026, 2, 10), 90, 25, true,"CONFIRMED", 1L),
+                new WorkshopOutDto(2L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2026, 3, 5), 120, 30, false, "CONFIRMED",1L)
         );
 
         when(workshopRepository.findAll()).thenReturn(mockWorkshopList);
@@ -73,8 +73,8 @@ public class WorkshopServiceTests {
         );
 
         List<WorkshopOutDto> modelMapperOut = List.of(
-                new WorkshopOutDto(1L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2026, 3, 5), 120, 30, false, 1L),
-                new WorkshopOutDto(2L, "Arte terapia avanzada", "Taller creativo avanzado", LocalDate.of(2026, 3, 20), 120, 35, false, 1L)
+                new WorkshopOutDto(1L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2026, 3, 5), 120, 30, false, "CONFIRMED",1L),
+                new WorkshopOutDto(2L, "Arte terapia avanzada", "Taller creativo avanzado", LocalDate.of(2026, 3, 20), 120, 35, false, "CONFIRMED",1L)
         );
 
         when(workshopRepository.findAll()).thenReturn(allWorkshops);
@@ -100,9 +100,9 @@ public class WorkshopServiceTests {
 
         List<WorkshopOutDto> modelMapperWorkshopOutDto = List.of(
                 new WorkshopOutDto(1L, "Oratoria básica", "Taller de oratoria",
-                        LocalDate.of(2026, 2, 10), 90, 25, true, 1L),
+                        LocalDate.of(2026, 2, 10), 90, 25, true, "CONFIRMED",1L),
                 new WorkshopOutDto(3L, "Coaching online", "Taller de coaching",
-                        LocalDate.of(2026, 3, 15), 120, 30, true, 1L)
+                        LocalDate.of(2026, 3, 15), 120, 30, true,"CONFIRMED", 1L)
         );
 
         when(workshopRepository.findAll()).thenReturn(allWorkshops);
@@ -132,9 +132,9 @@ public class WorkshopServiceTests {
 
         List<WorkshopOutDto> modelMapperWorkshopOutDto = List.of(
                 new WorkshopOutDto(1L, "Oratoria básica", "Taller de oratoria",
-                        LocalDate.of(2026, 2, 10), 90, 25, true, 5L),
+                        LocalDate.of(2026, 2, 10), 90, 25, true, "CONFIRMED",5L),
                 new WorkshopOutDto(2L, "Oratoria avanzada", "Taller avanzado",
-                        LocalDate.of(2026, 3, 5), 120, 30, false, 5L)
+                        LocalDate.of(2026, 3, 5), 120, 30, false,"CONFIRMED", 5L)
         );
 
         when(workshopRepository.findAll()).thenReturn(allWorkshops);
@@ -167,7 +167,7 @@ public class WorkshopServiceTests {
                 LocalDate.of(2026, 2, 10), 90, 25,1,  20, true,"CONFIRMED",  null, null);
 
         WorkshopOutDto workshopOutDto = new WorkshopOutDto(7L, "Oratoria", "Taller de desarrollo",
-                LocalDate.of(2026, 2, 10), 90, 25, true, 1L);
+                LocalDate.of(2026, 2, 10), 90, 25, true, "CONFIRMED",1L);
 
         when(workshopRepository.findById(7L)).thenReturn(Optional.of(workshop));
         when(modelMapper.map(workshop, WorkshopOutDto.class)).thenReturn(workshopOutDto);
@@ -202,7 +202,7 @@ public class WorkshopServiceTests {
         savedWorkshop.setId(10L);
 
         WorkshopOutDto modelMapperOutDto = new WorkshopOutDto(10L, "Oratoria", "Taller de desarrollo",
-                LocalDate.of(2026, 2, 10), 90, 25, true, 1L);
+                LocalDate.of(2026, 2, 10), 90, 25, true, "CONFIRMED",1L);
 
         when(speakerRepository.findById(1L)).thenReturn(Optional.of(speaker));
         when(modelMapper.map(workshopInDto, Workshop.class)).thenReturn(workshop);
@@ -232,7 +232,7 @@ public class WorkshopServiceTests {
         savedWorkshop.setStatus("CONFIRMED");
 
         WorkshopOutDto modelMapperOutDto = new WorkshopOutDto(10L, "Oratoria", "Taller de desarrollo",
-                LocalDate.of(2026, 2, 10), 90, 25, true, 1L);
+                LocalDate.of(2026, 2, 10), 90, 25, true,"CONFIRMED", 1L);
 
         when(speakerRepository.findById(1L)).thenReturn(Optional.of(speaker));
         when(modelMapper.map(workshopInDto, Workshop.class)).thenReturn(workshop);

@@ -85,6 +85,9 @@ public class RegistrationService {
 
         Registration newRegistration = registrationRepository.save(registration);
 
+        // Simulación de envío de confirmación
+        simulateEmailConfirmation(newRegistration);
+
         RegistrationOutDto registrationOutDto = modelMapper.map(newRegistration, RegistrationOutDto.class);
         registrationOutDto.setUserId(newRegistration.getUser().getId());
         registrationOutDto.setWorkshopId(newRegistration.getWorkshop().getId());
@@ -191,6 +194,11 @@ public class RegistrationService {
 
             return registrationOutDto;
         }
+
+    private void simulateEmailConfirmation(Registration registration) {
+        System.out.println("Simulando envío de email de confirmación para la inscripción con código: "
+                + registration.getConfirmationCode());
+    }
 
     }
 

@@ -196,6 +196,10 @@ public class RegistrationService {
         }
 
     private void simulateEmailConfirmation(Registration registration) {
+        sendConfirmationNotification(registration);
+    }
+
+    private void sendConfirmationNotification(Registration registration) {
         System.out.println("Simulando envío de email de confirmación para la inscripción con código: "
                 + registration.getConfirmationCode());
     }

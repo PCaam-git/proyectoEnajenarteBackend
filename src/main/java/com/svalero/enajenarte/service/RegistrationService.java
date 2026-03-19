@@ -193,6 +193,13 @@ public class RegistrationService {
         registration.setRating(null);
 
         // Confirmación automática
+        applyInitialStatus(registration, workshop);
+
+        return registration;
+    }
+
+    private void applyInitialStatus(Registration registration, Workshop workshop) {
+        // confirmación automática (temporal)
         if (workshop.isOnline()) {
             registration.setStatus(STATUS_CONFIRMED);
             registration.setPaymentStatus(PAYMENT_STATUS_PENDING);
@@ -200,8 +207,6 @@ public class RegistrationService {
             registration.setStatus(STATUS_CONFIRMED);
             registration.setPaymentStatus(PAYMENT_STATUS_PENDING);
         }
-
-        return registration;
     }
 
     private void simulateEmailConfirmation(Registration registration) {

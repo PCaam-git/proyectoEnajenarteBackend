@@ -17,5 +17,6 @@ public class WorkshopOutDto {
     private int durationMinutes;
     private float price;
     private boolean isOnline;
+    private String status;
     private long speakerId;
 }

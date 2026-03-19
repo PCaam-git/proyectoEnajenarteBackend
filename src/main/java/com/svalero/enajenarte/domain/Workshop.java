@@ -57,6 +57,10 @@ public class Workshop {
     @Column(name = "is_online")
     private boolean isOnline;
 
+    @Column
+    @NotNull
+    private String status;
+
     @ManyToOne
     @JoinColumn(name = "speaker_id")
     private Speaker speaker;

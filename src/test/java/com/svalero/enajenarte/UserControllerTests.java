@@ -5,12 +5,14 @@ import com.svalero.enajenarte.controller.UserController;
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
 import com.svalero.enajenarte.exception.UserNotFoundException;
+import com.svalero.enajenarte.repository.UserRepository;
 import com.svalero.enajenarte.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -24,9 +26,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(UserController.class)
+@WebMvcTest(value = UserController.class, excludeAutoConfiguration = {
+    org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration.class
+})
+@WithMockUser
 public class UserControllerTests {
 
     @Autowired
@@ -37,6 +43,12 @@ public class UserControllerTests {
 
     @MockitoBean
     private ModelMapper modelMapper;
+
+    @MockitoBean
+    private com.svalero.enajenarte.security.JwtUtils jwtUtils;
+
+    @MockitoBean
+    private UserRepository userRepository;
 
     @Autowired
     private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
@@ -130,6 +142,7 @@ public class UserControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/users")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(requestBody)
@@ -148,6 +161,7 @@ public class UserControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/users")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(body)
@@ -166,6 +180,7 @@ public class UserControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.put("/users/5")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(requestBody)
@@ -183,6 +198,7 @@ public class UserControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.put("/users/99")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(requestBody)
@@ -199,6 +215,7 @@ public class UserControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.put("/users/5")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(requestBody)
@@ -212,6 +229,7 @@ public class UserControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete("/users/1")
+                                .with(csrf())
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                 )
                 .andExpect(status().isNoContent());
@@ -223,6 +241,7 @@ public class UserControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete("/users/99")
+                                .with(csrf())
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                 )
                 .andExpect(status().isNotFound());

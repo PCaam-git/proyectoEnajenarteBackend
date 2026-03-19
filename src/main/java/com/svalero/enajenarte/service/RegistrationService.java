@@ -32,6 +32,9 @@ public class RegistrationService {
     @Autowired
     private ModelMapper modelMapper;
 
+    private static final String STATUS_CONFIRMED = "CONFIRMED";
+    private static final String PAYMENT_STATUS_PENDING = "PENDING";
+
     // POST
     public RegistrationOutDto add(RegistrationInDto registrationInDto) throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException {
         User user = userRepository.findById(registrationInDto.getUserId())
@@ -76,11 +79,11 @@ public class RegistrationService {
         // Por ahora, todas las inscripciones se confirman automáticamente y el pago queda pendiente por defecto.
         // minimumParticipants existe en Workshop, pero todavía no se usa en la lógica.
         if (workshop.isOnline()) {
-            registration.setStatus("CONFIRMED");
-            registration.setPaymentStatus("PENDING");
+            registration.setStatus(STATUS_CONFIRMED);
+            registration.setPaymentStatus(PAYMENT_STATUS_PENDING);
         } else {
-            registration.setStatus("CONFIRMED");
-            registration.setPaymentStatus("PENDING");
+            registration.setStatus(STATUS_CONFIRMED);
+            registration.setPaymentStatus(PAYMENT_STATUS_PENDING);
         }
 
         Registration newRegistration = registrationRepository.save(registration);

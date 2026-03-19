@@ -56,7 +56,7 @@ public class UserService {
         User user = modelMapper.map(userInDto, User.class);
 
         // generadas por el sistema
-        user.setRole("user");
+        user.setRole("USER");
         user.setActive(true);
         user.setBalance(0);
 
@@ -93,5 +93,19 @@ public class UserService {
                 .orElseThrow(UserNotFoundException::new);
 
         userRepository.delete(user);
+    }
+
+    // AUTENTICACIÓN
+    public User autenticate(String username, String password) throws UserNotFoundException {
+        User user = userRepository.findByUsername(username);
+
+        if (user == null) {
+            throw new UserNotFoundException();
+        }
+
+        if (!user.getPassword().equals(password)) {
+            throw new UserNotFoundException();
+        }
+        return user;
     }
 }

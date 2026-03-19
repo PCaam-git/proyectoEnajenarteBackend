@@ -65,26 +65,7 @@ public class RegistrationService {
             throw new WorkshopCapacityExceededException();
         }
 
-        Registration registration = modelMapper.map(registrationInDto, Registration.class);
-        registration.setUser(user);
-        registration.setWorkshop(workshop);
-
-        // Aquí se establecen los datos de sistema
-        registration.setRegistrationDate(LocalDate.now());
-        registration.setConfirmationCode(UUID.randomUUID().toString());
-        registration.setPaid(false);
-        registration.setAmountPaid(0);
-        registration.setRating(null);
-
-        // Por ahora, todas las inscripciones se confirman automáticamente y el pago queda pendiente por defecto.
-        // minimumParticipants existe en Workshop, pero todavía no se usa en la lógica.
-        if (workshop.isOnline()) {
-            registration.setStatus(STATUS_CONFIRMED);
-            registration.setPaymentStatus(PAYMENT_STATUS_PENDING);
-        } else {
-            registration.setStatus(STATUS_CONFIRMED);
-            registration.setPaymentStatus(PAYMENT_STATUS_PENDING);
-        }
+        Registration registration = buildRegistration(registrationInDto, user, workshop);
 
         Registration newRegistration = registrationRepository.save(registration);
 
@@ -197,6 +178,31 @@ public class RegistrationService {
 
             return registrationOutDto;
         }
+
+    private Registration buildRegistration(RegistrationInDto registrationInDto, User user, Workshop workshop) {
+
+        Registration registration = modelMapper.map(registrationInDto, Registration.class);
+        registration.setUser(user);
+        registration.setWorkshop(workshop);
+
+        // Datos de sistema
+        registration.setRegistrationDate(LocalDate.now());
+        registration.setConfirmationCode(UUID.randomUUID().toString());
+        registration.setPaid(false);
+        registration.setAmountPaid(0);
+        registration.setRating(null);
+
+        // Confirmación automática
+        if (workshop.isOnline()) {
+            registration.setStatus(STATUS_CONFIRMED);
+            registration.setPaymentStatus(PAYMENT_STATUS_PENDING);
+        } else {
+            registration.setStatus(STATUS_CONFIRMED);
+            registration.setPaymentStatus(PAYMENT_STATUS_PENDING);
+        }
+
+        return registration;
+    }
 
     private void simulateEmailConfirmation(Registration registration) {
         sendConfirmationNotification(registration);

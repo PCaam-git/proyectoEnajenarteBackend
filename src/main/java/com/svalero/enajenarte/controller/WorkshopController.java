@@ -50,7 +50,7 @@ public class WorkshopController {
 
     //POST
     @PostMapping("/workshops")
-    public ResponseEntity<WorkshopOutDto> addWorkshop(@Valid @RequestBody WorkshopInDto workshopInDto) throws SpeakerNotFoundException {
+    public ResponseEntity<WorkshopOutDto> addWorkshop(@Valid @RequestBody WorkshopInDto workshopInDto) throws SpeakerNotFoundException, InvalidDateRangeException{
         WorkshopOutDto newWorkshop = workshopService.add(workshopInDto);
         return new ResponseEntity<>(newWorkshop, HttpStatus.CREATED);
     }
@@ -58,7 +58,7 @@ public class WorkshopController {
     // PUT
     @PutMapping("/workshops/{id}")
     public ResponseEntity<WorkshopOutDto> modifyWorkshop(@PathVariable long id, @Valid @RequestBody WorkshopInDto workshopInDto)
-        throws SpeakerNotFoundException, WorkshopNotFoundException {
+        throws SpeakerNotFoundException, WorkshopNotFoundException, InvalidDateRangeException {
         WorkshopOutDto updateWorkshop = workshopService.modify(id, workshopInDto);
         return ResponseEntity.ok(updateWorkshop);
     }

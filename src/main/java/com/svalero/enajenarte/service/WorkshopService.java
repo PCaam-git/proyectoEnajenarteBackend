@@ -137,9 +137,13 @@ public class WorkshopService {
         }
 
         if (existingWorkshop.isOnline()) {
-            existingWorkshop.setStatus("CONFIRMED");
+            if (!"CANCELLED".equals(status)) {
+                existingWorkshop.setStatus("CONFIRMED");
+            } else {
+                existingWorkshop.setStatus(status);
+            }
         } else {
-            existingWorkshop.setStatus("PENDING");
+            existingWorkshop.setStatus(status);
         }
 
         Workshop updatedWorkshop = workshopRepository.save(existingWorkshop);

@@ -30,6 +30,8 @@ public class WorkshopService {
     private RegistrationRepository registrationRepository;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private RegistrationService registrationService;
 
 
     // POST
@@ -180,10 +182,18 @@ public class WorkshopService {
                     for (Registration registration : registrations) {
                         registration.setStatus("CANCELLED");
                         registrationRepository.save(registration);
+
+                        // Simulamos notificar al cliente
+                        simulateWorkshopCancellationNotification(registration);
                     }
                 }
             }
         }
 
+    }
+
+    private void simulateWorkshopCancellationNotification(Registration registration) {
+        System.out.println("Simulando notificación de cancelación para la inscripción con código: "
+                + registration.getConfirmationCode());
     }
 }

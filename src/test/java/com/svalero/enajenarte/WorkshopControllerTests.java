@@ -58,8 +58,8 @@ public class WorkshopControllerTests {
     @Test
     public void testGetAll() throws Exception {
         List<WorkshopOutDto> workshopsOutDtoList = List.of(
-                new WorkshopOutDto(1L, "Oratoria básica", "Taller de oratoria y comunicación", LocalDate.of(2026, 2, 22), 90, 25, true, "CONFIRMED", 1L),
-                new WorkshopOutDto(2L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2026, 3, 5), 120, 30, false, "CONFIRMED",1L)
+                new WorkshopOutDto(1L, "Oratoria básica", "Taller de oratoria y comunicación", LocalDate.of(2028, 2, 22), LocalDate.of(2028, 2, 5),90, 25, true, "CONFIRMED", 1L),
+                new WorkshopOutDto(2L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2028, 3, 5), LocalDate.of(2028, 2, 5),120, 30, false, "CONFIRMED",1L)
         );
 
         when(workshopService.findAll("", "", "")).thenReturn(workshopsOutDtoList);
@@ -83,8 +83,8 @@ public class WorkshopControllerTests {
     @Test
     public void testGetAllByName() throws Exception {
         List<WorkshopOutDto> workshopsOutDtoList = List.of(
-                new WorkshopOutDto(2L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2026, 3, 5), 120, 30, false, "CONFIRMED",1L),
-                new WorkshopOutDto(3L, "Arte terapia avanzada", "Taller creativo avanzado", LocalDate.of(2026, 3, 20), 120, 35, false, "CONFIRMED",1L)
+                new WorkshopOutDto(2L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2028, 3, 5), LocalDate.of(2028, 2, 5),120, 30, false, "CONFIRMED",1L),
+                new WorkshopOutDto(3L, "Arte terapia avanzada", "Taller creativo avanzado", LocalDate.of(2028, 3, 20), LocalDate.of(2028, 2, 5),120, 35, false, "CONFIRMED",1L)
         );
 
         when(workshopService.findAll("arte", "", "")).thenReturn(workshopsOutDtoList);
@@ -109,9 +109,9 @@ public class WorkshopControllerTests {
     public void testGetAllByIsOnline() throws Exception {
         List<WorkshopOutDto> workshopsOutDtoList = List.of(
                 new WorkshopOutDto(1L, "Oratoria básica", "Taller de oratoria",
-                        LocalDate.of(2026, 8, 10), 90, 25, true, "CONFIRMED",1L),
+                        LocalDate.of(2028, 8, 10), LocalDate.of(2028, 2, 5),90, 25, true, "CONFIRMED",1L),
                 new WorkshopOutDto(3L, "Coaching online", "Taller de coaching",
-                        LocalDate.of(2026, 8, 15), 120, 30, true,"CONFIRMED", 1L)
+                        LocalDate.of(2028, 8, 15), LocalDate.of(2028, 2, 5),120, 30, true,"CONFIRMED", 1L)
         );
 
         when(workshopService.findAll("", "true", "")).thenReturn(workshopsOutDtoList);
@@ -137,9 +137,9 @@ public class WorkshopControllerTests {
     public void testGetAllBySpeakerId() throws Exception {
         List<WorkshopOutDto> workshopsOutDtoList = List.of(
                 new WorkshopOutDto(1L, "Oratoria básica", "Taller de oratoria",
-                        LocalDate.of(2026, 8, 10), 90, 25, true, "CONFIRMED",5L),
+                        LocalDate.of(2028, 8, 10), LocalDate.of(2028, 2, 5),90, 25, true, "CONFIRMED",5L),
                 new WorkshopOutDto(2L, "Oratoria avanzada", "Taller avanzado",
-                        LocalDate.of(2026, 8, 5), 120, 30, false, "CONFIRMED",5L)
+                        LocalDate.of(2028, 8, 5), LocalDate.of(2028, 2, 5),120, 30, false, "CONFIRMED",5L)
         );
 
         when(workshopService.findAll("", "", "5")).thenReturn(workshopsOutDtoList);
@@ -175,7 +175,7 @@ public class WorkshopControllerTests {
 
     @Test
     public void testGetById() throws Exception {
-        WorkshopOutDto workshopOutDto = new WorkshopOutDto(7L, "Oratoria", "Taller de desarrollo", LocalDate.of(2026, 8, 10), 90, 25, true,"CONFIRMED", 1L
+        WorkshopOutDto workshopOutDto = new WorkshopOutDto(7L, "Oratoria", "Taller de desarrollo", LocalDate.of(2028, 8, 10), LocalDate.of(2028, 2, 5),90, 25, true,"CONFIRMED", 1L
         );
 
         when(workshopService.findById(7L)).thenReturn(workshopOutDto);
@@ -199,10 +199,10 @@ public class WorkshopControllerTests {
 
     @Test
     public void testAdd() throws Exception {
-        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria", "Taller de desarrollo", LocalDate.now().plusDays(30), 90, 25, 1, 20, true, 1L
+        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria", "Taller de desarrollo", LocalDate.now().plusDays(30),LocalDate.of(2028, 2, 5), 90, 25, 1, 20, true, 1L
         );
 
-        WorkshopOutDto workshopOutDto = new WorkshopOutDto(10L, "Oratoria", "Taller de desarrollo", LocalDate.now().plusDays(30), 90, 25, true,"CONFIRMED", 1L
+        WorkshopOutDto workshopOutDto = new WorkshopOutDto(10L, "Oratoria", "Taller de desarrollo", LocalDate.now().plusDays(30),LocalDate.of(2028, 2, 5), 90, 25, true,"CONFIRMED", 1L
         );
 
         when(workshopService.add(any(WorkshopInDto.class))).thenReturn(workshopOutDto);
@@ -221,7 +221,7 @@ public class WorkshopControllerTests {
     // Name vacío
     @Test
     public void testAdd_BadRequest() throws Exception {
-        WorkshopInDto invalidWorkshop = new WorkshopInDto("", "Taller de prueba", LocalDate.now().plusDays(30), 90, 25,1, 20, true, 1L
+        WorkshopInDto invalidWorkshop = new WorkshopInDto("", "Taller de prueba", LocalDate.now().plusDays(30), LocalDate.of(2028, 2, 5),90, 25,1, 20, true, 1L
         );
 
         String body = objectMapper.writeValueAsString(invalidWorkshop);
@@ -238,10 +238,10 @@ public class WorkshopControllerTests {
 
     @Test
     public void testModify() throws Exception {
-        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.now().plusDays(30), 120, 30,1,  15, false, 1L
+        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.now().plusDays(30),LocalDate.of(2028, 2, 5), 120, 30,1,  15, false, 1L
         );
 
-        WorkshopOutDto workshopOutDto = new WorkshopOutDto(5L, "Oratoria actualizada", "Descripción actualizada", LocalDate.now().plusDays(30), 120, 30, false, "CONFIRMED",1L
+        WorkshopOutDto workshopOutDto = new WorkshopOutDto(5L, "Oratoria actualizada", "Descripción actualizada", LocalDate.now().plusDays(30), LocalDate.of(2028, 2, 5),120, 30, false, "CONFIRMED",1L
         );
 
         when(workshopService.modify(eq(5L), any(WorkshopInDto.class))).thenReturn(workshopOutDto);
@@ -258,7 +258,7 @@ public class WorkshopControllerTests {
 
     @Test
     public void testModify_NotFound() throws Exception {
-        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.now().plusDays(30), 120, 30,1,  15, false, 1L
+        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.now().plusDays(30), LocalDate.of(2028, 2, 5),120, 30,1,  15, false, 1L
         );
 
         doThrow(new WorkshopNotFoundException()).when(workshopService).modify(eq(99L), any(WorkshopInDto.class));

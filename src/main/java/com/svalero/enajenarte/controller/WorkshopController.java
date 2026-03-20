@@ -3,6 +3,7 @@ package com.svalero.enajenarte.controller;
 import com.svalero.enajenarte.dto.WorkshopInDto;
 import com.svalero.enajenarte.dto.WorkshopOutDto;
 import com.svalero.enajenarte.exception.ErrorResponse;
+import com.svalero.enajenarte.exception.InvalidDateRangeException;
 import com.svalero.enajenarte.service.WorkshopService;
 import com.svalero.enajenarte.exception.SpeakerNotFoundException;
 import com.svalero.enajenarte.exception.WorkshopNotFoundException;
@@ -81,6 +82,14 @@ public class WorkshopController {
     public ResponseEntity<ErrorResponse> handleException(SpeakerNotFoundException snfe) {
         ErrorResponse errorResponse = ErrorResponse.notFound("The speaker does not exist");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    // 400 - Fecha de confirmación posterior a la fecha de inicio
+    @ExceptionHandler(InvalidDateRangeException.class)
+    public ResponseEntity<ErrorResponse> handleException(InvalidDateRangeException idrе) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", "confirmationDeadline must be before startDate");
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+
     }
 
     // 400 - Validaciones

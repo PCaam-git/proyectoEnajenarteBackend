@@ -4,6 +4,7 @@ import com.svalero.enajenarte.domain.Speaker;
 import com.svalero.enajenarte.domain.Workshop;
 import com.svalero.enajenarte.dto.WorkshopInDto;
 import com.svalero.enajenarte.dto.WorkshopOutDto;
+import com.svalero.enajenarte.exception.InvalidDateRangeException;
 import com.svalero.enajenarte.exception.SpeakerNotFoundException;
 import com.svalero.enajenarte.exception.WorkshopNotFoundException;
 import com.svalero.enajenarte.repository.SpeakerRepository;
@@ -26,12 +27,22 @@ public class WorkshopService {
     private ModelMapper modelMapper;
 
     // POST
-    public WorkshopOutDto add(WorkshopInDto workshopInDto) throws SpeakerNotFoundException {
+    public WorkshopOutDto add(WorkshopInDto workshopInDto) throws SpeakerNotFoundException, InvalidDateRangeException {
         Speaker speaker = speakerRepository.findById(workshopInDto.getSpeakerId())
                 .orElseThrow(SpeakerNotFoundException::new);
 
         Workshop workshop = modelMapper.map(workshopInDto, Workshop.class);
-        workshop.setStatus("CONFIRMED");
+        // La fecha para informar al cliente de que el taller será cancelado debe ser anterior a la fecha del taller
+        if (workshop.getConfirmationDeadline().isAfter(workshop.getStartDate())) {
+            throw new InvalidDateRangeException();
+        }
+
+        // En un futuro: inscripción a workshop online se confirma automáticamente. inscripción a workshop presencial, dependerá de si se alcanza el mínimo de usuarios
+        if (workshop.isOnline()) {
+            workshop.setStatus("CONFIRMED");
+        } else {
+            workshop.setStatus("PENDING");
+        }
         workshop.setSpeaker(speaker);
 
         Workshop newWorkshop = workshopRepository.save(workshop);
@@ -99,7 +110,7 @@ public class WorkshopService {
     }
 
     // PUT
-    public WorkshopOutDto modify(long id, WorkshopInDto workshopInDto) throws WorkshopNotFoundException, SpeakerNotFoundException {
+    public WorkshopOutDto modify(long id, WorkshopInDto workshopInDto) throws WorkshopNotFoundException, SpeakerNotFoundException, InvalidDateRangeException {
         Workshop existingWorkshop = workshopRepository.findById(id)
                 .orElseThrow(WorkshopNotFoundException::new);
         Speaker speaker = speakerRepository.findById(workshopInDto.getSpeakerId())
@@ -110,7 +121,18 @@ public class WorkshopService {
         modelMapper.map(workshopInDto, existingWorkshop);
         existingWorkshop.setId(id);
         existingWorkshop.setSpeaker(speaker);
-        existingWorkshop.setStatus(status);
+
+        if (existingWorkshop.getConfirmationDeadline() != null
+                && existingWorkshop.getStartDate() != null
+                && existingWorkshop.getConfirmationDeadline().isAfter(existingWorkshop.getStartDate())) {
+            throw new InvalidDateRangeException();
+        }
+
+        if (existingWorkshop.isOnline()) {
+            existingWorkshop.setStatus("CONFIRMED");
+        } else {
+            existingWorkshop.setStatus("PENDING");
+        }
 
         Workshop updatedWorkshop = workshopRepository.save(existingWorkshop);
         WorkshopOutDto updatedWorkshopOutDto = modelMapper.map(updatedWorkshop, WorkshopOutDto.class);

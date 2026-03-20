@@ -241,11 +241,20 @@ public class RegistrationService {
     }
 
     private void simulateEmailConfirmation(Registration registration) {
-        sendConfirmationNotification(registration);
+        if (registration.getWorkshop() != null && registration.getWorkshop().isOnline()) {
+            sendOnlineRegistrationConfirmationNotification(registration);
+        } else {
+            sendPendingWorkshopRegistrationNotification(registration);
+        }
     }
 
-    private void sendConfirmationNotification(Registration registration) {
-        System.out.println("Simulando envío de email de confirmación para la inscripción con código: "
+    private void sendOnlineRegistrationConfirmationNotification(Registration registration) {
+        System.out.println("Simulando envío de email de confirmación para la inscripción online con código: "
+                + registration.getConfirmationCode());
+    }
+
+    private void sendPendingWorkshopRegistrationNotification(Registration registration) {
+        System.out.println("Simulando envío de email de inscripción registrada y pendiente de confirmación del workshop presencial con código: "
                 + registration.getConfirmationCode());
     }
 

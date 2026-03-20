@@ -14,6 +14,7 @@ public class WorkshopOutDto {
     private String name;
     private String description;
     private LocalDate startDate;
+    private LocalDate confirmationDeadline;
     private int durationMinutes;
     private float price;
     private boolean isOnline;

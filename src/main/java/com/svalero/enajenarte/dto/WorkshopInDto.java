@@ -1,6 +1,5 @@
 package com.svalero.enajenarte.dto;
 
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
@@ -25,6 +24,10 @@ public class WorkshopInDto {
     @NotNull(message = "Date is mandatory")
     @Future(message = "The date must be in the future")
     private LocalDate startDate;
+
+    @NotNull(message = "Confirmation deadline is mandatory")
+    @Future(message = "The confirmation deadline must be in the future")
+    private LocalDate confirmationDeadline;
 
     @Min(value = 1, message = "Duration must be at least 1 minute")
     private int durationMinutes;

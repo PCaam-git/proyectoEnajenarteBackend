@@ -225,7 +225,19 @@ public class RegistrationService {
 
             workshop.setStatus("CONFIRMED");
             workshopRepository.save(workshop);
+
+            // Obtiene todas las inscripciones del workshop
+            List<Registration> registrations = registrationRepository.findByWorkshop(workshop);
+
+            // Simula envío de mensaje a los participantes
+            for (Registration registration : registrations) {
+                simulateWorkshopConfirmationEmail(registration);
+            }
         }
+    }
+
+    private void simulateWorkshopConfirmationEmail(Registration registration) {
+        System.out.println("Simulando envío de email de confirmación del workshop presencial para la inscripción con código: " + registration.getConfirmationCode());
     }
 
     private void simulateEmailConfirmation(Registration registration) {

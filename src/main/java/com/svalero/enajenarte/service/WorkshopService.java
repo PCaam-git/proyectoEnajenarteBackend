@@ -1,5 +1,6 @@
 package com.svalero.enajenarte.service;
 
+import com.svalero.enajenarte.domain.Registration;
 import com.svalero.enajenarte.domain.Speaker;
 import com.svalero.enajenarte.domain.Workshop;
 import com.svalero.enajenarte.dto.WorkshopInDto;
@@ -9,9 +10,11 @@ import com.svalero.enajenarte.exception.SpeakerNotFoundException;
 import com.svalero.enajenarte.exception.WorkshopNotFoundException;
 import com.svalero.enajenarte.repository.SpeakerRepository;
 import com.svalero.enajenarte.repository.WorkshopRepository;
+import com.svalero.enajenarte.repository.RegistrationRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,7 +27,10 @@ public class WorkshopService {
     @Autowired
     private SpeakerRepository speakerRepository;
     @Autowired
+    private RegistrationRepository registrationRepository;
+    @Autowired
     private ModelMapper modelMapper;
+
 
     // POST
     public WorkshopOutDto add(WorkshopInDto workshopInDto) throws SpeakerNotFoundException, InvalidDateRangeException {
@@ -143,5 +149,41 @@ public class WorkshopService {
         }
 
         return updatedWorkshopOutDto;
+    }
+
+    @Scheduled(cron = "0 0 * * * *") // se ejecuta cada hora
+    public void cancelWorkshopsIfDeadlineExceeded() {
+
+        List<Workshop> workshops = workshopRepository.findAll();
+
+        for (Workshop workshop : workshops) {
+
+            if (!workshop.isOnline()
+                    && "PENDING".equals(workshop.getStatus())
+                    && workshop.getConfirmationDeadline() != null
+                    && workshop.getConfirmationDeadline().isBefore(java.time.LocalDate.now())) {
+
+                List<Registration> registrations = registrationRepository.findByWorkshop(workshop);
+
+                int totalParticipants = registrations.stream()
+                        .mapToInt(Registration::getNumberOfTickets)
+                        .sum();
+
+                if (workshop.getMinimumParticipants() != null
+                        && totalParticipants < workshop.getMinimumParticipants()) {
+
+                    // Cancelar workshop
+                    workshop.setStatus("CANCELLED");
+                    workshopRepository.save(workshop);
+
+                    // Cancelar inscripciones
+                    for (Registration registration : registrations) {
+                        registration.setStatus("CANCELLED");
+                        registrationRepository.save(registration);
+                    }
+                }
+            }
+        }
+
     }
 }

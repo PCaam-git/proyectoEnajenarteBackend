@@ -55,7 +55,12 @@ public class RegistrationService {
 
         List<Registration> registrations = registrationRepository.findByWorkshop(workshop);
 
+        // número de plazas máximo
         int currentCapacity = registrations.stream()
+                .mapToInt(Registration::getNumberOfTickets)
+                .sum();
+        // número de participantes mínimo
+        int currentParticipants = registrations.stream()
                 .mapToInt(Registration::getNumberOfTickets)
                 .sum();
 
@@ -68,6 +73,9 @@ public class RegistrationService {
         Registration registration = buildRegistration(registrationInDto, user, workshop);
 
         Registration newRegistration = registrationRepository.save(registration);
+
+        // Si el taller es presencial y se alcanza el mínimo de participantes, el estado cambia a CONFIRMED
+        confirmWorkshopifMinimumReached(workshop, currentParticipants + requestedTickets);
 
         // Simulación de envío de confirmación
         simulateEmailConfirmation(newRegistration);
@@ -206,6 +214,17 @@ public class RegistrationService {
         } else {
             registration.setStatus(STATUS_CONFIRMED);
             registration.setPaymentStatus(PAYMENT_STATUS_PENDING);
+        }
+    }
+
+    private void confirmWorkshopifMinimumReached(Workshop workshop, int totalParticipants) {
+        if (!workshop.isOnline()
+        && "PENDING".equals(workshop.getStatus())
+        && workshop.getMinimumParticipants() !=null
+        && totalParticipants >= workshop.getMinimumParticipants()) {
+
+            workshop.setStatus("CONFIRMED");
+            workshopRepository.save(workshop);
         }
     }
 

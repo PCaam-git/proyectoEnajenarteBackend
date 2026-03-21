@@ -59,7 +59,7 @@ public class RegistrationController {
     // PUT
     @PutMapping("/registrations/{id}")
     public ResponseEntity<RegistrationOutDto> modifyRegistration(@PathVariable long id, @Valid @RequestBody RegistrationInDto registrationInDto)
-            throws RegistrationNotFoundException, UserNotFoundException, WorkshopNotFoundException {
+            throws RegistrationNotFoundException, UserNotFoundException, WorkshopNotFoundException, InvalidPaymentStatusException {
 
         RegistrationOutDto updatedRegistration = registrationService.modify(id, registrationInDto);
         return ResponseEntity.ok(updatedRegistration);
@@ -104,6 +104,13 @@ public class RegistrationController {
     @ExceptionHandler(WorkshopCapacityExceededException.class)
     public ResponseEntity<ErrorResponse> handleException(WorkshopCapacityExceededException wcee) {
         ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", wcee.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // 400 - Estado de pago incorrecto
+    @ExceptionHandler(InvalidPaymentStatusException.class)
+    public ResponseEntity<ErrorResponse> handleException(InvalidPaymentStatusException ipse) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", ipse.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 

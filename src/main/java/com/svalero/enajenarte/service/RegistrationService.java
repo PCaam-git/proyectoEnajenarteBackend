@@ -150,7 +150,7 @@ public class RegistrationService {
     }
 
     // PUT
-    public RegistrationOutDto modify(long id, RegistrationInDto registrationInDto) throws RegistrationNotFoundException, UserNotFoundException, WorkshopNotFoundException {
+    public RegistrationOutDto modify(long id, RegistrationInDto registrationInDto) throws RegistrationNotFoundException, UserNotFoundException, WorkshopNotFoundException, InvalidPaymentStatusException {
         Registration existingRegistration = registrationRepository.findById(id)
                 .orElseThrow(RegistrationNotFoundException::new);
 
@@ -187,7 +187,7 @@ public class RegistrationService {
                         PaymentStatus.valueOf(registrationInDto.getPaymentStatus().toUpperCase())
                 );
             } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Invalid paymentStatus value");
+                throw new InvalidPaymentStatusException();
             }
         }
 

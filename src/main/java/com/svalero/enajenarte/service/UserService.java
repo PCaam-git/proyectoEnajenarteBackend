@@ -25,8 +25,6 @@ public class UserService {
     private UserRepository userRepository;
     @Autowired
     private RegistrationRepository registrationRepository;
-
-    private PaymentStatus paymentStatus;
     @Autowired
     private ModelMapper modelMapper;
 
@@ -107,11 +105,31 @@ public class UserService {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
 
-        //Generado por el sistema
+        // Obtener usuario autenticado
+        String authenticatedUsername = org.springframework.security.core.context.SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        // Validación: solo el propio usuario o ADMIN
+        if (!existingUser.getUsername().equals(authenticatedUsername)) {
+            String role = org.springframework.security.core.context.SecurityContextHolder
+                    .getContext()
+                    .getAuthentication()
+                    .getAuthorities()
+                    .iterator()
+                    .next()
+                    .getAuthority();
+
+            if (!role.equals("ROLE_ADMIN")) {
+                throw new RuntimeException("You cannot modify another user");
+            }
+        }
+
+        // Datos de sistema
         String role = existingUser.getRole();
         boolean active = existingUser.isActive();
         float balance = existingUser.getBalance();
-
 
         modelMapper.map(userInDto, existingUser);
         existingUser.setId(id);
@@ -119,7 +137,6 @@ public class UserService {
         existingUser.setRole(role);
         existingUser.setActive(active);
         existingUser.setBalance(balance);
-
 
         User updateUser = userRepository.save(existingUser);
         return modelMapper.map(updateUser, UserOutDto.class);

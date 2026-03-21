@@ -1,229 +1,208 @@
-Enajenarte API
-Descripción general
+# Enajenarte API
+
+> API REST académica desarrollada para la asignatura **Proyecto Intermodular** del Grado Superior en Desarrollo de Aplicaciones Multiplataforma.
 
-Enajenarte API es una API REST académica desarrollada como parte de la asignatura Acceso a Datos, correspondiente al segundo curso del Grado Superior en Desarrollo de Aplicaciones Multiplataforma.
+Enajenarte es una plataforma centrada en la salud emocional a través de la expresión artística, la comunicación y el autoconocimiento. Esta API proporciona el backend completo para gestionar eventos, talleres, usuarios e inscripciones.
+
+---
+
+## 📦 Tecnologías
+
+| Tecnología | Uso |
+|---|---|
+| Java 21 | Lenguaje principal |
+| Spring Boot | Framework |
+| Maven | Gestión de dependencias |
+| JPA / Hibernate | Persistencia |
+| MariaDB | Base de datos |
+| ModelMapper | Mapeo de DTOs |
+| JWT | Autenticación |
+
+---
+
+## 🗂️ Arquitectura
+
+```
+domain        →  Entidades y enums
+repository    →  Acceso a datos
+service       →  Lógica de negocio
+controller    →  Endpoints REST
+dto           →  Objetos de transferencia
+exception     →  Manejo de errores
+config        →  Seguridad y configuración
+```
+
+---
+
+## 📐 Modelo de dominio
+
+| Entidad | Descripción |
+|---|---|
+| **Event** | Eventos organizados o en los que participa Enajenarte |
+| **Speaker** | Ponentes con especialidad y experiencia |
+| **Workshop** | Talleres con modalidad, fechas, capacidad y estado |
+| **User** | Usuarios registrados en la plataforma |
+| **Registration** | Relación entre usuarios y talleres |
+
+---
+
+## 🔐 Seguridad
+
+La API implementa autenticación mediante **JWT** con control de acceso por roles.
+
+### Roles
+
+| Rol | Acceso |
+|---|---|
+| Público | Eventos, workshops, registro de usuario |
+| `USER` | Operaciones personales, historial de inscripciones |
+| `ADMIN` | Gestión completa de todas las entidades |
+
+### Login
+
+```
+POST /auth/login
+```
 
-La API proporciona el backend de la empresa Enajenarte, que hasta el momento únicamente contaba con una página web estática. Enajenarte es una empresa centrada en la salud emocional, que trabaja a través de distintos enfoques como la expresión artística, la comunicación oral y el autoconocimiento. Para ello organiza eventos, talleres y formaciones, y necesita un sistema que facilite la gestión de estas actividades y la comunicación con sus clientes.
+```json
+{
+  "username": "tu_usuario",
+  "password": "tu_contraseña"
+}
+```
 
-Esta API permite mostrar los eventos y talleres que la empresa llevará a cabo y gestionar la inscripción de los usuarios en dichas actividades, actuando como base para futuras aplicaciones cliente.
+Devuelve un token JWT que debe incluirse en el header de las peticiones protegidas:
 
-----------------------------
-Modelo de dominio
+```
+Authorization: Bearer <token>
+```
 
-La API se basa en cinco entidades principales, cada una con un propósito bien definido:
+---
 
-Event
+## 📋 Endpoints
 
-Representa los eventos que organiza Enajenarte o en los que participa la empresa o alguno de sus ponentes. Incluye información como título, ubicación, fecha, precio y carácter público del evento.
+### Users
+| Método | Endpoint | Acceso |
+|---|---|---|
+| GET | `/users` | ADMIN |
+| GET | `/users/{id}` | Autenticado |
+| GET | `/users/{id}/registrations` | Autenticado |
+| POST | `/users` | Público |
+| PUT | `/users/{id}` | Autenticado |
+| DELETE | `/users/{id}` | ADMIN |
 
-Speaker
+### Events
+| Método | Endpoint | Acceso |
+|---|---|---|
+| GET | `/events` | Público |
+| GET | `/events/{id}` | Público |
+| POST | `/events` | ADMIN |
+| PUT | `/events/{id}` | ADMIN |
+| DELETE | `/events/{id}` | ADMIN |
 
-Recoge la información de los ponentes que participan en eventos y talleres, incluyendo su especialidad, experiencia y disponibilidad.
+### Workshops
+| Método | Endpoint | Acceso |
+|---|---|---|
+| GET | `/workshops` | Público |
+| GET | `/workshops/{id}` | Público |
+| POST | `/workshops` | ADMIN |
+| PUT | `/workshops/{id}` | ADMIN |
+| DELETE | `/workshops/{id}` | ADMIN |
 
-Workshop
+### Speakers
+| Método | Endpoint | Acceso |
+|---|---|---|
+| GET | `/speakers` | Público |
+| GET | `/speakers/{id}` | Público |
+| POST | `/speakers` | ADMIN |
+| PUT | `/speakers/{id}` | ADMIN |
+| DELETE | `/speakers/{id}` | ADMIN |
 
-Representa los talleres organizados por Enajenarte. Incluye datos como nombre, descripción, fecha, duración, precio, modalidad (online o presencial) y ponente asociado.
+### Registrations
+| Método | Endpoint | Acceso |
+|---|---|---|
+| GET | `/registrations` | Autenticado |
+| GET | `/registrations/{id}` | Autenticado |
+| POST | `/registrations` | Autenticado |
+| PUT | `/registrations/{id}` | ADMIN |
+| DELETE | `/registrations/{id}` | ADMIN |
 
-User
+Todos los endpoints GET admiten hasta **tres filtros simultáneos** mediante parámetros de consulta.
 
-Almacena la información de los usuarios registrados en la plataforma, que pueden consultar eventos y talleres y realizar inscripciones.
+---
 
-Registration
+## ⚙️ Lógica de negocio
 
-Relaciona a los usuarios con los talleres a los que se han inscrito, almacenando información adicional como la fecha de inscripción, estado de pago y otros datos asociados al registro.
+### Workshops
 
------------------------------
-Funcionalidad disponible
+Los talleres tienen tres estados posibles: `PENDING`, `CONFIRMED` y `CANCELLED`.
 
-La API ofrece operaciones CRUD completas para todas las entidades del dominio:
+- Los talleres **online** se confirman automáticamente al crearse.
+- Los talleres **presenciales** quedan en `PENDING` hasta alcanzar el mínimo de participantes.
+- Un **scheduler** comprueba periódicamente si la fecha límite ha pasado sin alcanzar el mínimo y cancela el taller automáticamente.
 
-- Crear
+### Registrations
 
-- Consultar listado
+- Control de **duplicados**: un usuario no puede inscribirse dos veces al mismo taller.
+- Control de **capacidad**: se verifica el aforo disponible antes de confirmar.
+- Soporte de **tickets múltiples**: entre 1 y 5 personas por inscripción.
+- Generación automática de **código de confirmación** y **fecha de inscripción**.
 
- - Consultar por identificador
+### Pagos
 
- - Modificar
+```java
+enum PaymentStatus {
+    PENDING,
+    PAID
+}
+```
 
- - Eliminar
+El estado de pago es modificable por ADMIN y se valida contra los valores del enum (`400 Bad Request` si el valor no es válido).
 
-Además, cada entidad dispone de operaciones de filtrado en las peticiones GET, permitiendo aplicar hasta tres filtros diferentes según el recurso.
+---
 
-----------------------------
-Gestión de errores
+## 🧪 Tests
 
-La API gestiona de forma explícita los siguientes tipos de error, devolviendo siempre respuestas estructuradas mediante ErrorResponse:
+El proyecto incluye tests unitarios con **JUnit 5** y **Mockito** para las capas de servicio y controlador.
 
-400 Bad Request
-
-Errores de validación de datos enviados por el cliente.
-
-404 Not Found
-
-Recurso inexistente o relaciones no encontradas.
-
-500 Internal Server Error
-
-Errores internos del servidor.
-
---------------------------------
-Arquitectura del proyecto
-
-El proyecto sigue una arquitectura por capas estricta, lo que permite una separación clara de responsabilidades:
-
- - Domain: entidades del modelo de datos.
-
- - Repository: acceso a datos mediante JPA.
-
- - Service: lógica de negocio.
-
- - Controller: exposición de la API REST.
-
- - DTOs: objetos de entrada y salida para la comunicación con el cliente.
-
- - Exception: gestión centralizada de errores.
-
-Esta estructura facilita el mantenimiento, la comprensión del proyecto y su evaluación académica.
-
-
-----------------------------------
-Tecnologías utilizadas
-
- - Java 21
-
- - Spring Boot
-
- - Maven
-
- - JPA / Hibernate
-
- - MariaDB
-
- - ModelMapper
-
- - OpenAPI 3.0
-
- - WireMock
-
- - Postman
-
-
-----------------------------------------
-Documentación de la API (OpenAPI)
-
-La API está documentada mediante OpenAPI 3.0, que define de forma formal:
-
- - Endpoints disponibles
-
- - Métodos HTTP
-
- - Parámetros de entrada
-
- - Cuerpos de petición
-
- - Respuestas y códigos HTTP
-
- - Esquemas de datos
-
- - Errores posibles
-
-El fichero OpenAPI refleja fielmente las operaciones implementadas en los controladoresA partir de esta especificación 
-se han generado las colecciones Postman incluidas en el proyecto, garantizando la coherencia entre API real, WireMock y pruebas.
-
-
------------------------------------------
-API Mock (WireMock)
-
-l proyecto incluye un API Mock implementado con WireMock, que permite simular el comportamiento de la API real sin necesidad de ejecutar el backend completo.
-
-El proyecto WireMock se encuentra dentro del repositorio, en la carpeta:
-enajenarte/wiremock/enajenarteWiremock
-
-Puesta en marcha de WireMock
-
-WireMock se ejecuta como un servicio independiente en el puerto 8089. No se trata de un proyecto Spring Boot ni Maven, por lo que no se ejecuta mediante mvn spring-boot:run.
-
-Para arrancar WireMock es necesario ejecutar el JAR standalone incluido en el proyecto desde la carpeta correspondiente, indicando el puerto y la ubicación de los stubs.
-
-java -jar .\wiremock-standalone-3.13.2.jar --port 8089 --root-dir .
-
-
-Una vez iniciado, WireMock expone los endpoints simulados definidos en las carpetas mappings/ y __files/.
-
-Estructura del mock
-
-mappings/: define las rutas simuladas y las condiciones de cada endpoint.
-
-__files/: contiene las respuestas JSON asociadas a cada mapping.
-
-Las rutas están definidas utilizando identificadores fijos (por ejemplo 1, 400, 999, 500), lo que garantiza un comportamiento determinista y reproducible durante la ejecución de pruebas automáticas.
-
-
------------------------------------------
-Colección Postman
-
-El proyecto incluye dos colecciones Postman, ambas generadas a partir del fichero OpenAPI:
-
-Colección Postman – API real (8080): Enajenarte RUNNER (8080).postman_collection.json
-
-Esta colección está orientada a la prueba manual de la API real, que se ejecuta mediante Spring Boot en el puerto 8080. Permite verificar el comportamiento real de los endpoints contra la base de datos.
-
-Colección Postman – WireMock (8089): Enajenarte RUNNER (8089).postman_collection.json
-
-Esta colección está orientada a la ejecución automática con Postman Runner, apuntando al mock WireMock en el puerto 8089. Está diseñada para validar de forma reproducible todas las operaciones y códigos de respuesta definidos.
-
-Las colecciones se encuentran en la carpeta:
-
-enajenarte/postman/
-Ejecución con Postman Runner
-
-Para ejecutar la colección de WireMock con Postman Runner:
-
-Abrir Postman y seleccionar Runner.
-
-Elegir la colección correspondiente a WireMock (8089).
-
-Verificar el uso de variables de colección, como baseUrl e identificadores parametrizados.
-
-Ejecutar una iteración del Runner.
-
-El resultado esperado es la ejecución completa de la colección sin errores, validando los distintos casos de éxito y error definidos en el mock.
-
-
----------------------------------------------
-Tests unitarios
-
-Se han desarrollado tests unitarios para las capas Service y Controller, cubriendo los principales flujos de la aplicación.
-
-El proyecto cuenta con aproximadamente 132 tests unitarios, que verifican:
-
- - Casos de éxito
-
- - Errores 400 y 404
-
- - Funcionamiento de filtros
-
- - Operaciones CRUD completas
-
- - Ejecución del proyecto
-
-La API se ejecuta por defecto en el puerto 8080.
-
-
---------------------------------------------
-**Ejecución del proyecto
-
-La API real se ejecuta por defecto en el puerto 8080 mediante Spring Boot.
-
-El API Mock (WireMock) se ejecuta de forma independiente en el puerto 8089. Ambos entornos son independientes y pueden utilizarse de forma separada según el tipo de prueba que se desee realizar.**
-Comandos básicos:
-
-mvn clean compile
+```bash
 mvn test
+```
+
+Para compilar sin ejecutar los tests:
+
+```bash
+mvn clean compile -DskipTests
+```
+
+---
+
+## 🚀 Ejecución
+
+```bash
+mvn clean compile
 mvn spring-boot:run
+```
 
+La API queda disponible en `http://localhost:8080`.
 
----------------------------------------------
-Conclusión
+---
 
-Enajenarte API constituye un backend completo para la gestión de eventos y talleres de una empresa dedicada a la salud emocional. El proyecto cumple los requisitos académicos establecidos, presenta una arquitectura clara y dispone de documentación, pruebas y herramientas de validación que permiten demostrar su correcto funcionamiento y defendibilidad ante evaluación docente.
+## ❌ Gestión de errores
+
+Todos los errores se devuelven con el siguiente formato:
+
+```json
+{
+  "code": 404,
+  "title": "not-found",
+  "message": "The workshop does not exist",
+  "errors": {}
+}
+```
+
+| Código | Descripción |
+|---|---|
+| `400` | Bad Request — validación fallida o valor inválido |
+| `404` | Not Found — recurso no encontrado |
+| `500` | Internal Server Error |

@@ -1,5 +1,0 @@
-{
-  "code": 400,
-  "title": "bad-request",
-  "message": "Validation error"
-}

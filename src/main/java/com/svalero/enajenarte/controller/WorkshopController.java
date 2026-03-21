@@ -3,6 +3,7 @@ package com.svalero.enajenarte.controller;
 import com.svalero.enajenarte.dto.WorkshopInDto;
 import com.svalero.enajenarte.dto.WorkshopOutDto;
 import com.svalero.enajenarte.exception.ErrorResponse;
+import com.svalero.enajenarte.exception.InvalidDateRangeException;
 import com.svalero.enajenarte.service.WorkshopService;
 import com.svalero.enajenarte.exception.SpeakerNotFoundException;
 import com.svalero.enajenarte.exception.WorkshopNotFoundException;
@@ -29,7 +30,7 @@ public class WorkshopController {
     public ResponseEntity<List<WorkshopOutDto>> getAll(
             @RequestParam(value = "name", defaultValue = "") String name,
             @RequestParam(value = "isOnline", defaultValue = "") String isOnline,
-            @RequestParam(value = "speakerId", defaultValue = "") String speakerId) throws SpeakerNotFoundException {
+            @RequestParam(value = "speakerId", defaultValue = "") String speakerId) {
 
         List<WorkshopOutDto> workshopOutDto = workshopService.findAll(name, isOnline, speakerId);
         // Si la lista está vacía, devuelve 204 No Content
@@ -49,7 +50,7 @@ public class WorkshopController {
 
     //POST
     @PostMapping("/workshops")
-    public ResponseEntity<WorkshopOutDto> addWorkshop(@Valid @RequestBody WorkshopInDto workshopInDto) throws SpeakerNotFoundException {
+    public ResponseEntity<WorkshopOutDto> addWorkshop(@Valid @RequestBody WorkshopInDto workshopInDto) throws SpeakerNotFoundException, InvalidDateRangeException{
         WorkshopOutDto newWorkshop = workshopService.add(workshopInDto);
         return new ResponseEntity<>(newWorkshop, HttpStatus.CREATED);
     }
@@ -57,7 +58,7 @@ public class WorkshopController {
     // PUT
     @PutMapping("/workshops/{id}")
     public ResponseEntity<WorkshopOutDto> modifyWorkshop(@PathVariable long id, @Valid @RequestBody WorkshopInDto workshopInDto)
-        throws SpeakerNotFoundException, WorkshopNotFoundException {
+        throws SpeakerNotFoundException, WorkshopNotFoundException, InvalidDateRangeException {
         WorkshopOutDto updateWorkshop = workshopService.modify(id, workshopInDto);
         return ResponseEntity.ok(updateWorkshop);
     }
@@ -81,6 +82,14 @@ public class WorkshopController {
     public ResponseEntity<ErrorResponse> handleException(SpeakerNotFoundException snfe) {
         ErrorResponse errorResponse = ErrorResponse.notFound("The speaker does not exist");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    // 400 - Fecha de confirmación posterior a la fecha de inicio
+    @ExceptionHandler(InvalidDateRangeException.class)
+    public ResponseEntity<ErrorResponse> handleException(InvalidDateRangeException idrе) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", "confirmationDeadline must be before startDate");
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+
     }
 
     // 400 - Validaciones

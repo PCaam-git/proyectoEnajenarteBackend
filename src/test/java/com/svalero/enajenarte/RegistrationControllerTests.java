@@ -2,17 +2,22 @@ package com.svalero.enajenarte;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.svalero.enajenarte.controller.RegistrationController;
+import com.svalero.enajenarte.controller.UserController;
 import com.svalero.enajenarte.dto.RegistrationInDto;
 import com.svalero.enajenarte.dto.RegistrationOutDto;
 import com.svalero.enajenarte.exception.RegistrationNotFoundException;
 import com.svalero.enajenarte.exception.UserNotFoundException;
 import com.svalero.enajenarte.exception.WorkshopNotFoundException;
+import com.svalero.enajenarte.exception.DuplicateRegistrationException;
+import com.svalero.enajenarte.exception.WorkshopCapacityExceededException;
+import com.svalero.enajenarte.repository.UserRepository;
 import com.svalero.enajenarte.service.RegistrationService;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -26,9 +31,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(RegistrationController.class)
+@WebMvcTest(value = RegistrationController.class, excludeAutoConfiguration = {
+    org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration.class
+})
+@WithMockUser
 public class RegistrationControllerTests {
 
     @Autowired
@@ -40,14 +49,20 @@ public class RegistrationControllerTests {
     @MockitoBean
     private ModelMapper modelMapper;
 
+    @MockitoBean
+    private com.svalero.enajenarte.security.JwtUtils jwtUtils;
+
+    @MockitoBean
+    private UserRepository userRepository;
+
     @Autowired
     private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     @Test
     public void testGetAll() throws Exception {
         List<RegistrationOutDto> registrationOutDtoList = List.of(
-                new RegistrationOutDto(1L, LocalDate.of(2026, 1, 10), "CONF-1", false, 2, 0, 0, 1L, 10L),
-                new RegistrationOutDto(2L, LocalDate.of(2026, 1, 11),"CONF-2", true, 1, 20, 5, 2L, 10L)
+                new RegistrationOutDto(1L, LocalDate.of(2026, 1, 10), "CONF-1", false, 2, 0, 0,"pending", "pending",  1L, 10L),
+                new RegistrationOutDto(2L, LocalDate.of(2026, 1, 11),"CONF-2", true, 1, 20, 5,"pending", "pending",  2L, 10L)
         );
 
         when(registrationService.findAll("", "", "")).thenReturn(registrationOutDtoList);
@@ -71,11 +86,11 @@ public class RegistrationControllerTests {
     @Test
     public void testGetAllByUserId() throws Exception {
         List<RegistrationOutDto> registrationOutDtoList = List.of(
-                new RegistrationOutDto(1L, LocalDate.of(2026, 1, 10), "CONF-1",false, 2, 0, 0, 1L, 10L),
-                new RegistrationOutDto(3L, LocalDate.of(2026, 1, 12),"CONF-3", true, 1, 20, 4, 1L, 11L)
+                new RegistrationOutDto(1L, LocalDate.of(2026, 1, 10), "CONF-1",false, 2, 0, 0,"pending", "pending",  1L, 10L),
+                new RegistrationOutDto(3L, LocalDate.of(2026, 1, 12),"CONF-3", true, 1, 20, 4, "pending", "pending", 1L, 11L)
         );
 
-        when(registrationService.findAll("1", "", "")).thenReturn(registrationOutDtoList);
+        when(registrationService.findAll("", "1", "")).thenReturn(registrationOutDtoList);
 
         MvcResult mvcResult = mockMvc.perform(
                         MockMvcRequestBuilders.get("/registrations")
@@ -97,8 +112,8 @@ public class RegistrationControllerTests {
     @Test
     public void testGetAllByWorkshopId() throws Exception {
         List<RegistrationOutDto> registrationOutDtoList = List.of(
-                new RegistrationOutDto(1L, LocalDate.of(2026, 1, 10), "CONF-1", false, 2, 0, 0, 1L, 10L),
-                new RegistrationOutDto(2L, LocalDate.of(2026, 1, 11), "CONF-3", true, 1, 20, 5, 2L, 10L)
+                new RegistrationOutDto(1L, LocalDate.of(2026, 1, 10), "CONF-1", false, 2, 0, 0, "pending", "pending", 1L, 10L),
+                new RegistrationOutDto(2L, LocalDate.of(2026, 1, 11), "CONF-3", true, 1, 20, 5, "pending", "pending", 2L, 10L)
         );
 
         when(registrationService.findAll("10", "", "")).thenReturn(registrationOutDtoList);
@@ -114,7 +129,7 @@ public class RegistrationControllerTests {
     @Test
     public void testGetAllByIsPaid() throws Exception {
         List<RegistrationOutDto> registrationOutDtoList = List.of(
-                new RegistrationOutDto(2L, LocalDate.of(2026, 1, 11), "CONF-3", true, 1, 20, 5, 2L, 10L)
+                new RegistrationOutDto(2L, LocalDate.of(2026, 1, 11), "CONF-3", true, 1, 20, 5,"pending", "pending",  2L, 10L)
         );
 
         when(registrationService.findAll("", "", "true")).thenReturn(registrationOutDtoList);
@@ -130,7 +145,7 @@ public class RegistrationControllerTests {
     @Test
     public void testGetById() throws Exception {
         RegistrationOutDto registrationOutDto =
-                new RegistrationOutDto(7L, LocalDate.of(2026, 1, 10),"CONF-7",  false, 2, 0, 0, 1L, 10L);
+                new RegistrationOutDto(7L, LocalDate.of(2026, 1, 10),"CONF-7",  false, 2, 0, 0, "pending", "pending", 1L, 10L);
 
         when(registrationService.findById(7L)).thenReturn(registrationOutDto);
 
@@ -154,31 +169,40 @@ public class RegistrationControllerTests {
 
     @Test
     public void testAdd() throws Exception {
-        RegistrationInDto registrationInDto = new RegistrationInDto(2, 1L, 10L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(2, 1L, 10L,"PENDING");
 
         RegistrationOutDto registrationOutDto =
-                new RegistrationOutDto(100L, LocalDate.of(2026, 1, 10),"CONF-10",  false, 2, 0, 0, 1L, 10L);
+                new RegistrationOutDto(100L, LocalDate.of(2026, 1, 10), "CONF-10", false, 2, 0, 0, "CONFIRMED", "PENDING", 1L, 10L);
 
         when(registrationService.add(any(RegistrationInDto.class))).thenReturn(registrationOutDto);
 
         String body = objectMapper.writeValueAsString(registrationInDto);
 
-        mockMvc.perform(
+        MvcResult result = mockMvc.perform(
                         MockMvcRequestBuilders.post("/registrations")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(body)
                 )
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        RegistrationOutDto response =
+                objectMapper.readValue(result.getResponse().getContentAsString(), RegistrationOutDto.class);
+
+        assertEquals("CONFIRMED", response.getStatus());
+        assertEquals("PENDING", response.getPaymentStatus());
     }
 
     @Test
     public void testAdd_BadRequest() throws Exception {
-        RegistrationInDto invalidRegistrationInDto = new RegistrationInDto(0, 1L, 10L);
+        RegistrationInDto invalidRegistrationInDto = new RegistrationInDto(0, 1L, 10L,"PENDING");
         String body = objectMapper.writeValueAsString(invalidRegistrationInDto);
 
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/registrations")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(body)
@@ -188,7 +212,7 @@ public class RegistrationControllerTests {
 
     @Test
     public void testAdd_UserNotFound() throws Exception {
-        RegistrationInDto registrationInDto = new RegistrationInDto(2, 99L, 10L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(2, 99L, 10L,"PENDING");
 
         when(registrationService.add(any(RegistrationInDto.class))).thenThrow(new UserNotFoundException());
 
@@ -196,6 +220,7 @@ public class RegistrationControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/registrations")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(body)
@@ -205,7 +230,7 @@ public class RegistrationControllerTests {
 
     @Test
     public void testAdd_WorkshopNotFound() throws Exception {
-        RegistrationInDto registrationInDto = new RegistrationInDto(2, 1L, 99L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(2, 1L, 99L,"PENDING");
 
         when(registrationService.add(any(RegistrationInDto.class))).thenThrow(new WorkshopNotFoundException());
 
@@ -213,6 +238,7 @@ public class RegistrationControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/registrations")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(body)
@@ -222,10 +248,10 @@ public class RegistrationControllerTests {
 
     @Test
     public void testModify() throws Exception {
-        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 10L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 10L,"PENDING");
 
         RegistrationOutDto registrationOutDto =
-                new RegistrationOutDto(5L, LocalDate.of(2026, 1, 10),"CONF-10", false, 3, 0, 0, 1L, 10L);
+                new RegistrationOutDto(5L, LocalDate.of(2026, 1, 10),"CONF-10", false, 3, 0, 0,"CONFIRMED", "PENDING",  1L, 10L);
 
         when(registrationService.modify(5L, registrationInDto)).thenReturn(registrationOutDto);
 
@@ -233,6 +259,7 @@ public class RegistrationControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.put("/registrations/5")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(body)
@@ -242,7 +269,7 @@ public class RegistrationControllerTests {
 
     @Test
     public void testModify_NotFound() throws Exception {
-        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 10L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 10L,"PENDING");
 
         when(registrationService.modify(99L, registrationInDto)).thenThrow(new RegistrationNotFoundException());
 
@@ -250,6 +277,7 @@ public class RegistrationControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.put("/registrations/99")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(body)
@@ -259,7 +287,7 @@ public class RegistrationControllerTests {
 
     @Test
     public void testModify_UserNotFound() throws Exception {
-        RegistrationInDto registrationInDto = new RegistrationInDto(3, 99L, 10L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(3, 99L, 10L,"PENDING");
 
         when(registrationService.modify(5L, registrationInDto)).thenThrow(new UserNotFoundException());
 
@@ -267,6 +295,7 @@ public class RegistrationControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.put("/registrations/5")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(body)
@@ -276,7 +305,7 @@ public class RegistrationControllerTests {
 
     @Test
     public void testModify_WorkshopNotFound() throws Exception {
-        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 99L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 99L,"PENDING");
 
         when(registrationService.modify(5L, registrationInDto)).thenThrow(new WorkshopNotFoundException());
 
@@ -284,6 +313,7 @@ public class RegistrationControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.put("/registrations/5")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(body)
@@ -297,6 +327,7 @@ public class RegistrationControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete("/registrations/1")
+                                .with(csrf())
                 )
                 .andExpect(status().isNoContent());
     }
@@ -307,6 +338,7 @@ public class RegistrationControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete("/registrations/99")
+                                .with(csrf())
                 )
                 .andExpect(status().isNotFound());
     }

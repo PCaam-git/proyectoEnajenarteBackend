@@ -2,10 +2,12 @@ package com.svalero.enajenarte;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.svalero.enajenarte.controller.EventController;
+import com.svalero.enajenarte.controller.UserController;
 import com.svalero.enajenarte.dto.EventInDto;
 import com.svalero.enajenarte.dto.EventOutDto;
 import com.svalero.enajenarte.exception.EventNotFoundException;
 import com.svalero.enajenarte.exception.SpeakerNotFoundException;
+import com.svalero.enajenarte.repository.UserRepository;
 import com.svalero.enajenarte.service.EventService;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
@@ -16,15 +18,20 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(EventController.class)
+@WebMvcTest(value = EventController.class, excludeAutoConfiguration = {
+    org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration.class
+})
+@WithMockUser
 public class EventControllerTests {
 
     @Autowired
@@ -35,6 +42,12 @@ public class EventControllerTests {
 
     @MockitoBean
     private ModelMapper modelMapper;
+
+    @MockitoBean
+    private com.svalero.enajenarte.security.JwtUtils jwtUtils;
+
+    @MockitoBean
+    private UserRepository userRepository;
 
     @Autowired
     private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
@@ -175,16 +188,17 @@ public class EventControllerTests {
     @Test
     public void testAdd() throws Exception {
         EventInDto eventInDto = new EventInDto("Mindfulness", "Zaragoza",
-                LocalDateTime.of(2026, 2, 1, 10, 0), 0, true, 30, 1L);
+                LocalDateTime.of(2028, 2, 1, 10, 0), 0, true, 30, 1L);
 
         EventOutDto eventOutDto = new EventOutDto(10L, "Mindfulness", "Zaragoza",
-                LocalDateTime.of(2026, 2, 1, 10, 0), 0, true, 1L);
+                LocalDateTime.of(2028, 2, 1, 10, 0), 0, true, 1L);
 
         when(eventService.add(any(EventInDto.class))).thenReturn(eventOutDto);
 
         String body = objectMapper.writeValueAsString(eventInDto);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/events")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .accept(MediaType.APPLICATION_JSON_VALUE)
                         .content(body))
@@ -195,13 +209,14 @@ public class EventControllerTests {
     @Test
     public void testAdd_SpeakerNotFound() throws Exception {
         EventInDto eventInDto = new EventInDto("Mindfulness", "Zaragoza",
-                LocalDateTime.of(2026, 2, 1, 10, 0), 0, true, 30, 99L);
+                LocalDateTime.of(2028, 2, 1, 10, 0), 0, true, 30, 99L);
 
         when(eventService.add(any(EventInDto.class))).thenThrow(new SpeakerNotFoundException());
 
         String body = objectMapper.writeValueAsString(eventInDto);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/events")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .accept(MediaType.APPLICATION_JSON_VALUE)
                         .content(body))
@@ -218,6 +233,7 @@ public class EventControllerTests {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/events")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .content(body)
@@ -231,16 +247,17 @@ public class EventControllerTests {
         long id = 7L;
 
         EventInDto eventInDto = new EventInDto("Mindfulness actualizado", "Zaragoza",
-                LocalDateTime.of(2026, 2, 1, 10, 0), 0, true, 30, 1L);
+                LocalDateTime.of(2028, 2, 1, 10, 0), 0, true, 30, 1L);
 
         EventOutDto outDto = new EventOutDto(id, "Mindfulness actualizado", "Zaragoza",
-                LocalDateTime.of(2026, 2, 1, 10, 0), 0, true, 1L);
+                LocalDateTime.of(2028, 2, 1, 10, 0), 0, true, 1L);
 
         when(eventService.modify(eq(id), any(EventInDto.class))).thenReturn(outDto);
 
         String body = objectMapper.writeValueAsString(eventInDto);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/events/7")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .accept(MediaType.APPLICATION_JSON_VALUE)
                         .content(body))
@@ -253,13 +270,14 @@ public class EventControllerTests {
         long id = 99L;
 
         EventInDto eventInDto = new EventInDto("Mindfulness", "Zaragoza",
-                LocalDateTime.of(2026, 2, 1, 10, 0), 0, true, 30, 1L);
+                LocalDateTime.of(2028, 2, 1, 10, 0), 0, true, 30, 1L);
 
         when(eventService.modify(eq(id), any(EventInDto.class))).thenThrow(new EventNotFoundException());
 
         String body = objectMapper.writeValueAsString(eventInDto);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/events/99")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .accept(MediaType.APPLICATION_JSON_VALUE)
                         .content(body))
@@ -273,11 +291,12 @@ public class EventControllerTests {
 
         // title vacío -> @NotEmpty -> 400
         EventInDto invalidDto = new EventInDto("", "Zaragoza",
-                LocalDateTime.of(2026, 2, 1, 10, 0), 0, true, 30, 1L);
+                LocalDateTime.of(2028, 2, 1, 10, 0), 0, true, 30, 1L);
 
         String body = objectMapper.writeValueAsString(invalidDto);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/events/7")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .accept(MediaType.APPLICATION_JSON_VALUE)
                         .content(body))
@@ -290,13 +309,14 @@ public class EventControllerTests {
         long id = 7L;
 
         EventInDto eventInDto = new EventInDto("Mindfulness", "Zaragoza",
-                LocalDateTime.of(2026, 2, 1, 10, 0), 0, true, 30, 99L);
+                LocalDateTime.of(2028, 2, 1, 10, 0), 0, true, 30, 99L);
 
         when(eventService.modify(eq(id), any(EventInDto.class))).thenThrow(new SpeakerNotFoundException());
 
         String body = objectMapper.writeValueAsString(eventInDto);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/events/7")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .accept(MediaType.APPLICATION_JSON_VALUE)
                         .content(body))
@@ -307,7 +327,8 @@ public class EventControllerTests {
     public void testDelete() throws Exception {
         doNothing().when(eventService).delete(1L);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/events/1"))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/events/1")
+                        .with(csrf()))
                 .andExpect(status().isNoContent());
     }
 
@@ -316,7 +337,8 @@ public class EventControllerTests {
     public void testDelete_NotFound() throws Exception {
         doThrow(new EventNotFoundException()).when(eventService).delete(99L);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/events/99"))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/events/99")
+                        .with(csrf()))
                 .andExpect(status().isNotFound());
     }
 

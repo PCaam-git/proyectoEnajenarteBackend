@@ -25,11 +25,18 @@ public class WorkshopInDto {
     @Future(message = "The date must be in the future")
     private LocalDate startDate;
 
+    @NotNull(message = "Confirmation deadline is mandatory")
+    @Future(message = "The confirmation deadline must be in the future")
+    private LocalDate confirmationDeadline;
+
     @Min(value = 1, message = "Duration must be at least 1 minute")
     private int durationMinutes;
 
     @Min(value = 0, message = "Price must be 0 or positive")
     private float price;
+
+    @Min(value = 1, message = "Minimum participants must be greater than or equal to 1")
+    private Integer minimumParticipants;
 
     @Min(value = 1, message = "Capacity must be at least 1")
     private int maxCapacity;

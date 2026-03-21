@@ -6,6 +6,7 @@ import com.svalero.enajenarte.dto.WorkshopInDto;
 import com.svalero.enajenarte.dto.WorkshopOutDto;
 import com.svalero.enajenarte.exception.SpeakerNotFoundException;
 import com.svalero.enajenarte.exception.WorkshopNotFoundException;
+import com.svalero.enajenarte.exception.InvalidDateRangeException;
 import com.svalero.enajenarte.repository.SpeakerRepository;
 import com.svalero.enajenarte.repository.WorkshopRepository;
 import com.svalero.enajenarte.service.WorkshopService;
@@ -42,13 +43,13 @@ public class WorkshopServiceTests {
     @Test
     public void testFindAll() throws Exception {
         List<Workshop> mockWorkshopList = List.of(
-                new Workshop(1L, "Oratoria básica", "Taller de oratoria y comunicación", LocalDate.of(2026, 2, 10), 90, 25, 20, true, null, null),
-                new Workshop(2L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2026, 3, 5), 120, 30, 15, false, null, null)
+                new Workshop(1L, "Oratoria básica", "Taller de oratoria y comunicación", LocalDate.of(2028, 2, 10),LocalDate.of(2028, 2, 5), 90, 25,1, 20, true,"CONFIRMED",  null, null),
+                new Workshop(2L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2028, 3, 5), LocalDate.of(2028, 2, 5),120, 30,1, 15, false,"PENDING",  null, null)
         );
 
         List<WorkshopOutDto> modelMapperOut = List.of(
-                new WorkshopOutDto(1L, "Oratoria básica", "Taller de oratoria y comunicación", LocalDate.of(2026, 2, 10), 90, 25, true, 1L),
-                new WorkshopOutDto(2L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2026, 3, 5), 120, 30, false, 1L)
+                new WorkshopOutDto(1L, "Oratoria básica", "Taller de oratoria y comunicación", LocalDate.of(2028, 2, 10),LocalDate.of(2028, 2, 5), 90, 25, true,"CONFIRMED", 1L),
+                new WorkshopOutDto(2L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2028, 3, 5),LocalDate.of(2028, 2, 5), 120, 30, false, "PENDING",1L)
         );
 
         when(workshopRepository.findAll()).thenReturn(mockWorkshopList);
@@ -67,18 +68,18 @@ public class WorkshopServiceTests {
 
     @Test
     public void testFindAllByName() throws Exception {
-        List<Workshop> mockWorkshopList = List.of(
-                new Workshop(1L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2026, 3, 5), 120, 30, 15, false, null, null),
-                new Workshop(2L, "Arte terapia avanzada", "Taller creativo avanzado", LocalDate.of(2026, 3, 20), 120, 35, 15, false, null, null)
+        List<Workshop> allWorkshops = List.of(
+                new Workshop(1L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2028, 3, 5), LocalDate.of(2028, 2, 5),120, 30,1, 15, false,"PENDING",  null, null),
+                new Workshop(2L, "Arte terapia avanzada", "Taller creativo avanzado", LocalDate.of(2028, 3, 20), LocalDate.of(2028, 2, 5),120, 35,1,  15, false,"PENDING",  null, null)
         );
 
         List<WorkshopOutDto> modelMapperOut = List.of(
-                new WorkshopOutDto(1L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2026, 3, 5), 120, 30, false, 1L),
-                new WorkshopOutDto(2L, "Arte terapia avanzada", "Taller creativo avanzado", LocalDate.of(2026, 3, 20), 120, 35, false, 1L)
+                new WorkshopOutDto(1L, "Arte terapia", "Taller creativo para autocuidado", LocalDate.of(2028, 3, 5),LocalDate.of(2028, 2, 5), 120, 30, false, "PENDING",1L),
+                new WorkshopOutDto(2L, "Arte terapia avanzada", "Taller creativo avanzado", LocalDate.of(2028, 3, 20), LocalDate.of(2028, 2, 5),120, 35, false, "PENDING",1L)
         );
 
-        when(workshopRepository.findByNameContainingIgnoreCase("arte")).thenReturn(mockWorkshopList);
-        when(modelMapper.map(mockWorkshopList, new TypeToken<List<WorkshopOutDto>>() {}.getType())).thenReturn(modelMapperOut);
+        when(workshopRepository.findAll()).thenReturn(allWorkshops);
+        when(modelMapper.map(allWorkshops, new TypeToken<List<WorkshopOutDto>>() {}.getType())).thenReturn(modelMapperOut);
 
         List<WorkshopOutDto> actualWorkshopList = workshopService.findAll("arte", "", "");
 
@@ -86,28 +87,27 @@ public class WorkshopServiceTests {
         assertEquals("Arte terapia", actualWorkshopList.getFirst().getName());
         assertEquals("Arte terapia avanzada", actualWorkshopList.getLast().getName());
 
-        verify(workshopRepository, times(0)).findAll();
-        verify(workshopRepository, times(1)).findByNameContainingIgnoreCase("arte");
+        verify(workshopRepository, times(1)).findAll();
     }
 
     @Test
     public void testFindAllByIsOnline() throws Exception {
-        List<Workshop> mockWorkshopList = List.of(
-                new Workshop(1L, "Oratoria básica", "Taller de oratoria", LocalDate.of(2026, 2, 10),
-                        90, 25, 20, true, null, null),
-                new Workshop(3L, "Coaching online", "Taller de coaching", LocalDate.of(2026, 3, 15),
-                        120, 30, 15, true, null, null)
+        List<Workshop> allWorkshops = List.of(
+                new Workshop(1L, "Oratoria básica", "Taller de oratoria", LocalDate.of(2028, 2, 10),LocalDate.of(2028, 2, 5),
+                        90, 25,1,  20, true,"CONFIRMED",  null, null),
+                new Workshop(3L, "Coaching online", "Taller de coaching", LocalDate.of(2028, 3, 15),LocalDate.of(2028, 2, 5),
+                        120, 30,1,  15, true,"CONFIRMED",  null, null)
         );
 
         List<WorkshopOutDto> modelMapperWorkshopOutDto = List.of(
                 new WorkshopOutDto(1L, "Oratoria básica", "Taller de oratoria",
-                        LocalDate.of(2026, 2, 10), 90, 25, true, 1L),
+                        LocalDate.of(2028, 2, 10), LocalDate.of(2028, 2, 5),90, 25, true, "CONFIRMED",1L),
                 new WorkshopOutDto(3L, "Coaching online", "Taller de coaching",
-                        LocalDate.of(2026, 3, 15), 120, 30, true, 1L)
+                        LocalDate.of(2028, 3, 15), LocalDate.of(2028, 2, 5),120, 30, true,"CONFIRMED", 1L)
         );
 
-        when(workshopRepository.findByIsOnline(true)).thenReturn(mockWorkshopList);
-        when(modelMapper.map(mockWorkshopList, new TypeToken<List<WorkshopOutDto>>() {}.getType()))
+        when(workshopRepository.findAll()).thenReturn(allWorkshops);
+        when(modelMapper.map(allWorkshops, new TypeToken<List<WorkshopOutDto>>() {}.getType()))
                 .thenReturn(modelMapperWorkshopOutDto);
 
         List<WorkshopOutDto> actualWorkshopList = workshopService.findAll("", "true", "");
@@ -116,10 +116,7 @@ public class WorkshopServiceTests {
         assertEquals("Oratoria básica", actualWorkshopList.getFirst().getName());
         assertEquals("Coaching online", actualWorkshopList.getLast().getName());
 
-        verify(workshopRepository, times(0)).findAll();
-        verify(workshopRepository, times(0)).findByNameContainingIgnoreCase(anyString());
-        verify(workshopRepository, times(1)).findByIsOnline(true);
-        verify(workshopRepository, times(0)).findBySpeaker(any(Speaker.class));
+        verify(workshopRepository, times(1)).findAll();
     }
 
     @Test
@@ -127,23 +124,22 @@ public class WorkshopServiceTests {
         Speaker speaker = new Speaker();
         speaker.setId(5L);
 
-        List<Workshop> mockWorkshopList = List.of(
-                new Workshop(1L, "Oratoria básica", "Taller de oratoria", LocalDate.of(2026, 2, 10),
-                        90, 25, 20, true, speaker, null),
-                new Workshop(2L, "Oratoria avanzada", "Taller avanzado", LocalDate.of(2026, 3, 5),
-                        120, 30, 15, false, speaker, null)
+        List<Workshop> allWorkshops = List.of(
+                new Workshop(1L, "Oratoria básica", "Taller de oratoria", LocalDate.of(2028, 2, 10),LocalDate.of(2028, 2, 5),
+                        90, 25,1,  20, true,"CONFIRMED",  speaker, null),
+                new Workshop(2L, "Oratoria avanzada", "Taller avanzado", LocalDate.of(2028, 3, 5),LocalDate.of(2028, 2, 5),
+                        120, 30,1,  15, false,"PENDING",  speaker, null)
         );
 
         List<WorkshopOutDto> modelMapperWorkshopOutDto = List.of(
                 new WorkshopOutDto(1L, "Oratoria básica", "Taller de oratoria",
-                        LocalDate.of(2026, 2, 10), 90, 25, true, 5L),
+                        LocalDate.of(2028, 2, 10), LocalDate.of(2028, 2, 5),90, 25, true, "CONFIRMED",5L),
                 new WorkshopOutDto(2L, "Oratoria avanzada", "Taller avanzado",
-                        LocalDate.of(2026, 3, 5), 120, 30, false, 5L)
+                        LocalDate.of(2028, 3, 5), LocalDate.of(2028, 2, 5),120, 30, false,"PENDING", 5L)
         );
 
-        when(speakerRepository.findById(5L)).thenReturn(Optional.of(speaker));
-        when(workshopRepository.findBySpeaker(speaker)).thenReturn(mockWorkshopList);
-        when(modelMapper.map(mockWorkshopList, new TypeToken<List<WorkshopOutDto>>() {}.getType()))
+        when(workshopRepository.findAll()).thenReturn(allWorkshops);
+        when(modelMapper.map(allWorkshops, new TypeToken<List<WorkshopOutDto>>() {}.getType()))
                 .thenReturn(modelMapperWorkshopOutDto);
 
         List<WorkshopOutDto> actualWorkshopList = workshopService.findAll("", "", "5");
@@ -152,31 +148,27 @@ public class WorkshopServiceTests {
         assertEquals("Oratoria básica", actualWorkshopList.getFirst().getName());
         assertEquals("Oratoria avanzada", actualWorkshopList.getLast().getName());
 
-        verify(speakerRepository, times(1)).findById(5L);
-        verify(workshopRepository, times(0)).findAll();
-        verify(workshopRepository, times(0)).findByNameContainingIgnoreCase(anyString());
-        verify(workshopRepository, times(0)).findByIsOnline(anyBoolean());
-        verify(workshopRepository, times(1)).findBySpeaker(speaker);
+        verify(workshopRepository, times(1)).findAll();
     }
 
-    @Test
-    public void testFindAllBySpeakerId_SpeakerNotFound() {
-        when(speakerRepository.findById(99L)).thenReturn(Optional.empty());
-
-        assertThrows(SpeakerNotFoundException.class, () ->
-                workshopService.findAll("", "", "99"));
-
-        verify(speakerRepository, times(1)).findById(99L);
-        verify(workshopRepository, times(0)).findBySpeaker(any(Speaker.class));
-    }
+//    @Test
+//    public void testFindAllBySpeakerId_SpeakerNotFound() {
+//        when(speakerRepository.findById(99L)).thenReturn(Optional.empty());
+//
+//        assertThrows(SpeakerNotFoundException.class, () ->
+//                workshopService.findAll("", "", "99"));
+//
+//        verify(speakerRepository, times(1)).findById(99L);
+//        verify(workshopRepository, times(0)).findBySpeaker(any(Speaker.class));
+//    }
 
     @Test
     public void testFindById() throws WorkshopNotFoundException {
         Workshop workshop = new Workshop(7L, "Oratoria", "Taller de desarrollo",
-                LocalDate.of(2026, 2, 10), 90, 25, 20, true, null, null);
+                LocalDate.of(2028, 2, 10),LocalDate.of(2028, 2, 5), 90, 25,1,  20, true,"CONFIRMED",  null, null);
 
         WorkshopOutDto workshopOutDto = new WorkshopOutDto(7L, "Oratoria", "Taller de desarrollo",
-                LocalDate.of(2026, 2, 10), 90, 25, true, 1L);
+                LocalDate.of(2028, 2, 10),LocalDate.of(2028, 2, 5), 90, 25, true, "CONFIRMED",1L);
 
         when(workshopRepository.findById(7L)).thenReturn(Optional.of(workshop));
         when(modelMapper.map(workshop, WorkshopOutDto.class)).thenReturn(workshopOutDto);
@@ -199,19 +191,21 @@ public class WorkshopServiceTests {
     }
 
     @Test
-    public void testAdd() throws SpeakerNotFoundException {
-        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria", "Taller de desarrollo", LocalDate.of(2026, 2, 10), 90, 25, 20, true, 1L
+    public void testAdd() throws SpeakerNotFoundException, InvalidDateRangeException {
+        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria", "Taller de desarrollo", LocalDate.of(2028, 2, 10), LocalDate.of(2028, 2, 5),90, 25,1,  20, true, 1L
         );
 
         Speaker speaker = new Speaker();
         speaker.setId(1L);
 
         Workshop workshop = new Workshop();
+        workshop.setStartDate(LocalDate.of(2028, 2, 10));
+        workshop.setConfirmationDeadline(LocalDate.of(2028, 2, 5));
         Workshop savedWorkshop = new Workshop();
         savedWorkshop.setId(10L);
 
         WorkshopOutDto modelMapperOutDto = new WorkshopOutDto(10L, "Oratoria", "Taller de desarrollo",
-                LocalDate.of(2026, 2, 10), 90, 25, true, 1L);
+                LocalDate.of(2028, 2, 10),LocalDate.of(2028, 2, 5), 90, 25, true, "CONFIRMED",1L);
 
         when(speakerRepository.findById(1L)).thenReturn(Optional.of(speaker));
         when(modelMapper.map(workshopInDto, Workshop.class)).thenReturn(workshop);
@@ -228,8 +222,40 @@ public class WorkshopServiceTests {
     }
 
     @Test
+    public void testAdd_Workshop_DefaultStatus() throws SpeakerNotFoundException, InvalidDateRangeException {
+        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria", "Taller de desarrollo", LocalDate.of(2028, 2, 10), LocalDate.of(2028, 2, 5),90, 25, 1, 20, true, 1L
+        );
+
+        Speaker speaker = new Speaker();
+        speaker.setId(1L);
+
+        Workshop workshop = new Workshop();
+        workshop.setStartDate(LocalDate.of(2028, 2, 10));
+        workshop.setConfirmationDeadline(LocalDate.of(2028, 2, 5));
+        Workshop savedWorkshop = new Workshop();
+        savedWorkshop.setId(10L);
+        savedWorkshop.setStatus("CONFIRMED");
+
+        WorkshopOutDto modelMapperOutDto = new WorkshopOutDto(10L, "Oratoria", "Taller de desarrollo",
+                LocalDate.of(2028, 2, 10), LocalDate.of(2028, 2, 5),90, 25, true,"CONFIRMED", 1L);
+
+        when(speakerRepository.findById(1L)).thenReturn(Optional.of(speaker));
+        when(modelMapper.map(workshopInDto, Workshop.class)).thenReturn(workshop);
+        when(workshopRepository.save(workshop)).thenReturn(savedWorkshop);
+        when(modelMapper.map(savedWorkshop, WorkshopOutDto.class)).thenReturn(modelMapperOutDto);
+
+        WorkshopOutDto actualWorkshopOutDto = workshopService.add(workshopInDto);
+
+        assertNotNull(actualWorkshopOutDto);
+        assertEquals("CONFIRMED", savedWorkshop.getStatus());
+
+        verify(speakerRepository, times(1)).findById(1L);
+        verify(workshopRepository, times(1)).save(workshop);
+    }
+
+    @Test
     public void testAdd_SpeakerNotFound() {
-        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria", "Taller de desarrollo", LocalDate.of(2026, 2, 10), 90, 25, 20, true, 99L
+        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria", "Taller de desarrollo", LocalDate.of(2028, 2, 10),LocalDate.of(2028, 2, 5), 90, 25,1, 20, true, 99L
         );
 
         when(speakerRepository.findById(99L)).thenReturn(Optional.empty());
@@ -241,7 +267,7 @@ public class WorkshopServiceTests {
     }
 
     @Test
-    public void testModify() throws WorkshopNotFoundException, SpeakerNotFoundException {
+    public void testModify() throws WorkshopNotFoundException, SpeakerNotFoundException, InvalidDateRangeException {
         long id = 5L;
 
         Workshop existingWorkshop = new Workshop();
@@ -250,7 +276,7 @@ public class WorkshopServiceTests {
         Speaker speaker = new Speaker();
         speaker.setId(1L);
 
-        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.of(2026, 3, 10), 120, 30, 15, false, 1L
+        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.of(2028, 3, 10),LocalDate.of(2028, 2, 5), 120, 30,1,  15, false, 1L
         );
 
         Workshop savedWorkshop = new Workshop();
@@ -283,7 +309,7 @@ public class WorkshopServiceTests {
     public void testModify_WorkshopNotFound() {
         long id = 5L;
 
-        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.of(2026, 3, 10), 120, 30, 15, false, 1L
+        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.of(2028, 3, 10), LocalDate.of(2028, 2, 5),120, 30,1,  15, false, 1L
         );
 
         when(workshopRepository.findById(id)).thenReturn(Optional.empty());
@@ -301,7 +327,7 @@ public class WorkshopServiceTests {
         Workshop existingWorkshop = new Workshop();
         existingWorkshop.setId(id);
 
-        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.of(2026, 3, 10), 120, 30, 15, false, 99L
+        WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria actualizada", "Descripción actualizada", LocalDate.of(2028, 3, 10), LocalDate.of(2028, 2, 5),120, 30,1,  15, false, 99L
         );
 
         when(workshopRepository.findById(id)).thenReturn(Optional.of(existingWorkshop));

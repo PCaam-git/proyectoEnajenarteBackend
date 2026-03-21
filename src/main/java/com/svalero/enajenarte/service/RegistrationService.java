@@ -3,11 +3,10 @@ package com.svalero.enajenarte.service;
 import com.svalero.enajenarte.domain.Registration;
 import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.domain.Workshop;
+import com.svalero.enajenarte.domain.enums.PaymentStatus;
 import com.svalero.enajenarte.dto.RegistrationInDto;
 import com.svalero.enajenarte.dto.RegistrationOutDto;
-import com.svalero.enajenarte.exception.RegistrationNotFoundException;
-import com.svalero.enajenarte.exception.UserNotFoundException;
-import com.svalero.enajenarte.exception.WorkshopNotFoundException;
+import com.svalero.enajenarte.exception.*;
 import com.svalero.enajenarte.repository.RegistrationRepository;
 import com.svalero.enajenarte.repository.UserRepository;
 import com.svalero.enajenarte.repository.WorkshopRepository;
@@ -34,30 +33,58 @@ public class RegistrationService {
     @Autowired
     private ModelMapper modelMapper;
 
+    private static final String STATUS_CONFIRMED = "CONFIRMED";
+    private static final PaymentStatus PAYMENT_STATUS_PENDING = PaymentStatus.PENDING;
+
     // POST
-    public RegistrationOutDto add(RegistrationInDto registrationInDto) throws UserNotFoundException, WorkshopNotFoundException {
+    public RegistrationOutDto add(RegistrationInDto registrationInDto) throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException {
         User user = userRepository.findById(registrationInDto.getUserId())
                 .orElseThrow(UserNotFoundException::new);
 
         Workshop workshop = workshopRepository.findById(registrationInDto.getWorkshopId())
                 .orElseThrow(WorkshopNotFoundException::new);
 
-        Registration registration = modelMapper.map(registrationInDto, Registration.class);
-        registration.setUser(user);
-        registration.setWorkshop(workshop);
+        // Validación: evitar inscripción duplicada
+        boolean exists = registrationRepository.existsByUserIdAndWorkshopId(
+                registrationInDto.getUserId(),
+                registrationInDto.getWorkshopId()
+        );
 
-        //Aquí se establecen los datos de sistema
-        registration.setRegistrationDate(LocalDate.now());
-        registration.setConfirmationCode(UUID.randomUUID().toString());
-        registration.setPaid(false);
-        registration.setAmountPaid(0);
-        registration.setRating(null);
+        if (exists) {
+            throw new DuplicateRegistrationException();
+        }
+
+        List<Registration> registrations = registrationRepository.findByWorkshop(workshop);
+
+        // número de plazas máximo
+        int currentCapacity = registrations.stream()
+                .mapToInt(Registration::getNumberOfTickets)
+                .sum();
+        // número de participantes mínimo
+        int currentParticipants = registrations.stream()
+                .mapToInt(Registration::getNumberOfTickets)
+                .sum();
+
+        int requestedTickets = registrationInDto.getNumberOfTickets();
+
+        if (currentCapacity + requestedTickets > workshop.getMaxCapacity()) {
+            throw new WorkshopCapacityExceededException();
+        }
+
+        Registration registration = buildRegistration(registrationInDto, user, workshop);
 
         Registration newRegistration = registrationRepository.save(registration);
+
+        // Si el taller es presencial y se alcanza el mínimo de participantes, el estado cambia a CONFIRMED
+        confirmWorkshopifMinimumReached(workshop, currentParticipants + requestedTickets);
+
+        // Simulación de envío de confirmación
+        simulateEmailConfirmation(newRegistration);
 
         RegistrationOutDto registrationOutDto = modelMapper.map(newRegistration, RegistrationOutDto.class);
         registrationOutDto.setUserId(newRegistration.getUser().getId());
         registrationOutDto.setWorkshopId(newRegistration.getWorkshop().getId());
+        registrationOutDto.setPaymentStatus(newRegistration.getPaymentStatus().name());
 
         return registrationOutDto;
     }
@@ -99,6 +126,9 @@ public class RegistrationService {
             if (registration.getWorkshop() != null) {
                 registrationOutDto.setWorkshopId(registration.getWorkshop().getId());
             }
+            if (registration.getPaymentStatus() != null) {
+                registrationOutDto.setPaymentStatus(registration.getPaymentStatus().name());
+            }
         }
 
         return registrationsOutDtos;
@@ -114,12 +144,13 @@ public class RegistrationService {
         RegistrationOutDto registrationOutDto = modelMapper.map(registration, RegistrationOutDto.class);
         registrationOutDto.setUserId(registration.getUser().getId());
         registrationOutDto.setWorkshopId(registration.getWorkshop().getId());
+        registrationOutDto.setPaymentStatus(registration.getPaymentStatus().name());
 
         return registrationOutDto;
     }
 
     // PUT
-    public RegistrationOutDto modify(long id, RegistrationInDto registrationInDto) throws RegistrationNotFoundException, UserNotFoundException, WorkshopNotFoundException {
+    public RegistrationOutDto modify(long id, RegistrationInDto registrationInDto) throws RegistrationNotFoundException, UserNotFoundException, WorkshopNotFoundException, InvalidPaymentStatusException {
         Registration existingRegistration = registrationRepository.findById(id)
                 .orElseThrow(RegistrationNotFoundException::new);
 
@@ -135,6 +166,7 @@ public class RegistrationService {
             boolean paid = existingRegistration.isPaid();
             float amountPaid = existingRegistration.getAmountPaid();
             Integer rating = existingRegistration.getRating();
+            String status = existingRegistration.getStatus();
 
             modelMapper.map(registrationInDto, existingRegistration);
             existingRegistration.setId(id);
@@ -147,6 +179,17 @@ public class RegistrationService {
             existingRegistration.setPaid(paid);
             existingRegistration.setAmountPaid(amountPaid);
             existingRegistration.setRating(rating);
+            existingRegistration.setStatus(status);
+
+        if (registrationInDto.getPaymentStatus() != null) {
+            try {
+                existingRegistration.setPaymentStatus(
+                        PaymentStatus.valueOf(registrationInDto.getPaymentStatus().toUpperCase())
+                );
+            } catch (IllegalArgumentException e) {
+                throw new InvalidPaymentStatusException();
+            }
+        }
 
             Registration updateRegistration = registrationRepository.save(existingRegistration);
 
@@ -154,9 +197,80 @@ public class RegistrationService {
             RegistrationOutDto registrationOutDto = modelMapper.map(updateRegistration, RegistrationOutDto.class);
             registrationOutDto.setUserId(updateRegistration.getUser().getId());
             registrationOutDto.setWorkshopId(updateRegistration.getWorkshop().getId());
+        registrationOutDto.setPaymentStatus(updateRegistration.getPaymentStatus().name());
 
             return registrationOutDto;
         }
+
+    private Registration buildRegistration(RegistrationInDto registrationInDto, User user, Workshop workshop) {
+
+        Registration registration = modelMapper.map(registrationInDto, Registration.class);
+        registration.setUser(user);
+        registration.setWorkshop(workshop);
+
+        // Datos de sistema
+        registration.setRegistrationDate(LocalDate.now());
+        registration.setConfirmationCode(UUID.randomUUID().toString());
+        registration.setPaid(false);
+        registration.setAmountPaid(0);
+        registration.setRating(null);
+
+        // Confirmación automática
+        applyInitialStatus(registration, workshop);
+
+        return registration;
+    }
+
+    private void applyInitialStatus(Registration registration, Workshop workshop) {
+        if (workshop.isOnline()) {
+            registration.setStatus(STATUS_CONFIRMED);
+            registration.setPaymentStatus(PAYMENT_STATUS_PENDING);
+        } else {
+            registration.setStatus(STATUS_CONFIRMED);
+            registration.setPaymentStatus(PAYMENT_STATUS_PENDING);
+        }
+    }
+
+    private void confirmWorkshopifMinimumReached(Workshop workshop, int totalParticipants) {
+        if (!workshop.isOnline()
+        && "PENDING".equals(workshop.getStatus())
+        && workshop.getMinimumParticipants() !=null
+        && totalParticipants >= workshop.getMinimumParticipants()) {
+
+            workshop.setStatus("CONFIRMED");
+            workshopRepository.save(workshop);
+
+            // Obtiene todas las inscripciones del workshop
+            List<Registration> registrations = registrationRepository.findByWorkshop(workshop);
+
+            // Simula envío de mensaje a los participantes
+            for (Registration registration : registrations) {
+                simulateWorkshopConfirmationEmail(registration);
+            }
+        }
+    }
+
+    private void simulateWorkshopConfirmationEmail(Registration registration) {
+        System.out.println("Simulando envío de email de confirmación del workshop presencial para la inscripción con código: " + registration.getConfirmationCode());
+    }
+
+    private void simulateEmailConfirmation(Registration registration) {
+        if (registration.getWorkshop() != null && registration.getWorkshop().isOnline()) {
+            sendOnlineRegistrationConfirmationNotification(registration);
+        } else {
+            sendPendingWorkshopRegistrationNotification(registration);
+        }
+    }
+
+    private void sendOnlineRegistrationConfirmationNotification(Registration registration) {
+        System.out.println("Simulando envío de email de confirmación para la inscripción online con código: "
+                + registration.getConfirmationCode());
+    }
+
+    private void sendPendingWorkshopRegistrationNotification(Registration registration) {
+        System.out.println("Simulando envío de email de inscripción registrada y pendiente de confirmación del workshop presencial con código: "
+                + registration.getConfirmationCode());
+    }
 
     }
 

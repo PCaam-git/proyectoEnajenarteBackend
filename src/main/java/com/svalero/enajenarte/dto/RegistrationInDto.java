@@ -26,4 +26,6 @@ public class RegistrationInDto {
 
     @Min(value = 1, message = "Workshop ID must be greater than 0")
     private long workshopId;
+
+    private String paymentStatus;
 }

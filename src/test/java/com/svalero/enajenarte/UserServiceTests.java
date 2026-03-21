@@ -1,10 +1,16 @@
 package com.svalero.enajenarte;
 
+import com.svalero.enajenarte.domain.Registration;
 import com.svalero.enajenarte.domain.User;
+import com.svalero.enajenarte.domain.Workshop;
+import com.svalero.enajenarte.domain.enums.PaymentStatus;
+import com.svalero.enajenarte.domain.enums.PaymentStatus;
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
+import com.svalero.enajenarte.dto.UserRegistrationOutDto;
 import com.svalero.enajenarte.exception.UserNotFoundException;
 import com.svalero.enajenarte.exception.WorkshopNotFoundException;
+import com.svalero.enajenarte.repository.RegistrationRepository;
 import com.svalero.enajenarte.repository.UserRepository;
 import com.svalero.enajenarte.service.UserService;
 import org.junit.jupiter.api.Test;
@@ -33,20 +39,23 @@ public class UserServiceTests {
     private UserRepository userRepository;
 
     @Mock
+    private RegistrationRepository registrationRepository;
+
+    @Mock
     private ModelMapper modelMapper;
 
     @Test
     public void testFindAll() {
         List<User> mockUserList = List.of(
-                new User(1L, "patricia", "pass1", "patricia@mail.com", "Patricia User"/*LocalDate.now()*/, 40, true, 0, "user", null),
+                new User(1L, "patricia", "pass1", "patricia@mail.com", "Patricia User"/*LocalDate.now()*/, 40, true, 0, "USER", null),
                 new User(2L, "mario", "pass2", "mario@mail.com", "Mario User"
-                        /*LocalDate.now()*/, 35, true, 0, "user", null)
+                        /*LocalDate.now()*/, 35, true, 0, "USER", null)
         );
 
 
         List<UserOutDto> modelMapperOut = List.of(
-                new UserOutDto(1L, "patricia", "patricia@mail.com", "Patricia User", "user"),
-                new UserOutDto(2L, "mario", "mario@mail.com", "Mario User", "user")
+                new UserOutDto(1L, "patricia", "patricia@mail.com", "Patricia User", "USER"),
+                new UserOutDto(2L, "mario", "mario@mail.com", "Mario User", "USER")
         );
 
         when(userRepository.findAll()).thenReturn(mockUserList);
@@ -66,20 +75,20 @@ public class UserServiceTests {
 
     @Test
     public void testFindAllByUsername() {
-        List<User> mockUserList = List.of(
+        List<User> allUsers = List.of(
                 new User(1L, "patricia", "pass1", "patricia@mail.com", "Patricia User",
-                        40, true, 0, "user", null),
+                        40, true, 0, "USER", null),
                 new User(2L, "patricia.dev", "pass2", "patricia.dev@mail.com", "Patricia Dev",
-                         22, true, 0, "user", null)
+                        22, true, 0, "USER", null)
         );
 
         List<UserOutDto> modelMapperOut = List.of(
-                new UserOutDto(1L, "patricia", "patricia@mail.com", "Patricia User", "user"),
-                new UserOutDto(2L, "patricia.dev", "patricia.dev@mail.com", "Patricia Dev", "user")
+                new UserOutDto(1L, "patricia", "patricia@mail.com", "Patricia User", "USER"),
+                new UserOutDto(2L, "patricia.dev", "patricia.dev@mail.com", "Patricia Dev", "USER")
         );
 
-        when(userRepository.findByUsernameContainingIgnoreCase("patricia")).thenReturn(mockUserList);
-        when(modelMapper.map(mockUserList, new TypeToken<List<UserOutDto>>() {}.getType())).thenReturn(modelMapperOut);
+        when(userRepository.findAll()).thenReturn(allUsers);
+        when(modelMapper.map(allUsers, new TypeToken<List<UserOutDto>>() {}.getType())).thenReturn(modelMapperOut);
 
         List<UserOutDto> actualUserList = userService.findAll("patricia", "", "");
 
@@ -87,23 +96,22 @@ public class UserServiceTests {
         assertEquals("patricia", actualUserList.getFirst().getUsername());
         assertEquals("patricia.dev", actualUserList.getLast().getUsername());
 
-        verify(userRepository, times(0)).findAll();
-        verify(userRepository, times(1)).findByUsernameContainingIgnoreCase("patricia");
+        verify(userRepository, times(1)).findAll();
     }
 
     @Test
     public void testFindAllByEmail() {
-        List<User> userRepositoryUsers = List.of(
+        List<User> allUsers = List.of(
                 new User(1L, "patricia", "pass1", "patricia@mail.com", "Patricia User",
-                        40, true, 0, "user", null)
+                        40, true, 0, "USER", null)
         );
 
         List<UserOutDto> modelMapperUsersOutDto = List.of(
-                new UserOutDto(1L, "patricia", "patricia@mail.com", "Patricia User", "user")
+                new UserOutDto(1L, "patricia", "patricia@mail.com", "Patricia User", "USER")
         );
 
-        when(userRepository.findByEmailContainingIgnoreCase("mail")).thenReturn(userRepositoryUsers);
-        when(modelMapper.map(userRepositoryUsers, new TypeToken<List<UserOutDto>>() {}.getType()))
+        when(userRepository.findAll()).thenReturn(allUsers);
+        when(modelMapper.map(allUsers, new TypeToken<List<UserOutDto>>() {}.getType()))
                 .thenReturn(modelMapperUsersOutDto);
 
         List<UserOutDto> actualUsersOutDto = userService.findAll("", "mail", "");
@@ -111,23 +119,22 @@ public class UserServiceTests {
         assertEquals(1, actualUsersOutDto.size());
         assertEquals("patricia@mail.com", actualUsersOutDto.getFirst().getEmail());
 
-        verify(userRepository, times(1)).findByEmailContainingIgnoreCase("mail");
-        verify(userRepository, times(0)).findAll();
+        verify(userRepository, times(1)).findAll();
     }
 
     @Test
     public void testFindAllByActive() {
-        List<User> userRepositoryUsers = List.of(
+        List<User> allUsers = List.of(
                 new User(1L, "patricia", "pass1", "patricia@mail.com", "Patricia User",
-                        40, true, 0, "user", null)
+                        40, true, 0, "USER", null)
         );
 
         List<UserOutDto> modelMapperUsersOutDto = List.of(
-                new UserOutDto(1L, "patricia", "patricia@mail.com", "Patricia User", "user")
+                new UserOutDto(1L, "patricia", "patricia@mail.com", "Patricia User", "USER")
         );
 
-        when(userRepository.findByActive(true)).thenReturn(userRepositoryUsers);
-        when(modelMapper.map(userRepositoryUsers, new TypeToken<List<UserOutDto>>() {}.getType()))
+        when(userRepository.findAll()).thenReturn(allUsers);
+        when(modelMapper.map(allUsers, new TypeToken<List<UserOutDto>>() {}.getType()))
                 .thenReturn(modelMapperUsersOutDto);
 
         List<UserOutDto> actualUsersOutDto = userService.findAll("", "", "true");
@@ -135,8 +142,7 @@ public class UserServiceTests {
         assertEquals(1, actualUsersOutDto.size());
         assertEquals("patricia", actualUsersOutDto.getFirst().getUsername());
 
-        verify(userRepository, times(1)).findByActive(true);
-        verify(userRepository, times(0)).findAll();
+        verify(userRepository, times(1)).findAll();
     }
 
     @Test
@@ -166,6 +172,38 @@ public class UserServiceTests {
     }
 
     @Test
+    public void testGetUserRegistrations() throws UserNotFoundException {
+        User user = new User();
+        user.setId(1L);
+
+        Workshop workshop = new Workshop();
+        workshop.setId(1L);
+        workshop.setName("Oratoria básica");
+        workshop.setStartDate(LocalDate.of(2026, 8, 10));
+        workshop.setStatus("CONFIRMED");
+
+        Registration registration = new Registration();
+        registration.setId(1L);
+        registration.setRegistrationDate(LocalDate.of(2026, 3, 1));
+        registration.setStatus("CONFIRMED");
+        registration.setPaymentStatus(PaymentStatus.PAID);
+        registration.setWorkshop(workshop);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(registrationRepository.findByUser(user)).thenReturn(List.of(registration));
+
+        List<UserRegistrationOutDto> result = userService.getUserRegistrations(1L);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("Oratoria básica", result.getFirst().getWorkshopName());
+        assertEquals("CONFIRMED", result.getFirst().getStatus());
+
+        verify(userRepository, times(1)).findById(1L);
+        verify(registrationRepository, times(1)).findByUser(user);
+    }
+
+    @Test
     public void testAdd() {
         UserInDto userInDto = new UserInDto("patricia", "password", "patricia@mail.com", "Patricia User", 25
         );
@@ -174,7 +212,7 @@ public class UserServiceTests {
         User savedUser = new User();
         savedUser.setId(10L);
 
-        UserOutDto expectedUserOutDto = new UserOutDto(10L, "patricia", "patricia@mail.com", "Patricia User", "user"
+        UserOutDto expectedUserOutDto = new UserOutDto(10L, "patricia", "patricia@mail.com", "Patricia User", "USER"
         );
 
         when(modelMapper.map(userInDto, User.class)).thenReturn(mappedUser);
@@ -186,9 +224,9 @@ public class UserServiceTests {
         assertNotNull(actualUserOutDto);
         assertEquals(10L, actualUserOutDto.getId());
         assertEquals("patricia", actualUserOutDto.getUsername());
-        assertEquals("user", actualUserOutDto.getRole());
+        assertEquals("USER", actualUserOutDto.getRole());
 
-        assertEquals("user", mappedUser.getRole());
+        assertEquals("USER", mappedUser.getRole());
         assertTrue(mappedUser.isActive());
         assertEquals(0, mappedUser.getBalance());
 //        assertNotNull(mappedUser.getRegistrationDate());
@@ -229,7 +267,7 @@ public class UserServiceTests {
 
         User existingUser = new User();
         existingUser.setId(userIdentifier);
-        existingUser.setRole("user");
+        existingUser.setRole("USER");
         existingUser.setActive(true);
         existingUser.setBalance(0);
 //        existingUser.setRegistrationDate(LocalDate.of(2026, 1, 1));
@@ -239,7 +277,7 @@ public class UserServiceTests {
 
         UserOutDto expectedUserOutDto = new UserOutDto(
                 userIdentifier,
-                "updatedUsername", "updated@mail.com", "Updated Full Name", "user"
+                "updatedUsername", "updated@mail.com", "Updated Full Name", "USER"
         );
 
         when(userRepository.findById(userIdentifier)).thenReturn(Optional.of(existingUser));
@@ -254,7 +292,7 @@ public class UserServiceTests {
         assertEquals("updatedUsername", actualUserOutDto.getUsername());
 
         // Preservación de campos del sistema (no vienen del cliente)
-        assertEquals("user", existingUser.getRole());
+        assertEquals("USER", existingUser.getRole());
         assertTrue(existingUser.isActive());
         assertEquals(0, existingUser.getBalance());
 //        assertEquals(LocalDate.of(2026, 1, 1), existingUser.getRegistrationDate());

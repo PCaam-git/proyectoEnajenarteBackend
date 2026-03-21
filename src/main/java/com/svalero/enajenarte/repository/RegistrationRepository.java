@@ -11,8 +11,11 @@ import java.util.List;
 @Repository
 public interface RegistrationRepository extends CrudRepository<Registration, Long> {
 
-    List<Registration> findAll();
+    // Para evitar duplicados
+    boolean existsByUserIdAndWorkshopId(Long userId, Long workshopId);
 
+
+    List<Registration> findAll();
     // Filtros (3 campos)
     List<Registration> findByWorkshop(Workshop workshop);
     List<Registration> findByUser(User user);

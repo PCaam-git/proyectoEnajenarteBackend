@@ -1723,6 +1723,11 @@ components:
           type: number
           format: float
           example: 20
+        minimumParticipants:
+          type: integer
+          minimum: 1
+          example: 5
+          nullable: true
         maxCapacity:
           type: integer
           example: 25
@@ -1733,6 +1738,10 @@ components:
           type: integer
           format: int64
           example: 1
+      required:
+        - name
+        - description
+        - startDate
       example:
         name: "Oratoria básica"
         description: "Taller de oratoria y comunicación"
@@ -1792,6 +1801,7 @@ components:
         numberOfTickets:
           type: integer
           minimum: 1
+          maximum: 5
           example: 2
         userId:
           type: integer
@@ -1818,6 +1828,9 @@ components:
           type: string
           format: date
           example: "2026-01-10"
+        confirmationCode:
+          type: string
+          example: CONF-10
         isPaid:
           type: boolean
           example: false
@@ -1831,6 +1844,12 @@ components:
         rating:
           type: integer
           example: 5
+        status:
+          type: string
+          example: CONFIRMED
+        paymentStatus:
+          type: string
+          example: PENDING
         userId:
           type: integer
           format: int64

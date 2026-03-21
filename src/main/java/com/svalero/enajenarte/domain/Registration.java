@@ -1,9 +1,12 @@
 package com.svalero.enajenarte.domain;
 
+import com.svalero.enajenarte.domain.enums.PaymentStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -53,8 +56,9 @@ public class Registration {
     private String status;
 
     @Column(name = "payment_status")
+    @Enumerated(EnumType.STRING)
     @NotNull
-    private String paymentStatus;
+    private PaymentStatus paymentStatus;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

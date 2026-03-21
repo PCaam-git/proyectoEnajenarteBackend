@@ -4,8 +4,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.svalero.enajenarte.controller.UserController;
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
+import com.svalero.enajenarte.dto.UserRegistrationOutDto;
 import com.svalero.enajenarte.exception.UserNotFoundException;
+import com.svalero.enajenarte.repository.RegistrationRepository;
 import com.svalero.enajenarte.repository.UserRepository;
+import com.svalero.enajenarte.security.JwtUtils;
 import com.svalero.enajenarte.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
@@ -45,7 +48,10 @@ public class UserControllerTests {
     private ModelMapper modelMapper;
 
     @MockitoBean
-    private com.svalero.enajenarte.security.JwtUtils jwtUtils;
+    private JwtUtils jwtUtils;
+
+    @MockitoBean
+    private RegistrationRepository registrationRepository;
 
     @MockitoBean
     private UserRepository userRepository;
@@ -129,6 +135,30 @@ public class UserControllerTests {
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                 )
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testGetUserRegistrations() throws Exception {
+        List<UserRegistrationOutDto> registrations = List.of(
+                new UserRegistrationOutDto(1L, LocalDate.of(2026, 3, 1), "CONFIRMED", "PAID", 1L, "Oratoria básica", LocalDate.of(2026, 8, 10), "CONFIRMED"),
+                new UserRegistrationOutDto(2L, LocalDate.of(2026, 3, 5), "PENDING", "PENDING", 2L, "Arte terapia", LocalDate.of(2026, 8, 15), "PENDING")
+        );
+
+        when(userService.getUserRegistrations(1L)).thenReturn(registrations);
+
+        MvcResult result = mockMvc.perform(
+                        MockMvcRequestBuilders.get("/users/1/registrations")
+                                .accept(MediaType.APPLICATION_JSON_VALUE)
+                )
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String jsonResponse = result.getResponse().getContentAsString();
+        List<UserRegistrationOutDto> response = objectMapper.readValue(jsonResponse, new TypeReference<>() {});
+
+        assertNotNull(response);
+        assertEquals(2, response.size());
+        assertEquals("Oratoria básica", response.getFirst().getWorkshopName());
     }
 
     @Test

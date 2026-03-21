@@ -6,6 +6,7 @@ import com.svalero.enajenarte.dto.WorkshopInDto;
 import com.svalero.enajenarte.dto.WorkshopOutDto;
 import com.svalero.enajenarte.exception.SpeakerNotFoundException;
 import com.svalero.enajenarte.exception.WorkshopNotFoundException;
+import com.svalero.enajenarte.exception.InvalidDateRangeException;
 import com.svalero.enajenarte.repository.SpeakerRepository;
 import com.svalero.enajenarte.repository.WorkshopRepository;
 import com.svalero.enajenarte.service.WorkshopService;
@@ -190,7 +191,7 @@ public class WorkshopServiceTests {
     }
 
     @Test
-    public void testAdd() throws SpeakerNotFoundException {
+    public void testAdd() throws SpeakerNotFoundException, InvalidDateRangeException {
         WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria", "Taller de desarrollo", LocalDate.of(2028, 2, 10), LocalDate.of(2028, 2, 5),90, 25,1,  20, true, 1L
         );
 
@@ -198,6 +199,8 @@ public class WorkshopServiceTests {
         speaker.setId(1L);
 
         Workshop workshop = new Workshop();
+        workshop.setStartDate(LocalDate.of(2028, 2, 10));
+        workshop.setConfirmationDeadline(LocalDate.of(2028, 2, 5));
         Workshop savedWorkshop = new Workshop();
         savedWorkshop.setId(10L);
 
@@ -219,7 +222,7 @@ public class WorkshopServiceTests {
     }
 
     @Test
-    public void testAdd_Workshop_DefaultStatus() throws SpeakerNotFoundException {
+    public void testAdd_Workshop_DefaultStatus() throws SpeakerNotFoundException, InvalidDateRangeException {
         WorkshopInDto workshopInDto = new WorkshopInDto("Oratoria", "Taller de desarrollo", LocalDate.of(2028, 2, 10), LocalDate.of(2028, 2, 5),90, 25, 1, 20, true, 1L
         );
 
@@ -227,6 +230,8 @@ public class WorkshopServiceTests {
         speaker.setId(1L);
 
         Workshop workshop = new Workshop();
+        workshop.setStartDate(LocalDate.of(2028, 2, 10));
+        workshop.setConfirmationDeadline(LocalDate.of(2028, 2, 5));
         Workshop savedWorkshop = new Workshop();
         savedWorkshop.setId(10L);
         savedWorkshop.setStatus("CONFIRMED");
@@ -262,7 +267,7 @@ public class WorkshopServiceTests {
     }
 
     @Test
-    public void testModify() throws WorkshopNotFoundException, SpeakerNotFoundException {
+    public void testModify() throws WorkshopNotFoundException, SpeakerNotFoundException, InvalidDateRangeException {
         long id = 5L;
 
         Workshop existingWorkshop = new Workshop();

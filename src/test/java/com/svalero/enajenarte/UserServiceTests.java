@@ -1,10 +1,14 @@
 package com.svalero.enajenarte;
 
+import com.svalero.enajenarte.domain.Registration;
 import com.svalero.enajenarte.domain.User;
+import com.svalero.enajenarte.domain.Workshop;
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
+import com.svalero.enajenarte.dto.UserRegistrationOutDto;
 import com.svalero.enajenarte.exception.UserNotFoundException;
 import com.svalero.enajenarte.exception.WorkshopNotFoundException;
+import com.svalero.enajenarte.repository.RegistrationRepository;
 import com.svalero.enajenarte.repository.UserRepository;
 import com.svalero.enajenarte.service.UserService;
 import org.junit.jupiter.api.Test;
@@ -31,6 +35,9 @@ public class UserServiceTests {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private RegistrationRepository registrationRepository;
 
     @Mock
     private ModelMapper modelMapper;
@@ -160,6 +167,38 @@ public class UserServiceTests {
         assertThrows(UserNotFoundException.class, () -> userService.findById(99L));
 
         verify(userRepository, times(1)).findById(99L);
+    }
+
+    @Test
+    public void testGetUserRegistrations() throws UserNotFoundException {
+        User user = new User();
+        user.setId(1L);
+
+        Workshop workshop = new Workshop();
+        workshop.setId(1L);
+        workshop.setName("Oratoria básica");
+        workshop.setStartDate(LocalDate.of(2026, 8, 10));
+        workshop.setStatus("CONFIRMED");
+
+        Registration registration = new Registration();
+        registration.setId(1L);
+        registration.setRegistrationDate(LocalDate.of(2026, 3, 1));
+        registration.setStatus("CONFIRMED");
+        registration.setPaymentStatus("PAID");
+        registration.setWorkshop(workshop);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(registrationRepository.findByUser(user)).thenReturn(List.of(registration));
+
+        List<UserRegistrationOutDto> result = userService.getUserRegistrations(1L);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("Oratoria básica", result.getFirst().getWorkshopName());
+        assertEquals("CONFIRMED", result.getFirst().getStatus());
+
+        verify(userRepository, times(1)).findById(1L);
+        verify(registrationRepository, times(1)).findByUser(user);
     }
 
     @Test

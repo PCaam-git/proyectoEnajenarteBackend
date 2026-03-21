@@ -3,6 +3,8 @@ package com.svalero.enajenarte;
 import com.svalero.enajenarte.domain.Registration;
 import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.domain.Workshop;
+import com.svalero.enajenarte.domain.enums.PaymentStatus;
+import com.svalero.enajenarte.domain.enums.PaymentStatus;
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
 import com.svalero.enajenarte.dto.UserRegistrationOutDto;
@@ -184,7 +186,7 @@ public class UserServiceTests {
         registration.setId(1L);
         registration.setRegistrationDate(LocalDate.of(2026, 3, 1));
         registration.setStatus("CONFIRMED");
-        registration.setPaymentStatus("PAID");
+        registration.setPaymentStatus(PaymentStatus.PAID);
         registration.setWorkshop(workshop);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));

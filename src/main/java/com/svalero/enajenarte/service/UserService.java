@@ -2,6 +2,7 @@ package com.svalero.enajenarte.service;
 
 import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.domain.Registration;
+import com.svalero.enajenarte.domain.enums.PaymentStatus;
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
 import com.svalero.enajenarte.dto.UserRegistrationOutDto;
@@ -24,6 +25,8 @@ public class UserService {
     private UserRepository userRepository;
     @Autowired
     private RegistrationRepository registrationRepository;
+
+    private PaymentStatus paymentStatus;
     @Autowired
     private ModelMapper modelMapper;
 
@@ -71,7 +74,10 @@ public class UserService {
             userRegistrationOutDto.setRegistrationId(registration.getId());
             userRegistrationOutDto.setRegistrationDate(registration.getRegistrationDate());
             userRegistrationOutDto.setStatus(registration.getStatus());
-            userRegistrationOutDto.setPaymentStatus(registration.getPaymentStatus());
+
+            if (registration.getPaymentStatus() != null) {
+                userRegistrationOutDto.setPaymentStatus(registration.getPaymentStatus().name());
+            }
 
             userRegistrationOutDto.setWorkshopId(registration.getWorkshop().getId());
             userRegistrationOutDto.setWorkshopName(registration.getWorkshop().getName());

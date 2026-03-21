@@ -2,6 +2,7 @@ package com.svalero.enajenarte;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.svalero.enajenarte.controller.UserController;
+import com.svalero.enajenarte.domain.enums.PaymentStatus;
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
 import com.svalero.enajenarte.dto.UserRegistrationOutDto;

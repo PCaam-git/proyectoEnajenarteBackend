@@ -1,5 +1,6 @@
 package com.svalero.enajenarte.dto;
 
+import com.svalero.enajenarte.domain.enums.PaymentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

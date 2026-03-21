@@ -3,6 +3,7 @@ package com.svalero.enajenarte;
 import com.svalero.enajenarte.domain.Registration;
 import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.domain.Workshop;
+import com.svalero.enajenarte.domain.enums.PaymentStatus;
 import com.svalero.enajenarte.dto.RegistrationInDto;
 import com.svalero.enajenarte.dto.RegistrationOutDto;
 import com.svalero.enajenarte.exception.RegistrationNotFoundException;
@@ -58,7 +59,7 @@ public class RegistrationServiceTests {
         registration1.setAmountPaid(0f);
         registration1.setRating(null);
         registration1.setStatus("pending");
-        registration1.setPaymentStatus("pending");
+        registration1.setPaymentStatus(PaymentStatus.PENDING);
 
         Registration registration2 = new Registration();
         registration2.setId(2L);
@@ -69,7 +70,7 @@ public class RegistrationServiceTests {
         registration2.setAmountPaid(20f);
         registration2.setRating(5);
         registration2.setStatus("pending");
-        registration2.setPaymentStatus("pending");
+        registration2.setPaymentStatus(PaymentStatus.PENDING);
 
         List<Registration> mockRegistrationList = List.of(registration1, registration2);
 
@@ -99,7 +100,7 @@ public class RegistrationServiceTests {
         registration1.setAmountPaid(20);
         registration1.setRating(5);
         registration1.setStatus("pending");
-        registration1.setPaymentStatus("pending");
+        registration1.setPaymentStatus(PaymentStatus.PENDING);
 
         Registration registration2 = new Registration();
         registration2.setId(2L);
@@ -110,7 +111,7 @@ public class RegistrationServiceTests {
         registration2.setAmountPaid(10);
         registration2.setRating(4);
         registration2.setStatus("pending");
-        registration2.setPaymentStatus("pending");
+        registration2.setPaymentStatus(PaymentStatus.PENDING);
 
         List<Registration> allRegistrations = List.of(registration1, registration2);
 
@@ -146,7 +147,7 @@ public class RegistrationServiceTests {
         registration1.setAmountPaid(0);
         registration1.setRating(null);
         registration1.setStatus("pending");
-        registration1.setPaymentStatus("pending");
+        registration1.setPaymentStatus(PaymentStatus.PENDING);
         registration1.setUser(userRepositoryUser);
 
         Registration registration2 = new Registration();
@@ -158,7 +159,7 @@ public class RegistrationServiceTests {
         registration2.setAmountPaid(20);
         registration2.setRating(5);
         registration2.setStatus("pending");
-        registration2.setPaymentStatus("pending");
+        registration2.setPaymentStatus(PaymentStatus.PENDING);
         registration2.setUser(userRepositoryUser);
 
         List<Registration> allRegistrations = List.of(registration1, registration2);
@@ -205,7 +206,7 @@ public class RegistrationServiceTests {
         registration1.setAmountPaid(0);
         registration1.setRating(null);
         registration1.setStatus("pending");
-        registration1.setPaymentStatus("pending");
+        registration1.setPaymentStatus(PaymentStatus.PENDING);
         registration1.setWorkshop(workshopRepositoryWorkshop);
 
         Registration registration2 = new Registration();
@@ -217,7 +218,7 @@ public class RegistrationServiceTests {
         registration2.setAmountPaid(20);
         registration2.setRating(5);
         registration2.setStatus("pending");
-        registration2.setPaymentStatus("pending");
+        registration2.setPaymentStatus(PaymentStatus.PENDING);
         registration2.setWorkshop(workshopRepositoryWorkshop);
 
         List<Registration> allRegistrations = List.of(registration1, registration2);
@@ -262,6 +263,7 @@ public class RegistrationServiceTests {
 
         registrationRepositoryRegistration.setUser(user);
         registrationRepositoryRegistration.setWorkshop(workshop);
+        registrationRepositoryRegistration.setPaymentStatus(PaymentStatus.PENDING);
 
         RegistrationOutDto modelMapperRegistrationOutDto = new RegistrationOutDto();
         modelMapperRegistrationOutDto.setId(7L);
@@ -298,9 +300,11 @@ public class RegistrationServiceTests {
 
         Registration modelMapperRegistration = new Registration();
         Registration registrationRepositorySavedRegistration = new Registration();
+
         registrationRepositorySavedRegistration.setId(100L);
         registrationRepositorySavedRegistration.setUser(userRepositoryUser);
         registrationRepositorySavedRegistration.setWorkshop(workshopRepositoryWorkshop);
+        registrationRepositorySavedRegistration.setPaymentStatus(PaymentStatus.PENDING);
 
         RegistrationOutDto modelMapperRegistrationOutDto = new RegistrationOutDto();
         modelMapperRegistrationOutDto.setId(100L);
@@ -323,7 +327,7 @@ public class RegistrationServiceTests {
         verify(workshopRepository, times(1)).findById(10L);
         verify(registrationRepository, times(1)).save(modelMapperRegistration);
         assertEquals("CONFIRMED", modelMapperRegistration.getStatus());
-        assertEquals("PENDING", modelMapperRegistration.getPaymentStatus());
+        assertEquals(PaymentStatus.PENDING, modelMapperRegistration.getPaymentStatus());
     }
 
     @Test
@@ -389,6 +393,7 @@ public class RegistrationServiceTests {
         existingRegistration.setPaid(true);
         existingRegistration.setAmountPaid(20);
         existingRegistration.setRating(4);
+        existingRegistration.setPaymentStatus(PaymentStatus.PENDING);
 
         RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 10L, "PENDING");
 
@@ -402,6 +407,7 @@ public class RegistrationServiceTests {
         savedRegistration.setId(registrationId);
         savedRegistration.setUser(userRepositoryUser); // asigna el usuario
         savedRegistration.setWorkshop(workshopRepositoryWorkshop); // asigna el taller
+        savedRegistration.setPaymentStatus(PaymentStatus.PENDING);
 
         RegistrationOutDto modelMapperRegistrationOutDto = new RegistrationOutDto();
         modelMapperRegistrationOutDto.setId(registrationId);

@@ -3,6 +3,7 @@ package com.svalero.enajenarte.service;
 import com.svalero.enajenarte.domain.Registration;
 import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.domain.Workshop;
+import com.svalero.enajenarte.domain.enums.PaymentStatus;
 import com.svalero.enajenarte.dto.RegistrationInDto;
 import com.svalero.enajenarte.dto.RegistrationOutDto;
 import com.svalero.enajenarte.exception.*;
@@ -33,7 +34,7 @@ public class RegistrationService {
     private ModelMapper modelMapper;
 
     private static final String STATUS_CONFIRMED = "CONFIRMED";
-    private static final String PAYMENT_STATUS_PENDING = "PENDING";
+    private static final PaymentStatus PAYMENT_STATUS_PENDING = PaymentStatus.PENDING;
 
     // POST
     public RegistrationOutDto add(RegistrationInDto registrationInDto) throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException {
@@ -83,6 +84,7 @@ public class RegistrationService {
         RegistrationOutDto registrationOutDto = modelMapper.map(newRegistration, RegistrationOutDto.class);
         registrationOutDto.setUserId(newRegistration.getUser().getId());
         registrationOutDto.setWorkshopId(newRegistration.getWorkshop().getId());
+        registrationOutDto.setPaymentStatus(newRegistration.getPaymentStatus().name());
 
         return registrationOutDto;
     }
@@ -124,6 +126,9 @@ public class RegistrationService {
             if (registration.getWorkshop() != null) {
                 registrationOutDto.setWorkshopId(registration.getWorkshop().getId());
             }
+            if (registration.getPaymentStatus() != null) {
+                registrationOutDto.setPaymentStatus(registration.getPaymentStatus().name());
+            }
         }
 
         return registrationsOutDtos;
@@ -139,6 +144,7 @@ public class RegistrationService {
         RegistrationOutDto registrationOutDto = modelMapper.map(registration, RegistrationOutDto.class);
         registrationOutDto.setUserId(registration.getUser().getId());
         registrationOutDto.setWorkshopId(registration.getWorkshop().getId());
+        registrationOutDto.setPaymentStatus(registration.getPaymentStatus().name());
 
         return registrationOutDto;
     }
@@ -176,7 +182,13 @@ public class RegistrationService {
             existingRegistration.setStatus(status);
 
         if (registrationInDto.getPaymentStatus() != null) {
-            existingRegistration.setPaymentStatus(registrationInDto.getPaymentStatus());
+            try {
+                existingRegistration.setPaymentStatus(
+                        PaymentStatus.valueOf(registrationInDto.getPaymentStatus().toUpperCase())
+                );
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Invalid paymentStatus value");
+            }
         }
 
             Registration updateRegistration = registrationRepository.save(existingRegistration);
@@ -185,6 +197,7 @@ public class RegistrationService {
             RegistrationOutDto registrationOutDto = modelMapper.map(updateRegistration, RegistrationOutDto.class);
             registrationOutDto.setUserId(updateRegistration.getUser().getId());
             registrationOutDto.setWorkshopId(updateRegistration.getWorkshop().getId());
+        registrationOutDto.setPaymentStatus(updateRegistration.getPaymentStatus().name());
 
             return registrationOutDto;
         }
@@ -209,7 +222,6 @@ public class RegistrationService {
     }
 
     private void applyInitialStatus(Registration registration, Workshop workshop) {
-        // confirmación automática (temporal)
         if (workshop.isOnline()) {
             registration.setStatus(STATUS_CONFIRMED);
             registration.setPaymentStatus(PAYMENT_STATUS_PENDING);

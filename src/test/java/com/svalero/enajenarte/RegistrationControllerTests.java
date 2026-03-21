@@ -169,7 +169,7 @@ public class RegistrationControllerTests {
 
     @Test
     public void testAdd() throws Exception {
-        RegistrationInDto registrationInDto = new RegistrationInDto(2, 1L, 10L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(2, 1L, 10L,"PENDING");
 
         RegistrationOutDto registrationOutDto =
                 new RegistrationOutDto(100L, LocalDate.of(2026, 1, 10), "CONF-10", false, 2, 0, 0, "CONFIRMED", "PENDING", 1L, 10L);
@@ -197,7 +197,7 @@ public class RegistrationControllerTests {
 
     @Test
     public void testAdd_BadRequest() throws Exception {
-        RegistrationInDto invalidRegistrationInDto = new RegistrationInDto(0, 1L, 10L);
+        RegistrationInDto invalidRegistrationInDto = new RegistrationInDto(0, 1L, 10L,"PENDING");
         String body = objectMapper.writeValueAsString(invalidRegistrationInDto);
 
         mockMvc.perform(
@@ -212,7 +212,7 @@ public class RegistrationControllerTests {
 
     @Test
     public void testAdd_UserNotFound() throws Exception {
-        RegistrationInDto registrationInDto = new RegistrationInDto(2, 99L, 10L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(2, 99L, 10L,"PENDING");
 
         when(registrationService.add(any(RegistrationInDto.class))).thenThrow(new UserNotFoundException());
 
@@ -230,7 +230,7 @@ public class RegistrationControllerTests {
 
     @Test
     public void testAdd_WorkshopNotFound() throws Exception {
-        RegistrationInDto registrationInDto = new RegistrationInDto(2, 1L, 99L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(2, 1L, 99L,"PENDING");
 
         when(registrationService.add(any(RegistrationInDto.class))).thenThrow(new WorkshopNotFoundException());
 
@@ -248,7 +248,7 @@ public class RegistrationControllerTests {
 
     @Test
     public void testModify() throws Exception {
-        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 10L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 10L,"PENDING");
 
         RegistrationOutDto registrationOutDto =
                 new RegistrationOutDto(5L, LocalDate.of(2026, 1, 10),"CONF-10", false, 3, 0, 0,"CONFIRMED", "PENDING",  1L, 10L);
@@ -269,7 +269,7 @@ public class RegistrationControllerTests {
 
     @Test
     public void testModify_NotFound() throws Exception {
-        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 10L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 10L,"PENDING");
 
         when(registrationService.modify(99L, registrationInDto)).thenThrow(new RegistrationNotFoundException());
 
@@ -287,7 +287,7 @@ public class RegistrationControllerTests {
 
     @Test
     public void testModify_UserNotFound() throws Exception {
-        RegistrationInDto registrationInDto = new RegistrationInDto(3, 99L, 10L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(3, 99L, 10L,"PENDING");
 
         when(registrationService.modify(5L, registrationInDto)).thenThrow(new UserNotFoundException());
 
@@ -305,7 +305,7 @@ public class RegistrationControllerTests {
 
     @Test
     public void testModify_WorkshopNotFound() throws Exception {
-        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 99L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 99L,"PENDING");
 
         when(registrationService.modify(5L, registrationInDto)).thenThrow(new WorkshopNotFoundException());
 

@@ -286,7 +286,7 @@ public class RegistrationServiceTests {
 
     @Test
     public void testAdd() throws Exception {
-        RegistrationInDto registrationInDto = new RegistrationInDto(2, 1L, 10L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(2, 1L, 10L,"PENDING");
 
         User userRepositoryUser = new User();
         userRepositoryUser.setId(1L);
@@ -328,7 +328,7 @@ public class RegistrationServiceTests {
 
     @Test
     public void testAdd_UserNotFound() {
-        RegistrationInDto registrationInDto = new RegistrationInDto(2, 99L, 10L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(2, 99L, 10L, "PENDING");
 
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -340,7 +340,7 @@ public class RegistrationServiceTests {
 
     @Test
     public void testAdd_WorkshopNotFound() {
-        RegistrationInDto registrationInDto = new RegistrationInDto(2, 1L, 99L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(2, 1L, 99L, "PENDING");
 
         User userRepositoryUser = new User();
         userRepositoryUser.setId(1L);
@@ -390,7 +390,7 @@ public class RegistrationServiceTests {
         existingRegistration.setAmountPaid(20);
         existingRegistration.setRating(4);
 
-        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 10L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 10L, "PENDING");
 
         User userRepositoryUser = new User();
         userRepositoryUser.setId(1L);
@@ -426,7 +426,7 @@ public class RegistrationServiceTests {
 
     @Test
     public void testModify_RegistrationNotFound() {
-        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 10L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 10L,"PENDING");
 
         when(registrationRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -443,7 +443,7 @@ public class RegistrationServiceTests {
         Registration existingRegistration = new Registration();
         existingRegistration.setId(registrationId);
 
-        RegistrationInDto registrationInDto = new RegistrationInDto(3, 99L, 10L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(3, 99L, 10L,"PENDING");
 
         when(registrationRepository.findById(registrationId)).thenReturn(Optional.of(existingRegistration));
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
@@ -461,7 +461,7 @@ public class RegistrationServiceTests {
         Registration existingRegistration = new Registration();
         existingRegistration.setId(registrationId);
 
-        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 99L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(3, 1L, 99L,"PENDING");
 
         User userRepositoryUser = new User();
         userRepositoryUser.setId(1L);
@@ -478,7 +478,7 @@ public class RegistrationServiceTests {
 
     @Test
     public void testAdd_DuplicateRegistration() {
-        RegistrationInDto registrationInDto = new RegistrationInDto(2, 1L, 10L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(2, 1L, 10L,"PENDING");
 
         User userRepositoryUser = new User();
         userRepositoryUser.setId(1L);
@@ -498,7 +498,7 @@ public class RegistrationServiceTests {
 
     @Test
     public void testAdd_WorkshopCapacityExceeded() {
-        RegistrationInDto registrationInDto = new RegistrationInDto(2, 1L, 10L);
+        RegistrationInDto registrationInDto = new RegistrationInDto(2, 1L, 10L,"PENDING");
 
         User userRepositoryUser = new User();
         userRepositoryUser.setId(1L);

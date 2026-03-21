@@ -39,6 +39,10 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/events/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/workshops/**").permitAll()
 
+                        // USER autenticado / ADMIN - users
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/users/**").authenticated()
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/users/**").hasRole("ADMIN")
+
                         // ADMIN - events
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/events").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/events/**").hasRole("ADMIN")
@@ -48,6 +52,15 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/workshops").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/workshops/**").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/workshops/**").hasRole("ADMIN")
+
+                        // ADMIN - speakers
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/speakers").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/speakers/**").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/speakers/**").hasRole("ADMIN")
+
+                        // ADMIN - registrations
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/registrations/**").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/registrations/**").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )

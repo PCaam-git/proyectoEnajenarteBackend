@@ -1,10 +1,13 @@
 package com.svalero.enajenarte.service;
 
 import com.svalero.enajenarte.domain.User;
+import com.svalero.enajenarte.domain.Registration;
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
+import com.svalero.enajenarte.dto.UserRegistrationOutDto;
 import com.svalero.enajenarte.exception.UserNotFoundException;
 import com.svalero.enajenarte.repository.UserRepository;
+import com.svalero.enajenarte.repository.RegistrationRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.ArrayList;
 
 @Service
 public class UserService {
@@ -19,9 +23,12 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
+    private RegistrationRepository registrationRepository;
+    @Autowired
     private ModelMapper modelMapper;
 
 
+    // GET all
     public List<UserOutDto> findAll(String username, String email, String active) {
 
         // Convertir parámetros a variables finales para el stream. Si el filtro no se usa, devuelve null. Si se usa, aplica el valor del filtro
@@ -49,6 +56,31 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
         return modelMapper.map(user, UserOutDto.class);
+    }
+
+    public List<UserRegistrationOutDto> getUserRegistrations(long userId) throws UserNotFoundException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
+        List<Registration> registrations = registrationRepository.findByUser(user);
+        List<UserRegistrationOutDto> userRegistrationOutDtos = new ArrayList<>();
+
+        for (Registration registration : registrations) {
+            UserRegistrationOutDto userRegistrationOutDto = new UserRegistrationOutDto();
+
+            userRegistrationOutDto.setRegistrationId(registration.getId());
+            userRegistrationOutDto.setRegistrationDate(registration.getRegistrationDate());
+            userRegistrationOutDto.setStatus(registration.getStatus());
+            userRegistrationOutDto.setPaymentStatus(registration.getPaymentStatus());
+
+            userRegistrationOutDto.setWorkshopId(registration.getWorkshop().getId());
+            userRegistrationOutDto.setWorkshopName(registration.getWorkshop().getName());
+            userRegistrationOutDto.setWorkshopStartDate(registration.getWorkshop().getStartDate());
+            userRegistrationOutDto.setWorkshopStatus(registration.getWorkshop().getStatus());
+
+            userRegistrationOutDtos.add(userRegistrationOutDto);
+        }
+        return userRegistrationOutDtos;
     }
 
     // POST

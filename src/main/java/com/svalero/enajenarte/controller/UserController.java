@@ -2,6 +2,7 @@ package com.svalero.enajenarte.controller;
 
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
+import com.svalero.enajenarte.dto.UserRegistrationOutDto;
 import com.svalero.enajenarte.exception.ErrorResponse;
 import com.svalero.enajenarte.exception.UserNotFoundException;
 import com.svalero.enajenarte.service.UserService;
@@ -44,6 +45,18 @@ public class UserController {
     public ResponseEntity<UserOutDto> get(@PathVariable long id) throws UserNotFoundException {
         UserOutDto userOutDto = userService.findById(id);
         return ResponseEntity.ok(userOutDto);
+    }
+
+    // GET registrations by user id
+    @GetMapping("/users/{id}/registrations")
+    public ResponseEntity<List<UserRegistrationOutDto>> getUserRegistrations(@PathVariable long id)
+            throws UserNotFoundException {
+        List<UserRegistrationOutDto> registrationsOutDto = userService.getUserRegistrations(id);
+
+        if (registrationsOutDto.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(registrationsOutDto);
     }
 
     // POST

@@ -3,6 +3,7 @@ package com.svalero.enajenarte.controller;
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
 import com.svalero.enajenarte.dto.UserRegistrationOutDto;
+import com.svalero.enajenarte.exception.AccessDeniedException;
 import com.svalero.enajenarte.exception.ErrorResponse;
 import com.svalero.enajenarte.exception.UserNotFoundException;
 import com.svalero.enajenarte.service.UserService;
@@ -50,7 +51,7 @@ public class UserController {
     // GET registrations by user id
     @GetMapping("/users/{id}/registrations")
     public ResponseEntity<List<UserRegistrationOutDto>> getUserRegistrations(@PathVariable long id)
-            throws UserNotFoundException {
+            throws UserNotFoundException, AccessDeniedException {
         List<UserRegistrationOutDto> registrationsOutDto = userService.getUserRegistrations(id);
 
         if (registrationsOutDto.isEmpty()) {
@@ -84,7 +85,7 @@ public class UserController {
     // 404 - User
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(UserNotFoundException unfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The user does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound(unfe.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
@@ -99,5 +100,12 @@ public class UserController {
         });
         ErrorResponse errorResponse = ErrorResponse.validationError(errors);
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // 403 - Forbidden
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleException(AccessDeniedException ade) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(403, "forbidden", ade.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 }

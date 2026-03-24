@@ -6,6 +6,7 @@ import com.svalero.enajenarte.domain.enums.PaymentStatus;
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
 import com.svalero.enajenarte.dto.UserRegistrationOutDto;
+import com.svalero.enajenarte.exception.AccessDeniedException;
 import com.svalero.enajenarte.exception.UserNotFoundException;
 import com.svalero.enajenarte.repository.UserRepository;
 import com.svalero.enajenarte.repository.RegistrationRepository;
@@ -59,9 +60,28 @@ public class UserService {
         return modelMapper.map(user, UserOutDto.class);
     }
 
-    public List<UserRegistrationOutDto> getUserRegistrations(long userId) throws UserNotFoundException {
+    public List<UserRegistrationOutDto> getUserRegistrations(long userId) throws UserNotFoundException, AccessDeniedException {
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
+
+        // Usuario autenticado
+        String authenticatedUsername = org.springframework.security.core.context.SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        String authenticatedRole = org.springframework.security.core.context.SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getAuthorities()
+                .iterator()
+                .next()
+                .getAuthority();
+
+        // Solo el propio usuario o ADMIN
+        if (!user.getUsername().equals(authenticatedUsername) && !authenticatedRole.equals("ROLE_ADMIN")) {
+            throw new AccessDeniedException();
+        }
 
         List<Registration> registrations = registrationRepository.findByUser(user);
         List<UserRegistrationOutDto> userRegistrationOutDtos = new ArrayList<>();
@@ -84,6 +104,7 @@ public class UserService {
 
             userRegistrationOutDtos.add(userRegistrationOutDto);
         }
+
         return userRegistrationOutDtos;
     }
 

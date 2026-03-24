@@ -61,7 +61,12 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/speakers/**").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/speakers/**").hasRole("ADMIN")
 
+                        // USER autenticado / ADMIN - registrations
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/registrations").authenticated()
+
                         // ADMIN - registrations
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/registrations").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/registrations/**").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/registrations/**").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/registrations/**").hasRole("ADMIN")
 

@@ -66,7 +66,6 @@ public class WorkshopService {
     }
 
     // DELETE
-    // DELETE
     public void delete(long id) throws WorkshopNotFoundException, HasAssociatedRegistrationsException {
         Workshop workshop = workshopRepository.findById(id)
                 .orElseThrow(WorkshopNotFoundException::new);

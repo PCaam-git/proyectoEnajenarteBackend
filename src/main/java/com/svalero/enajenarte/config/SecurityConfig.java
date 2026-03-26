@@ -41,6 +41,7 @@ public class SecurityConfig {
                         // públicos
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/events/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/workshops/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/programs/**").permitAll()
 
                         // USER autenticado / ADMIN - users
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/users/**").authenticated()
@@ -56,6 +57,11 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/workshops/**").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/workshops/**").hasRole("ADMIN")
 
+                        // ADMIN - programs
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/programs").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/programs/**").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/programs/**").hasRole("ADMIN")
+
                         // ADMIN - speakers
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/speakers").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/speakers/**").hasRole("ADMIN")
@@ -64,11 +70,20 @@ public class SecurityConfig {
                         // USER autenticado / ADMIN - registrations
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/registrations").authenticated()
 
+                        // USER autenticado / ADMIN - program registrations
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/program-registrations").authenticated()
+
                         // ADMIN - registrations
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/registrations").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/registrations/**").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/registrations/**").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/registrations/**").hasRole("ADMIN")
+
+                        // ADMIN - program registrations
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/program-registrations").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/program-registrations/**").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/program-registrations/**").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/program-registrations/**").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )

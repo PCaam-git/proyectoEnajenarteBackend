@@ -5,6 +5,7 @@ import com.svalero.enajenarte.domain.Speaker;
 import com.svalero.enajenarte.domain.Workshop;
 import com.svalero.enajenarte.dto.WorkshopInDto;
 import com.svalero.enajenarte.dto.WorkshopOutDto;
+import com.svalero.enajenarte.exception.HasAssociatedRegistrationsException;
 import com.svalero.enajenarte.exception.InvalidDateRangeException;
 import com.svalero.enajenarte.exception.SpeakerNotFoundException;
 import com.svalero.enajenarte.exception.WorkshopNotFoundException;
@@ -65,9 +66,15 @@ public class WorkshopService {
     }
 
     // DELETE
-    public void delete(long id) throws WorkshopNotFoundException {
+    // DELETE
+    public void delete(long id) throws WorkshopNotFoundException, HasAssociatedRegistrationsException {
         Workshop workshop = workshopRepository.findById(id)
                 .orElseThrow(WorkshopNotFoundException::new);
+
+        List<Registration> registrations = registrationRepository.findByWorkshop(workshop);
+        if (!registrations.isEmpty()) {
+            throw new HasAssociatedRegistrationsException();
+        }
 
         workshopRepository.delete(workshop);
     }

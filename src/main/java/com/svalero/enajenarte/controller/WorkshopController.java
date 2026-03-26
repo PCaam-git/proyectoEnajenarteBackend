@@ -2,11 +2,8 @@ package com.svalero.enajenarte.controller;
 
 import com.svalero.enajenarte.dto.WorkshopInDto;
 import com.svalero.enajenarte.dto.WorkshopOutDto;
-import com.svalero.enajenarte.exception.ErrorResponse;
-import com.svalero.enajenarte.exception.InvalidDateRangeException;
+import com.svalero.enajenarte.exception.*;
 import com.svalero.enajenarte.service.WorkshopService;
-import com.svalero.enajenarte.exception.SpeakerNotFoundException;
-import com.svalero.enajenarte.exception.WorkshopNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -65,7 +62,7 @@ public class WorkshopController {
 
     // DELETE
     @DeleteMapping("/workshops/{id}")
-    public ResponseEntity<Void> deleteWorkshop(@PathVariable long id) throws WorkshopNotFoundException {
+    public ResponseEntity<Void> deleteWorkshop(@PathVariable long id) throws WorkshopNotFoundException, HasAssociatedRegistrationsException {
         workshopService.delete(id);
         return ResponseEntity.noContent().build();
     }
@@ -82,6 +79,13 @@ public class WorkshopController {
     public ResponseEntity<ErrorResponse> handleException(SpeakerNotFoundException snfe) {
         ErrorResponse errorResponse = ErrorResponse.notFound("The speaker does not exist");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    // 409 - Workshop con registros asociados
+    @ExceptionHandler(HasAssociatedRegistrationsException.class)
+    public ResponseEntity<ErrorResponse> handleException(HasAssociatedRegistrationsException hare) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(409, "conflict", "Cannot delete: there are associated registrations");
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     // 400 - Fecha de confirmación posterior a la fecha de inicio

@@ -7,6 +7,7 @@ import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
 import com.svalero.enajenarte.dto.UserRegistrationOutDto;
 import com.svalero.enajenarte.exception.AccessDeniedException;
+import com.svalero.enajenarte.exception.HasAssociatedRegistrationsException;
 import com.svalero.enajenarte.exception.UserNotFoundException;
 import com.svalero.enajenarte.repository.UserRepository;
 import com.svalero.enajenarte.repository.RegistrationRepository;
@@ -164,9 +165,15 @@ public class UserService {
     }
 
     // DELETE
-    public void delete(long id) throws UserNotFoundException {
+    // DELETE
+    public void delete(long id) throws UserNotFoundException, HasAssociatedRegistrationsException {
         User user = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
+
+        List<Registration> registrations = registrationRepository.findByUser(user);
+        if (!registrations.isEmpty()) {
+            throw new HasAssociatedRegistrationsException();
+        }
 
         userRepository.delete(user);
     }

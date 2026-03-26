@@ -1,10 +1,13 @@
 package com.svalero.enajenarte.service;
 
 import com.svalero.enajenarte.domain.Speaker;
+import com.svalero.enajenarte.domain.Workshop;
 import com.svalero.enajenarte.dto.SpeakerInDto;
 import com.svalero.enajenarte.dto.SpeakerOutDto;
+import com.svalero.enajenarte.exception.HasAssociatedRegistrationsException;
 import com.svalero.enajenarte.exception.SpeakerNotFoundException;
 import com.svalero.enajenarte.repository.SpeakerRepository;
+import com.svalero.enajenarte.repository.WorkshopRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,8 @@ public class SpeakerService {
 
     @Autowired
     public SpeakerRepository speakerRepository;
+    @Autowired
+    public WorkshopRepository workshopRepository;
     @Autowired
     public ModelMapper modelMapper;
 
@@ -77,9 +82,15 @@ public class SpeakerService {
     }
 
     // DELETE
-    public void delete(long id) throws SpeakerNotFoundException {
+    public void delete(long id) throws SpeakerNotFoundException, HasAssociatedRegistrationsException {
         Speaker speaker = speakerRepository.findById(id)
                 .orElseThrow(SpeakerNotFoundException::new);
+
+        List<Workshop> workshops = workshopRepository.findBySpeaker(speaker);
+        if (!workshops.isEmpty()) {
+            throw new HasAssociatedRegistrationsException();
+        }
+
         speakerRepository.delete(speaker);
     }
 }

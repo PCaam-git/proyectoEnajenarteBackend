@@ -5,6 +5,7 @@ import com.svalero.enajenarte.dto.UserOutDto;
 import com.svalero.enajenarte.dto.UserRegistrationOutDto;
 import com.svalero.enajenarte.exception.AccessDeniedException;
 import com.svalero.enajenarte.exception.ErrorResponse;
+import com.svalero.enajenarte.exception.HasAssociatedRegistrationsException;
 import com.svalero.enajenarte.exception.UserNotFoundException;
 import com.svalero.enajenarte.service.UserService;
 import jakarta.validation.Valid;
@@ -77,7 +78,7 @@ public class UserController {
 
     // DELETE
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable long id) throws UserNotFoundException {
+    public ResponseEntity<Void> deleteUser(@PathVariable long id) throws UserNotFoundException, HasAssociatedRegistrationsException {
         userService.delete(id);
         return ResponseEntity.noContent().build();
     }
@@ -87,6 +88,20 @@ public class UserController {
     public ResponseEntity<ErrorResponse> handleException(UserNotFoundException unfe) {
         ErrorResponse errorResponse = ErrorResponse.notFound(unfe.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    // 409 - User con registros asociados
+    @ExceptionHandler(HasAssociatedRegistrationsException.class)
+    public ResponseEntity<ErrorResponse> handleException(HasAssociatedRegistrationsException hare) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(409, "conflict", "Cannot delete: there are associated registrations");
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    // 403 - Forbidden
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleException(AccessDeniedException ade) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(403, "forbidden", ade.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
     // 400 - Validaciones
@@ -102,10 +117,5 @@ public class UserController {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    // 403 - Forbidden
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleException(AccessDeniedException ade) {
-        ErrorResponse errorResponse = ErrorResponse.generalError(403, "forbidden", ade.getMessage());
-        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
-    }
+
 }

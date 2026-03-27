@@ -68,7 +68,12 @@ public class RegistrationService {
         int requestedTickets = registrationInDto.getNumberOfTickets();
 
         if (currentCapacity + requestedTickets > workshop.getMaxCapacity()) {
-            throw new WorkshopCapacityExceededException();
+
+            int availableSpots = workshop.getMaxCapacity() - currentCapacity;
+
+            throw new WorkshopCapacityExceededException(
+                    "No hay suficientes plazas disponibles. Actualmente quedan " + availableSpots + " plazas"
+            );
         }
 
         Registration registration = buildRegistration(registrationInDto, user, workshop);

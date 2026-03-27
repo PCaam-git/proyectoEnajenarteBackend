@@ -2,6 +2,7 @@ package com.svalero.enajenarte.service;
 
 import com.svalero.enajenarte.domain.Program;
 import com.svalero.enajenarte.domain.Speaker;
+import com.svalero.enajenarte.domain.ProgramRegistration;
 import com.svalero.enajenarte.dto.ProgramInDto;
 import com.svalero.enajenarte.dto.ProgramOutDto;
 import com.svalero.enajenarte.exception.InvalidDateRangeException;
@@ -9,10 +10,12 @@ import com.svalero.enajenarte.exception.ProgramNotFoundException;
 import com.svalero.enajenarte.exception.SpeakerNotFoundException;
 import com.svalero.enajenarte.repository.ProgramRepository;
 import com.svalero.enajenarte.repository.SpeakerRepository;
+import com.svalero.enajenarte.repository.ProgramRegistrationRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.List;
 
@@ -21,6 +24,8 @@ public class ProgramService {
 
     @Autowired
     private ProgramRepository programRepository;
+    @Autowired
+    private ProgramRegistrationRepository programRegistrationRepository;
     @Autowired
     private SpeakerRepository speakerRepository;
     @Autowired
@@ -146,5 +151,47 @@ public class ProgramService {
         }
 
         return updatedProgramOutDto;
+    }
+
+    @Scheduled(cron = "0 0 * * * *") // se ejecuta cada hora
+    public void cancelProgramsIfDeadlineExceeded() {
+
+        List<Program> programs = programRepository.findAll();
+
+        for (Program program : programs) {
+
+            if ("PENDING".equals(program.getStatus())
+                    && program.getConfirmationDeadline() != null
+                    && program.getConfirmationDeadline().isBefore(java.time.LocalDate.now())) {
+
+                List<ProgramRegistration> registrations = programRegistrationRepository.findByProgram(program);
+
+                int totalParticipants = registrations.stream()
+                        .mapToInt(ProgramRegistration::getNumberOfTickets)
+                        .sum();
+
+                if (program.getMinimumParticipants() != null
+                        && totalParticipants < program.getMinimumParticipants()) {
+
+                    // Cancelar programa
+                    program.setStatus("CANCELLED");
+                    programRepository.save(program);
+
+                    // Cancelar inscripciones
+                    for (ProgramRegistration registration : registrations) {
+                        registration.setStatus("CANCELLED");
+                        programRegistrationRepository.save(registration);
+
+                        // Simulamos notificar al cliente
+                        simulateProgramCancellationNotification(registration);
+                    }
+                }
+            }
+        }
+    }
+
+    private void simulateProgramCancellationNotification(ProgramRegistration registration) {
+        System.out.println(registration.getUser().getFullName()
+                + " , el programa se ha cancelado. Te informaremos cuando haya una nueva convocatoria.");
     }
 }

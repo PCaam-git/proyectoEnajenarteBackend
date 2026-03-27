@@ -49,7 +49,7 @@ public class ProgramRegistrationController {
     // POST
     @PostMapping("/program-registrations")
     public ResponseEntity<ProgramRegistrationOutDto> add(@Valid @RequestBody ProgramRegistrationInDto inDto)
-            throws UserNotFoundException, ProgramNotFoundException, DuplicateProgramRegistrationException {
+            throws UserNotFoundException, ProgramNotFoundException, DuplicateProgramRegistrationException, ProgramCapacityExceededException {
 
         ProgramRegistrationOutDto newRegistration = programRegistrationService.add(inDto);
         return new ResponseEntity<>(newRegistration, HttpStatus.CREATED);
@@ -96,6 +96,13 @@ public class ProgramRegistrationController {
     @ExceptionHandler(DuplicateProgramRegistrationException.class)
     public ResponseEntity<ErrorResponse> handleException(DuplicateProgramRegistrationException dpre) {
         ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", dpre.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // 400 - Máximo de participantes excedido
+    @ExceptionHandler(ProgramCapacityExceededException.class)
+    public ResponseEntity<ErrorResponse> handleException(ProgramCapacityExceededException pcee) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", pcee.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 

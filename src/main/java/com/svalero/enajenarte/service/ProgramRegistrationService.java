@@ -36,7 +36,7 @@ public class ProgramRegistrationService {
 
     // POST
     public ProgramRegistrationOutDto add(ProgramRegistrationInDto programRegistrationInDto)
-            throws UserNotFoundException, ProgramNotFoundException, DuplicateProgramRegistrationException {
+            throws UserNotFoundException, ProgramNotFoundException, DuplicateProgramRegistrationException, ProgramCapacityExceededException {
 
         User user = userRepository.findById(programRegistrationInDto.getUserId())
                 .orElseThrow(UserNotFoundException::new);
@@ -53,18 +53,41 @@ public class ProgramRegistrationService {
             throw new DuplicateProgramRegistrationException();
         }
 
+        List<ProgramRegistration> registrations = programRegistrationRepository.findByProgram(program);
+
+        // número de plazas máximo
+        int currentCapacity = registrations.stream()
+                .mapToInt(ProgramRegistration::getNumberOfTickets)
+                .sum();
+
+        // número de participantes mínimo
+        int currentParticipants = registrations.stream()
+                .mapToInt(ProgramRegistration::getNumberOfTickets)
+                .sum();
+
+        int requestedTickets = programRegistrationInDto.getNumberOfTickets();
+
+        if (currentCapacity + requestedTickets > program.getMaxCapacity()) {
+
+            int availableSpots = program.getMaxCapacity() - currentCapacity;
+
+            throw new ProgramCapacityExceededException(
+                    "No hay suficientes plazas disponibles. Actualmente quedan " + availableSpots + " plazas"
+            );
+        }
+
         ProgramRegistration registration = buildRegistration(programRegistrationInDto, user, program);
 
         ProgramRegistration newRegistration = programRegistrationRepository.save(registration);
 
-        simulateEmailConfirmation(newRegistration);
+        simulateEmailConfirmation(newRegistration, currentParticipants + requestedTickets);
 
-        ProgramRegistrationOutDto outDto = modelMapper.map(newRegistration, ProgramRegistrationOutDto.class);
-        outDto.setFullName(newRegistration.getUser().getFullName());
-        outDto.setProgramName(newRegistration.getProgram().getName());
-        outDto.setPaymentStatus(newRegistration.getPaymentStatus());
+        ProgramRegistrationOutDto programRegistrationOutDto = modelMapper.map(newRegistration, ProgramRegistrationOutDto.class);
+        programRegistrationOutDto.setFullName(newRegistration.getUser().getFullName());
+        programRegistrationOutDto.setProgramName(newRegistration.getProgram().getName());
+        programRegistrationOutDto.setPaymentStatus(newRegistration.getPaymentStatus());
 
-        return outDto;
+        return programRegistrationOutDto;
     }
 
     // DELETE
@@ -195,8 +218,18 @@ public class ProgramRegistrationService {
         registration.setPaymentStatus(PAYMENT_STATUS_PENDING.name());
     }
 
-    private void simulateEmailConfirmation(ProgramRegistration registration) {
-        System.out.println("Simulando envío de email de confirmación para la inscripción al programa con código: "
-                + registration.getConfirmationCode());
+    private void simulateEmailConfirmation(ProgramRegistration registration, int totalParticipants) {
+        if (registration.getProgram().getMinimumParticipants() != null
+                && totalParticipants >= registration.getProgram().getMinimumParticipants()) {
+
+            System.out.println(registration.getUser().getFullName()
+                    + " La inscripción se ha realizado correctamente. Tu código de confirmación es: "
+                    + registration.getConfirmationCode());
+        } else {
+            System.out.println(registration.getUser().getFullName()
+                    + " La inscripción se ha realizado correctamente. Tu código de confirmación es: "
+                    + registration.getConfirmationCode()
+                    + ". Más adelante recibirás toda la información detallada del programa");
+        }
     }
 }

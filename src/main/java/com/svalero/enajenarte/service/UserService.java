@@ -40,7 +40,7 @@ public class UserService {
         final Boolean finalActive = active.isEmpty() ? null : Boolean.parseBoolean(active);
 
         // filtrado con stream
-        List<User> filteredusers = userRepository.findAll().stream()
+        List<User> filteredUsers = userRepository.findAll().stream()
                 .filter(user -> finalUsername == null || user.getUsername().toLowerCase().contains(finalUsername))
                 .filter(user -> finalEmail == null || user.getEmail().toLowerCase().contains(finalEmail))
                 .filter(user -> finalActive == null || user.isActive() == finalActive)
@@ -48,8 +48,19 @@ public class UserService {
 
         // Mapear DTOs
         List<UserOutDto> userOutDtoList =
-                modelMapper.map(filteredusers, new TypeToken<List<UserOutDto>>() {
-                }.getType());
+                modelMapper.map(filteredUsers, new TypeToken<List<UserOutDto>>() {}.getType());
+
+        for (int i = 0; i < filteredUsers.size(); i++) {
+            User user = filteredUsers.get(i);
+            UserOutDto dto = userOutDtoList.get(i);
+
+            if (user.getGender() != null) {
+                dto.setGender(user.getGender().getDisplayName());
+            }
+            if (user.getAgeGroup() != null) {
+                dto.setAgeGroup(user.getAgeGroup().getDisplayName());
+            }
+        }
 
         return userOutDtoList;
     }
@@ -58,7 +69,16 @@ public class UserService {
     public UserOutDto findById(long id) throws UserNotFoundException {
         User user = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
-        return modelMapper.map(user, UserOutDto.class);
+
+        UserOutDto userOutDto = modelMapper.map(user, UserOutDto.class);
+
+        if (user.getGender() != null) {
+            userOutDto.setGender(user.getGender().getDisplayName());
+        }
+        if (user.getAgeGroup() != null) {
+            userOutDto.setAgeGroup(user.getAgeGroup().getDisplayName());
+        }
+        return userOutDto;
     }
 
     public List<UserRegistrationOutDto> getUserRegistrations(long userId) throws UserNotFoundException, AccessDeniedException {
@@ -116,10 +136,19 @@ public class UserService {
         // generadas por el sistema
         user.setRole("USER");
         user.setActive(true);
-        user.setBalance(0);
 
         User newUser = userRepository.save(user);
-        return modelMapper.map(newUser, UserOutDto.class);
+
+        UserOutDto userOutDto = modelMapper.map(newUser, UserOutDto.class);
+
+        if (newUser.getGender() != null) {
+            userOutDto.setGender(newUser.getGender().getDisplayName());
+        }
+        if (newUser.getAgeGroup() != null) {
+            userOutDto.setAgeGroup(newUser.getAgeGroup().getDisplayName());
+        }
+
+        return userOutDto;
     }
 
     // PUT
@@ -151,17 +180,25 @@ public class UserService {
         // Datos de sistema
         String role = existingUser.getRole();
         boolean active = existingUser.isActive();
-        float balance = existingUser.getBalance();
 
         modelMapper.map(userInDto, existingUser);
         existingUser.setId(id);
 
         existingUser.setRole(role);
         existingUser.setActive(active);
-        existingUser.setBalance(balance);
 
         User updateUser = userRepository.save(existingUser);
-        return modelMapper.map(updateUser, UserOutDto.class);
+
+        UserOutDto userOutDto = modelMapper.map(updateUser, UserOutDto.class);
+
+        if (updateUser.getGender() != null) {
+            userOutDto.setGender(updateUser.getGender().getDisplayName());
+        }
+        if (updateUser.getAgeGroup() != null) {
+            userOutDto.setAgeGroup(updateUser.getAgeGroup().getDisplayName());
+        }
+
+        return userOutDto;
     }
 
     // DELETE

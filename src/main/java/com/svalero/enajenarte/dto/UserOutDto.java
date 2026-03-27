@@ -14,5 +14,8 @@ public class UserOutDto {
     private String username;
     private String email;
     private String fullName;
+    private int phone;
+    private String gender;
+    private String ageGroup;
     private String role;
 }

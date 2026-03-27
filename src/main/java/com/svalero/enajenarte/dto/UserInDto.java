@@ -1,5 +1,7 @@
 package com.svalero.enajenarte.dto;
 
+import com.svalero.enajenarte.domain.enums.AgeGroup;
+import com.svalero.enajenarte.domain.enums.Gender;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.validation.constraints.*;
@@ -28,7 +30,16 @@ public class UserInDto {
     @NotEmpty(message = "fullName is mandatory")
     private String fullName;
 
-    @Min(value = 12, message = "age must be at least 12")
-    @Max(value = 120, message = "age must be realistic")
-    private int age;
+    @NotNull (message = "phone is mandatory")
+    @Min(value = 600000000, message = "phone must have 9 digits")
+    @Max(value = 799999999, message = "phone must have 9 digits")
+    private int phone;
+
+    @NotNull (message = "gender is mandatory")
+    private Gender gender;
+
+    @NotNull (message = "ageGroup is mandatory")
+    private AgeGroup ageGroup;
+
+
 }

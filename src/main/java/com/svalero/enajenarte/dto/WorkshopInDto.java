@@ -25,6 +25,9 @@ public class WorkshopInDto {
     @Future(message = "The date must be in the future")
     private LocalDate startDate;
 
+    @NotEmpty(message = "Hour is mandatory")
+    private String hour;
+
     @NotNull(message = "Confirmation deadline is mandatory")
     @Future(message = "The confirmation deadline must be in the future")
     private LocalDate confirmationDeadline;

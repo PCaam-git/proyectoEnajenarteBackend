@@ -38,6 +38,10 @@ public class Workshop {
     @Future(message = "startDate must be in the future")
     private LocalDate startDate;
 
+    @Column
+    @NotNull(message = "Hour is mandatory")
+    private String hour;
+
     @Column(name = "confirmation_deadline")
     @NotNull(message = "Confirmation deadline is mandatory")
     @Future(message = "The confirmation deadline must be in the future")

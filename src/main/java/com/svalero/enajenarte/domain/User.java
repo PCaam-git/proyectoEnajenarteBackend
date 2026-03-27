@@ -7,8 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.svalero.enajenarte.domain.enums.AgeGroup;
+import com.svalero.enajenarte.domain.enums.Gender;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -41,16 +42,23 @@ public class User {
     private String fullName;
 
     @Column
-    @Min(value = 12, message = "age must be at least 12")
-    @Max(value = 120, message = "age must be realistic")
-    private int age;
+    @NotNull(message = "phone is mandatory")
+    @Min(value = 600000000, message = "phone must have 9 digits")
+    @Max(value = 799999999, message = "phone must have 9 digits")
+    private int phone;
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    @NotNull(message = "gender is mandatory")
+    private Gender gender;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "age_group")
+    @NotNull(message = "ageGroup is mandatory")
+    private AgeGroup ageGroup;
 
     @Column(name = "is_active")
     private boolean active;
-
-    @Column
-    @Min(value = 0, message = "balance must be a positive number")
-    private float balance;
 
     @Column
     private String role;

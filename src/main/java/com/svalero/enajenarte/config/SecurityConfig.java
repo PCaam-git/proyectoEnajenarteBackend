@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/users").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/contact-messages").permitAll()
 
                         // públicos
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/events/**").permitAll()
@@ -85,6 +86,11 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/program-registrations/**").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/program-registrations/**").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/program-registrations/**").hasRole("ADMIN")
+
+                        // ADMIN - contact message
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/contact-messages").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/contact-messages/**").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/contact-messages/**").hasRole("ADMIN")
 
 
                         .anyRequest().authenticated()

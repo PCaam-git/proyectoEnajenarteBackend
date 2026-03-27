@@ -82,8 +82,8 @@ public class RegistrationService {
         simulateEmailConfirmation(newRegistration);
 
         RegistrationOutDto registrationOutDto = modelMapper.map(newRegistration, RegistrationOutDto.class);
-        registrationOutDto.setUserId(newRegistration.getUser().getId());
-        registrationOutDto.setWorkshopId(newRegistration.getWorkshop().getId());
+        registrationOutDto.setUsername(newRegistration.getUser().getFullName());
+        registrationOutDto.setWorkshopName(newRegistration.getWorkshop().getName());
         registrationOutDto.setPaymentStatus(newRegistration.getPaymentStatus().name());
 
         return registrationOutDto;
@@ -121,10 +121,10 @@ public class RegistrationService {
             RegistrationOutDto registrationOutDto = registrationsOutDtos.get(i);
 
             if (registration.getUser() != null) {
-                registrationOutDto.setUserId(registration.getUser().getId());
+                registrationOutDto.setUsername(registration.getUser().getFullName());
             }
             if (registration.getWorkshop() != null) {
-                registrationOutDto.setWorkshopId(registration.getWorkshop().getId());
+                registrationOutDto.setWorkshopName(registration.getWorkshop().getName());
             }
             if (registration.getPaymentStatus() != null) {
                 registrationOutDto.setPaymentStatus(registration.getPaymentStatus().name());
@@ -142,8 +142,8 @@ public class RegistrationService {
 
         // Mapear -> Setear IDs -> Devolver. Evita que workshopId y userId salgan a 0
         RegistrationOutDto registrationOutDto = modelMapper.map(registration, RegistrationOutDto.class);
-        registrationOutDto.setUserId(registration.getUser().getId());
-        registrationOutDto.setWorkshopId(registration.getWorkshop().getId());
+        registrationOutDto.setUsername(registration.getUser().getFullName());
+        registrationOutDto.setWorkshopName(registration.getWorkshop().getName());
         registrationOutDto.setPaymentStatus(registration.getPaymentStatus().name());
 
         return registrationOutDto;
@@ -195,8 +195,8 @@ public class RegistrationService {
 
         // Mapear -> Setear IDs -> Devolver. Evita que workshopId y userId salgan a 0
             RegistrationOutDto registrationOutDto = modelMapper.map(updateRegistration, RegistrationOutDto.class);
-            registrationOutDto.setUserId(updateRegistration.getUser().getId());
-            registrationOutDto.setWorkshopId(updateRegistration.getWorkshop().getId());
+            registrationOutDto.setUsername(updateRegistration.getUser().getFullName());
+            registrationOutDto.setWorkshopName(updateRegistration.getWorkshop().getName());
         registrationOutDto.setPaymentStatus(updateRegistration.getPaymentStatus().name());
 
             return registrationOutDto;

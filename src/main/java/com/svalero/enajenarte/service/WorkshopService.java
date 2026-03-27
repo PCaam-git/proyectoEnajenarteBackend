@@ -59,7 +59,7 @@ public class WorkshopService {
         // Modificación aplicada: Mapear -> Setear IDs -> Devolver. Evita que speakerId salga a 0
         WorkshopOutDto workshopOutDto = modelMapper.map(newWorkshop, WorkshopOutDto.class);
         if (newWorkshop.getSpeaker() != null) {
-            workshopOutDto.setSpeakerId(newWorkshop.getSpeaker().getId());
+            workshopOutDto.setSpeakerName(newWorkshop.getSpeaker().getFirstName() + " " + newWorkshop.getSpeaker().getLastName());
         }
 
         return workshopOutDto;
@@ -101,7 +101,7 @@ public class WorkshopService {
         // Setear IDs -> Devolver. Evita que speakerId salga a 0
         for (int i = 0; i < filteredWorkshops.size(); i++) {
             if (filteredWorkshops.get(i).getSpeaker() != null) {
-                workshopsOutDtos.get(i).setSpeakerId(filteredWorkshops.get(i).getSpeaker().getId());
+                workshopsOutDtos.get(i).setSpeakerName(filteredWorkshops.get(i).getSpeaker().getFirstName() + " " + filteredWorkshops.get(i).getSpeaker().getLastName());
             }
         }
 
@@ -117,7 +117,7 @@ public class WorkshopService {
 
         // Modificación aplicada: Mapear -> Setear IDs -> Devolver. Evita que speakerId salga a 0
         if (workshop.getSpeaker() != null) {
-            workshopOutDto.setSpeakerId(workshop.getSpeaker().getId());
+            workshopOutDto.setSpeakerName(workshop.getSpeaker().getFirstName() + " " + workshop.getSpeaker().getLastName());
         }
 
         return workshopOutDto;
@@ -157,7 +157,7 @@ public class WorkshopService {
 
         // Modificación aplicada: Mapear -> Setear IDs -> Devolver. Evita que speakerId salga a 0
         if (updatedWorkshop.getSpeaker() != null) {
-            updatedWorkshopOutDto.setSpeakerId(updatedWorkshop.getSpeaker().getId());
+            updatedWorkshopOutDto.setSpeakerName(updatedWorkshop.getSpeaker().getFirstName() + " " + updatedWorkshop.getSpeaker().getLastName());
         }
 
         return updatedWorkshopOutDto;

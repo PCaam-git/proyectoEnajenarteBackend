@@ -19,5 +19,5 @@ public class EventOutDto {
     private float entryFee;
     private boolean isPublic;
 
-    private long speakerId;
+    private String speakerName;
 }

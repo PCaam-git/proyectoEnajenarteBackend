@@ -50,7 +50,7 @@ public class ProgramService {
 
         ProgramOutDto programOutDto = modelMapper.map(newProgram, ProgramOutDto.class);
         if (newProgram.getSpeaker() != null) {
-            programOutDto.setSpeakerId(newProgram.getSpeaker().getId());
+            programOutDto.setSpeakerName(newProgram.getSpeaker().getFirstName());
         }
 
         return programOutDto;
@@ -85,7 +85,7 @@ public class ProgramService {
         // Setear IDs -> Devolver. Evita que speakerId salga a 0
         for (int i = 0; i < filteredPrograms.size(); i++) {
             if (filteredPrograms.get(i).getSpeaker() != null) {
-                programsOutDtos.get(i).setSpeakerId(filteredPrograms.get(i).getSpeaker().getId());
+                programsOutDtos.get(i).setSpeakerName(filteredPrograms.get(i).getSpeaker().getFirstName());
             }
         }
         return programsOutDtos;
@@ -99,7 +99,7 @@ public class ProgramService {
         ProgramOutDto programOutDto = modelMapper.map(program, ProgramOutDto.class);
 
         if (program.getSpeaker() != null) {
-            programOutDto.setSpeakerId(program.getSpeaker().getId());
+            programOutDto.setSpeakerName(program.getSpeaker().getFirstName());
         }
 
         return programOutDto;
@@ -142,7 +142,7 @@ public class ProgramService {
         ProgramOutDto updatedProgramOutDto = modelMapper.map(updatedProgram, ProgramOutDto.class);
 
         if (updatedProgram.getSpeaker() != null) {
-            updatedProgramOutDto.setSpeakerId(updatedProgram.getSpeaker().getId());
+            updatedProgramOutDto.setSpeakerName(updatedProgram.getSpeaker().getFirstName());
         }
 
         return updatedProgramOutDto;

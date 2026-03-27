@@ -60,8 +60,8 @@ public class ProgramRegistrationService {
         simulateEmailConfirmation(newRegistration);
 
         ProgramRegistrationOutDto outDto = modelMapper.map(newRegistration, ProgramRegistrationOutDto.class);
-        outDto.setUserId(newRegistration.getUser().getId());
-        outDto.setProgramId(newRegistration.getProgram().getId());
+        outDto.setFullName(newRegistration.getUser().getFullName());
+        outDto.setProgramName(newRegistration.getProgram().getName());
         outDto.setPaymentStatus(newRegistration.getPaymentStatus());
 
         return outDto;
@@ -96,10 +96,10 @@ public class ProgramRegistrationService {
             ProgramRegistrationOutDto dto = outDtos.get(i);
 
             if (r.getUser() != null) {
-                dto.setUserId(r.getUser().getId());
+                dto.setFullName(r.getUser().getFullName());
             }
             if (r.getProgram() != null) {
-                dto.setProgramId(r.getProgram().getId());
+                dto.setProgramName(r.getProgram().getName());
             }
             if (r.getPaymentStatus() != null) {
                 dto.setPaymentStatus(r.getPaymentStatus());
@@ -115,8 +115,8 @@ public class ProgramRegistrationService {
                 .orElseThrow(RegistrationNotFoundException::new);
 
         ProgramRegistrationOutDto dto = modelMapper.map(registration, ProgramRegistrationOutDto.class);
-        dto.setUserId(registration.getUser().getId());
-        dto.setProgramId(registration.getProgram().getId());
+        dto.setFullName(registration.getUser().getFullName());
+        dto.setProgramName(registration.getProgram().getName());
         dto.setPaymentStatus(registration.getPaymentStatus());
 
         return dto;
@@ -166,8 +166,8 @@ public class ProgramRegistrationService {
         ProgramRegistration updated = programRegistrationRepository.save(existing);
 
         ProgramRegistrationOutDto dto = modelMapper.map(updated, ProgramRegistrationOutDto.class);
-        dto.setUserId(updated.getUser().getId());
-        dto.setProgramId(updated.getProgram().getId());
+        dto.setFullName(updated.getUser().getFullName());
+        dto.setProgramName(updated.getProgram().getName());
         dto.setPaymentStatus(updated.getPaymentStatus());
 
         return dto;

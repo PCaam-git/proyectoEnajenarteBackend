@@ -21,7 +21,6 @@ public class RegistrationOutDto {
     private String status;
     private String paymentStatus;
 
-
-    private long userId;
-    private long workshopId;
+    private String username;
+    private String workshopName;
 }

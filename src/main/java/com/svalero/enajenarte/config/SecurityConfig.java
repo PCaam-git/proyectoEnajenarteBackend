@@ -79,11 +79,13 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/registrations/**").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/registrations/**").hasRole("ADMIN")
 
+
                         // ADMIN - program registrations
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/program-registrations").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/program-registrations/**").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/program-registrations/**").hasRole("ADMIN")
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/program-registrations/**").hasRole("ADMIN")
+
 
                         .anyRequest().authenticated()
                 )

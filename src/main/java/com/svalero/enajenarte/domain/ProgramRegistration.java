@@ -35,6 +35,9 @@ public class ProgramRegistration {
     @Min(value = 0, message = "amountPaid must be greater than or equal to 0")
     private double amountPaid;
 
+    @Column(name = "number_of_tickets")
+    private int numberOfTickets;
+
     @Column
     private Integer rating;
 

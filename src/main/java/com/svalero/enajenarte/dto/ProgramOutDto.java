@@ -21,5 +21,5 @@ public class ProgramOutDto {
     private int durationMinutes;
     private boolean isOnline;
     private String status;
-    private long speakerId;
+    private String speakerName;
 }

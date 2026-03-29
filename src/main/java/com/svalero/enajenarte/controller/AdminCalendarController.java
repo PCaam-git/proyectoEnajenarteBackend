@@ -5,6 +5,7 @@ import com.svalero.enajenarte.dto.AdminCalendarOutDto;
 import com.svalero.enajenarte.exception.AdminCalendarNotFoundException;
 import com.svalero.enajenarte.exception.ErrorResponse;
 import com.svalero.enajenarte.exception.InvalidDateRangeException;
+import com.svalero.enajenarte.exception.InvalidStartDateTimeException;
 import com.svalero.enajenarte.service.AdminCalendarService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +50,7 @@ public class AdminCalendarController {
     // POST
     @PostMapping("/admin-calendar")
     public ResponseEntity<AdminCalendarOutDto> add(@Valid @RequestBody AdminCalendarInDto adminCalendarInDto)
-            throws InvalidDateRangeException {
+            throws InvalidDateRangeException, InvalidStartDateTimeException {
 
         AdminCalendarOutDto newAdminCalendar = adminCalendarService.add(adminCalendarInDto);
         return new ResponseEntity<>(newAdminCalendar, HttpStatus.CREATED);
@@ -58,7 +59,7 @@ public class AdminCalendarController {
     // PUT
     @PutMapping("/admin-calendar/{id}")
     public ResponseEntity<AdminCalendarOutDto> modify(@PathVariable long id, @Valid @RequestBody AdminCalendarInDto adminCalendarInDto)
-            throws AdminCalendarNotFoundException, InvalidDateRangeException {
+            throws AdminCalendarNotFoundException, InvalidDateRangeException, InvalidStartDateTimeException {
 
         AdminCalendarOutDto updatedAdminCalendar = adminCalendarService.modify(id, adminCalendarInDto);
         return ResponseEntity.ok(updatedAdminCalendar);
@@ -78,10 +79,17 @@ public class AdminCalendarController {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
-    // 400
+    // 400 - EndDate after or equal StartDate
     @ExceptionHandler(InvalidDateRangeException.class)
     public ResponseEntity<ErrorResponse> handleException(InvalidDateRangeException idre) {
         ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", "endDate must be after or equal to startDate");
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // 400 - StartDate future
+    @ExceptionHandler(InvalidStartDateTimeException.class)
+    public ResponseEntity<ErrorResponse> handleException(InvalidStartDateTimeException isdte) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", isdte.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 

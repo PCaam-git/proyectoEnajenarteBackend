@@ -29,12 +29,10 @@ public class AdminCalendar {
 
     @Column(name = "start_date")
     @NotNull(message = "startDate is mandatory")
-    @Future(message = "startDate must be in the future")
     private LocalDate startDate;
 
     @Column(name = "end_date")
     @NotNull(message = "endDate is mandatory")
-    @Future(message = "endDate must be in the future")
     private LocalDate endDate;
 
     @Column

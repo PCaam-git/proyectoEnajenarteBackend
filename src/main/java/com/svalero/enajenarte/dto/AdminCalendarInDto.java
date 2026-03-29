@@ -19,11 +19,9 @@ public class AdminCalendarInDto {
     private String title;
 
     @NotNull(message = "startDate is mandatory")
-    @Future(message = "startDate must be in the future")
     private LocalDate startDate;
 
     @NotNull(message = "endDate is mandatory")
-    @Future(message = "endDate must be in the future")
     private LocalDate endDate;
 
     @NotEmpty(message = "hour is mandatory")

@@ -5,6 +5,7 @@ import com.svalero.enajenarte.dto.AdminCalendarInDto;
 import com.svalero.enajenarte.dto.AdminCalendarOutDto;
 import com.svalero.enajenarte.exception.AdminCalendarNotFoundException;
 import com.svalero.enajenarte.exception.InvalidDateRangeException;
+import com.svalero.enajenarte.exception.InvalidStartDateTimeException;
 import com.svalero.enajenarte.repository.AdminCalendarRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -12,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Service
 public class AdminCalendarService {
@@ -22,9 +25,10 @@ public class AdminCalendarService {
     private ModelMapper modelMapper;
 
     // POST
-    public AdminCalendarOutDto add(AdminCalendarInDto adminCalendarInDto) throws InvalidDateRangeException {
+    public AdminCalendarOutDto add(AdminCalendarInDto adminCalendarInDto) throws InvalidDateRangeException, InvalidStartDateTimeException {
         AdminCalendar adminCalendar = modelMapper.map(adminCalendarInDto, AdminCalendar.class);
 
+        validateStartDateTime(adminCalendar);
         if (adminCalendar.getEndDate().isBefore(adminCalendar.getStartDate())) {
             throw new InvalidDateRangeException();
         }
@@ -59,7 +63,7 @@ public class AdminCalendarService {
 
     // PUT
     public AdminCalendarOutDto modify(long id, AdminCalendarInDto adminCalendarInDto)
-            throws AdminCalendarNotFoundException, InvalidDateRangeException {
+            throws AdminCalendarNotFoundException, InvalidDateRangeException, InvalidStartDateTimeException {
 
         AdminCalendar existingAdminCalendar = adminCalendarRepository.findById(id)
                 .orElseThrow(AdminCalendarNotFoundException::new);
@@ -67,6 +71,7 @@ public class AdminCalendarService {
         modelMapper.map(adminCalendarInDto, existingAdminCalendar);
         existingAdminCalendar.setId(id);
 
+        validateStartDateTime(existingAdminCalendar);
         if (existingAdminCalendar.getEndDate() != null
                 && existingAdminCalendar.getStartDate() != null
                 && existingAdminCalendar.getEndDate().isBefore(existingAdminCalendar.getStartDate())) {
@@ -83,5 +88,22 @@ public class AdminCalendarService {
                 .orElseThrow(AdminCalendarNotFoundException::new);
 
         adminCalendarRepository.delete(adminCalendar);
+    }
+
+    private void validateStartDateTime(AdminCalendar adminCalendar) throws InvalidStartDateTimeException {
+        LocalDate today = LocalDate.now();
+
+        if (adminCalendar.getStartDate().isBefore(today)) {
+            throw new InvalidStartDateTimeException("startDate must be in the future");
+        }
+
+        if (adminCalendar.getStartDate().isEqual(today)) {
+            LocalTime eventTime = LocalTime.parse(adminCalendar.getHour());
+            LocalTime now = LocalTime.now();
+
+            if (!eventTime.isAfter(now)) {
+                throw new InvalidStartDateTimeException("startDate must be in the future");
+            }
+        }
     }
 }

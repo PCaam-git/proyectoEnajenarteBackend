@@ -29,6 +29,8 @@ public class ProgramService {
     @Autowired
     private SpeakerRepository speakerRepository;
     @Autowired
+    private AdminCalendarService adminCalendarService;
+    @Autowired
     private ModelMapper modelMapper;
 
     // POST
@@ -52,6 +54,9 @@ public class ProgramService {
         program.setSpeaker(speaker);
 
         Program newProgram = programRepository.save(program);
+
+        // Crea la entrada en el calendario con los datos del programa
+        adminCalendarService.createEntryFromProgram(newProgram);
 
         ProgramOutDto programOutDto = modelMapper.map(newProgram, ProgramOutDto.class);
         if (newProgram.getSpeaker() != null) {

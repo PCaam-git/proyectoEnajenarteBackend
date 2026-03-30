@@ -1,6 +1,9 @@
 package com.svalero.enajenarte.service;
 
 import com.svalero.enajenarte.domain.AdminCalendar;
+import com.svalero.enajenarte.domain.Event;
+import com.svalero.enajenarte.domain.Program;
+import com.svalero.enajenarte.domain.Workshop;
 import com.svalero.enajenarte.dto.AdminCalendarInDto;
 import com.svalero.enajenarte.dto.AdminCalendarOutDto;
 import com.svalero.enajenarte.exception.AdminCalendarNotFoundException;
@@ -10,6 +13,7 @@ import com.svalero.enajenarte.repository.AdminCalendarRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -88,6 +92,60 @@ public class AdminCalendarService {
                 .orElseThrow(AdminCalendarNotFoundException::new);
 
         adminCalendarRepository.delete(adminCalendar);
+    }
+
+    // Entrada automática en el calendario al crear un workshop
+    public void createEntryFromWorkshop(Workshop workshop) {
+        AdminCalendar adminCalendar = AdminCalendar.builder()
+                .title(workshop.getName())
+                .startDate(workshop.getStartDate())
+                .endDate(workshop.getStartDate())
+                .hour(workshop.getHour())
+                .durationMinutes(workshop.getDurationMinutes())
+                .category("WORKSHOP")
+                .description(workshop.getDescription())
+                .speakerName(workshop.getSpeaker() != null
+                ? workshop.getSpeaker().getFirstName() + " " + workshop.getSpeaker().getLastName()
+                        : null)
+                .build();
+
+        adminCalendarRepository.save(adminCalendar);
+    }
+
+    // Entrada automática en el calendario al crear un programa
+    public void createEntryFromProgram(Program program) {
+        AdminCalendar adminCalendar = AdminCalendar.builder()
+                .title(program.getName())
+                .startDate(program.getInitDate())
+                .endDate(program.getFinishDate())
+                .hour(program.getHour())
+                .durationMinutes(program.getDurationMinutes())
+                .category("PROGRAM")
+                .description(program.getDescription())
+                .speakerName(program.getSpeaker() != null
+                        ? program.getSpeaker().getFirstName() + " " + program.getSpeaker().getLastName()
+                        : null)
+                .build();
+
+        adminCalendarRepository.save(adminCalendar);
+    }
+
+    // Entrada automática en el calendario al crear un evento
+    public void createEntryFromEvent(Event event) {
+        AdminCalendar adminCalendar = AdminCalendar.builder()
+                .title(event.getTitle())
+                .startDate(event.getEventDate().toLocalDate())
+                .endDate(event.getEventDate().toLocalDate())
+                .hour(event.getEventDate().toLocalTime().toString())
+                .durationMinutes(60)
+                .category("EVENT")
+                .description(event.getLocation())
+                .speakerName(event.getSpeaker() != null
+                        ? event.getSpeaker().getFirstName() + " " + event.getSpeaker().getLastName()
+                        : null)
+                .build();
+
+        adminCalendarRepository.save(adminCalendar);
     }
 
     private void validateStartDateTime(AdminCalendar adminCalendar) throws InvalidStartDateTimeException {

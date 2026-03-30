@@ -1,6 +1,5 @@
 package com.svalero.enajenarte.service;
 
-import ch.qos.logback.core.joran.event.EndEvent;
 import com.svalero.enajenarte.domain.Event;
 import com.svalero.enajenarte.domain.Speaker;
 import com.svalero.enajenarte.dto.EventInDto;
@@ -24,6 +23,8 @@ public class EventService {
     @Autowired
     private SpeakerRepository speakerRepository;
     @Autowired
+    private AdminCalendarService adminCalendarService;
+    @Autowired
     private ModelMapper modelMapper;
 
     // POST
@@ -35,6 +36,9 @@ public class EventService {
         event.setSpeaker(speaker);
 
         Event newEvent = eventRepository.save(event);
+
+        // Crea la entrada en el calendario con los datos del evento
+        adminCalendarService.createEntryFromEvent(newEvent);
 
         // Modificación aplicada: Mapear -> Setear IDs -> Devolver. Evita que speakerId salga a 0
         EventOutDto eventOutDto = modelMapper.map(newEvent, EventOutDto.class);

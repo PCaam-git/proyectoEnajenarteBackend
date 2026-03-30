@@ -33,6 +33,8 @@ public class WorkshopService {
     private ModelMapper modelMapper;
     @Autowired
     private RegistrationService registrationService;
+    @Autowired
+    private AdminCalendarService adminCalendarService;
 
 
     // POST
@@ -55,6 +57,8 @@ public class WorkshopService {
         workshop.setSpeaker(speaker);
 
         Workshop newWorkshop = workshopRepository.save(workshop);
+        // Añade la entrada al calendario con los datos del workshop
+        adminCalendarService.createEntryFromWorkshop(newWorkshop);
 
         // Modificación aplicada: Mapear -> Setear IDs -> Devolver. Evita que speakerId salga a 0
         WorkshopOutDto workshopOutDto = modelMapper.map(newWorkshop, WorkshopOutDto.class);

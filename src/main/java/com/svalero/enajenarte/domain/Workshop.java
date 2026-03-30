@@ -29,7 +29,7 @@ public class Workshop {
     @NotNull(message = "name is mandatory")
     private String name;
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     @NotNull(message = "description is mandatory")
     private String description;
 

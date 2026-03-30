@@ -29,7 +29,7 @@ public class Program {
     @NotNull(message = "name is mandatory")
     private String name;
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     @NotNull(message = "description is mandatory")
     private String description;
 
@@ -59,6 +59,10 @@ public class Program {
     @NotNull(message = "confirmationDeadline is mandatory")
     @Future(message = "The confirmation deadline must be in the future")
     private LocalDate confirmationDeadline;
+
+    @Column
+    @Min(value = 0, message = "price must be a positive number")
+    private float price;
 
     @Column(name = "minimum_participants")
     @Min(value = 1, message = "Minimum participants must be greater than or equal to 1")

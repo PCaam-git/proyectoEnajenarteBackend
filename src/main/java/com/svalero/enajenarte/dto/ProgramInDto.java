@@ -42,6 +42,9 @@ public class ProgramInDto {
     @Future(message = "The confirmation deadline must be in the future")
     private LocalDate confirmationDeadline;
 
+    @Min(value = 0, message = "Price must be 0 or positive")
+    private float price;
+
     @Min(value = 1, message = "Minimum participants must be greater than or equal to 1")
     private Integer minimumParticipants;
 

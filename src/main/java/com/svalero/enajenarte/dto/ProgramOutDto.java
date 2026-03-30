@@ -19,8 +19,12 @@ public class ProgramOutDto {
     private LocalDate finishDate;
     private String hour;
     private int durationMinutes;
+    private LocalDate confirmationDeadline;
     private float price;
+    private Integer minimumParticipants;
     private boolean isOnline;
     private String status;
+
+    private long speakerId;
     private String speakerName;
 }

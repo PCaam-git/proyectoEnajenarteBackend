@@ -5,6 +5,7 @@ import com.svalero.enajenarte.domain.Speaker;
 import com.svalero.enajenarte.domain.ProgramRegistration;
 import com.svalero.enajenarte.dto.ProgramInDto;
 import com.svalero.enajenarte.dto.ProgramOutDto;
+import com.svalero.enajenarte.exception.DuplicateProgramException;
 import com.svalero.enajenarte.exception.InvalidDateRangeException;
 import com.svalero.enajenarte.exception.ProgramNotFoundException;
 import com.svalero.enajenarte.exception.SpeakerNotFoundException;
@@ -34,9 +35,24 @@ public class ProgramService {
     private ModelMapper modelMapper;
 
     // POST
-    public ProgramOutDto add(ProgramInDto programInDto) throws SpeakerNotFoundException, InvalidDateRangeException {
+    public ProgramOutDto add(ProgramInDto programInDto) throws SpeakerNotFoundException, InvalidDateRangeException, DuplicateProgramException {
         Speaker speaker = speakerRepository.findById(programInDto.getSpeakerId())
                 .orElseThrow(SpeakerNotFoundException::new);
+
+        boolean duplicatedProgramExists = programRepository.findAll().stream()
+                .anyMatch(program -> program.getName() != null
+                        && program.getName().equalsIgnoreCase(programInDto.getName())
+                        && program.getInitDate() != null
+                        && program.getInitDate().equals(programInDto.getInitDate())
+                        && (
+                        program.isOnline() == programInDto.isOnline()
+                                || (program.getSpeaker() != null
+                                && program.getSpeaker().getId() == speaker.getId())
+                ));
+
+        if (duplicatedProgramExists) {
+            throw new DuplicateProgramException();
+        }
 
         Program program = modelMapper.map(programInDto, Program.class);
 
@@ -60,6 +76,7 @@ public class ProgramService {
 
         ProgramOutDto programOutDto = modelMapper.map(newProgram, ProgramOutDto.class);
         if (newProgram.getSpeaker() != null) {
+            programOutDto.setSpeakerId(newProgram.getSpeaker().getId());
             programOutDto.setSpeakerName(newProgram.getSpeaker().getFirstName());
         }
 
@@ -95,6 +112,7 @@ public class ProgramService {
         // Setear IDs -> Devolver. Evita que speakerId salga a 0
         for (int i = 0; i < filteredPrograms.size(); i++) {
             if (filteredPrograms.get(i).getSpeaker() != null) {
+                programsOutDtos.get(i).setSpeakerId(filteredPrograms.get(i).getSpeaker().getId());
                 programsOutDtos.get(i).setSpeakerName(filteredPrograms.get(i).getSpeaker().getFirstName());
             }
         }
@@ -109,6 +127,7 @@ public class ProgramService {
         ProgramOutDto programOutDto = modelMapper.map(program, ProgramOutDto.class);
 
         if (program.getSpeaker() != null) {
+            programOutDto.setSpeakerId(program.getSpeaker().getId());
             programOutDto.setSpeakerName(program.getSpeaker().getFirstName());
         }
 
@@ -117,13 +136,29 @@ public class ProgramService {
 
     // PUT
     public ProgramOutDto modify(long id, ProgramInDto programInDto)
-            throws ProgramNotFoundException, SpeakerNotFoundException, InvalidDateRangeException {
+            throws ProgramNotFoundException, SpeakerNotFoundException, InvalidDateRangeException, DuplicateProgramException {
 
         Program existingProgram = programRepository.findById(id)
                 .orElseThrow(ProgramNotFoundException::new);
 
         Speaker speaker = speakerRepository.findById(programInDto.getSpeakerId())
                 .orElseThrow(SpeakerNotFoundException::new);
+
+        boolean duplicatedProgramExists = programRepository.findAll().stream()
+                .anyMatch(program -> program.getId() != id
+                        && program.getName() != null
+                        && program.getName().equalsIgnoreCase(programInDto.getName())
+                        && program.getInitDate() != null
+                        && program.getInitDate().equals(programInDto.getInitDate())
+                        && (
+                        program.isOnline() == programInDto.isOnline()
+                                || (program.getSpeaker() != null
+                                && program.getSpeaker().getId() == speaker.getId())
+                ));
+
+        if (duplicatedProgramExists) {
+            throw new DuplicateProgramException();
+        }
 
         String status = existingProgram.getStatus();
 
@@ -148,10 +183,11 @@ public class ProgramService {
         }
 
         Program updatedProgram = programRepository.save(existingProgram);
-
+        adminCalendarService.updateEntryFromProgram(updatedProgram);
         ProgramOutDto updatedProgramOutDto = modelMapper.map(updatedProgram, ProgramOutDto.class);
 
         if (updatedProgram.getSpeaker() != null) {
+            updatedProgramOutDto.setSpeakerId(updatedProgram.getSpeaker().getId());
             updatedProgramOutDto.setSpeakerName(updatedProgram.getSpeaker().getFirstName());
         }
 

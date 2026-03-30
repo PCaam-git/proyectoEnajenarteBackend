@@ -46,7 +46,7 @@ public class ProgramController {
     // POST
     @PostMapping("/programs")
     public ResponseEntity<ProgramOutDto> addProgram(@Valid @RequestBody ProgramInDto programInDto)
-            throws SpeakerNotFoundException, InvalidDateRangeException {
+            throws SpeakerNotFoundException, InvalidDateRangeException, DuplicateProgramException {
         ProgramOutDto newProgram = programService.add(programInDto);
         return new ResponseEntity<>(newProgram, HttpStatus.CREATED);
     }
@@ -54,7 +54,7 @@ public class ProgramController {
     // PUT
     @PutMapping("/programs/{id}")
     public ResponseEntity<ProgramOutDto> modifyProgram(@PathVariable long id, @Valid @RequestBody ProgramInDto programInDto)
-            throws SpeakerNotFoundException, ProgramNotFoundException, InvalidDateRangeException {
+            throws SpeakerNotFoundException, ProgramNotFoundException, InvalidDateRangeException, DuplicateProgramException {
         ProgramOutDto updateProgram = programService.modify(id, programInDto);
         return ResponseEntity.ok(updateProgram);
     }
@@ -78,6 +78,17 @@ public class ProgramController {
     public ResponseEntity<ErrorResponse> handleException(SpeakerNotFoundException snfe) {
         ErrorResponse errorResponse = ErrorResponse.notFound("The speaker does not exist");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    // 409 - Programa duplicado
+    @ExceptionHandler(DuplicateProgramException.class)
+    public ResponseEntity<ErrorResponse> handleException(DuplicateProgramException dpe) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(
+                409,
+                "conflict",
+                "Cannot save: there is already a program with the same name, date and conflicting modality or speaker"
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     // 400 - Fecha de confirmación posterior a la fecha de inicio

@@ -47,7 +47,7 @@ public class WorkshopController {
 
     //POST
     @PostMapping("/workshops")
-    public ResponseEntity<WorkshopOutDto> addWorkshop(@Valid @RequestBody WorkshopInDto workshopInDto) throws SpeakerNotFoundException, InvalidDateRangeException{
+    public ResponseEntity<WorkshopOutDto> addWorkshop(@Valid @RequestBody WorkshopInDto workshopInDto) throws SpeakerNotFoundException, InvalidDateRangeException, DuplicateWorkshopException{
         WorkshopOutDto newWorkshop = workshopService.add(workshopInDto);
         return new ResponseEntity<>(newWorkshop, HttpStatus.CREATED);
     }
@@ -55,7 +55,7 @@ public class WorkshopController {
     // PUT
     @PutMapping("/workshops/{id}")
     public ResponseEntity<WorkshopOutDto> modifyWorkshop(@PathVariable long id, @Valid @RequestBody WorkshopInDto workshopInDto)
-        throws SpeakerNotFoundException, WorkshopNotFoundException, InvalidDateRangeException {
+        throws SpeakerNotFoundException, WorkshopNotFoundException, InvalidDateRangeException, DuplicateWorkshopException {
         WorkshopOutDto updateWorkshop = workshopService.modify(id, workshopInDto);
         return ResponseEntity.ok(updateWorkshop);
     }
@@ -85,6 +85,17 @@ public class WorkshopController {
     @ExceptionHandler(HasAssociatedRegistrationsException.class)
     public ResponseEntity<ErrorResponse> handleException(HasAssociatedRegistrationsException hare) {
         ErrorResponse errorResponse = ErrorResponse.generalError(409, "conflict", "Cannot delete: there are associated registrations");
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    // 409 - Entrada duplicada
+    @ExceptionHandler(DuplicateWorkshopException.class)
+    public ResponseEntity<ErrorResponse> handleException(DuplicateWorkshopException dwe) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(
+                409,
+                "conflict",
+                "Cannot save: there is already a workshop with the same name, date and conflicting modality or speaker"
+        );
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 

@@ -96,38 +96,143 @@ public class AdminCalendarService {
 
     // Entrada automática en el calendario al crear un workshop
     public void createEntryFromWorkshop(Workshop workshop) {
+
+        // Busca en el calendario si ya existe una entrada vinculada a ese workshop,
+        // identificándola por el identificador único "[WORKSHOP-id]" en el título
+        List<AdminCalendar> existingEntries = adminCalendarRepository.findAll().stream()
+                .filter(entry -> entry.getTitle() != null
+                        && entry.getTitle().contains("[WORKSHOP-" + workshop.getId() + "]"))
+                .toList();
+
+        // Si ya existe una entrada para ese workshop, no la crea para evitar un duplicado
+        if (!existingEntries.isEmpty()) {
+            return;
+        }
+
+        // Construye una nueva entrada de calendario con los datos del workshop
         AdminCalendar adminCalendar = AdminCalendar.builder()
-                .title(workshop.getName())
+                // El título incluye el identificador único para poder localizarla después
+                .title("[WORKSHOP-" + workshop.getId() + "] " + workshop.getName())
                 .startDate(workshop.getStartDate())
-                .endDate(workshop.getStartDate())
+                .endDate(workshop.getStartDate()) // Workshop no tiene endDate, se usa startDate
                 .hour(workshop.getHour())
                 .durationMinutes(workshop.getDurationMinutes())
                 .category("WORKSHOP")
                 .description(workshop.getDescription())
+                // Si el workshop tiene ponente asignado, se guarda su nombre completo;
+                // en caso contrario, se deja el campo como null
                 .speakerName(workshop.getSpeaker() != null
-                ? workshop.getSpeaker().getFirstName() + " " + workshop.getSpeaker().getLastName()
+                        ? workshop.getSpeaker().getFirstName() + " " + workshop.getSpeaker().getLastName()
                         : null)
                 .build();
 
+        // Guarda la entrada en el repositorio de calendario
         adminCalendarRepository.save(adminCalendar);
+    }
+
+    // Actualización automática de la entrada en el calendario al modificar un workshop
+    public void updateEntryFromWorkshop(Workshop workshop) {
+
+        // Busca la entrada del calendario vinculada a este workshop,
+        // identificándola por el identificador único "[WORKSHOP-id]" en el título
+        AdminCalendar existingEntry = adminCalendarRepository.findAll().stream()
+                .filter(entry -> entry.getTitle() != null
+                        && entry.getTitle().contains("[WORKSHOP-" + workshop.getId() + "]"))
+                .findFirst()
+                .orElse(null);
+
+        // Si no existe una entrada vinculada a este workshop, llama a createEntryFromWorkshop para crear una nueva
+        if (existingEntry == null) {
+            createEntryFromWorkshop(workshop);
+            return;
+        }
+
+        // Actualiza los campos de la entrada existente con los datos actuales del workshop
+        existingEntry.setTitle("[WORKSHOP-" + workshop.getId() + "] " + workshop.getName());
+        existingEntry.setStartDate(workshop.getStartDate());
+        existingEntry.setEndDate(workshop.getStartDate()); // Workshop no tiene endDate, se usa startDate
+        existingEntry.setHour(workshop.getHour());
+        existingEntry.setDurationMinutes(workshop.getDurationMinutes());
+        existingEntry.setCategory("WORKSHOP");
+        existingEntry.setDescription(workshop.getDescription());
+        // Si el workshop tiene ponente asignado, se guarda su nombre completo;
+        // en caso contrario, se deja el campo como null
+        existingEntry.setSpeakerName(workshop.getSpeaker() != null
+                ? workshop.getSpeaker().getFirstName() + " " + workshop.getSpeaker().getLastName()
+                : null);
+
+        // Guarda la entrada actualizada en el repositorio de calendario
+        adminCalendarRepository.save(existingEntry);
     }
 
     // Entrada automática en el calendario al crear un programa
     public void createEntryFromProgram(Program program) {
+        // Busca en el calendario si ya existe una entrada vinculada a ese programa identificándola con el identificador
+        // único "[PROGRAM-id]" en el título
+        List<AdminCalendar> existingEntries = adminCalendarRepository.findAll().stream()
+                .filter(entry -> entry.getTitle() != null
+                        && entry.getTitle().contains("[PROGRAM-" + program.getId() + "]"))
+                .toList();
+
+        // Si ya existe una entrada para ese programa, no la crea para evitar un duplicado.
+        if (!existingEntries.isEmpty()) {
+            return;
+        }
+
+//        Construye una nueva entrada de calendario con los datos del programa
         AdminCalendar adminCalendar = AdminCalendar.builder()
-                .title(program.getName())
+                // El título incluye el identificador único para poder localizarla después
+                .title("[PROGRAM-" + program.getId() + "] " + program.getName())
                 .startDate(program.getInitDate())
                 .endDate(program.getFinishDate())
                 .hour(program.getHour())
                 .durationMinutes(program.getDurationMinutes())
                 .category("PROGRAM")
                 .description(program.getDescription())
+                // Si el programa tiene un ponente asignado, se guarda su nombre completo,
+                // si no tiene ponente asignado, se guarda null
                 .speakerName(program.getSpeaker() != null
                         ? program.getSpeaker().getFirstName() + " " + program.getSpeaker().getLastName()
                         : null)
                 .build();
 
+        // Guarda la entrada en el repositorio de calendario
         adminCalendarRepository.save(adminCalendar);
+    }
+
+    // Actualiza automáticamente la entrada en el calendario al modificar un programa
+    public void updateEntryFromProgram(Program program) {
+
+        // Busca la entrada del calendario vinculada a este programa mediante el identificador
+        // único "[PROGRAM-id]" en el título
+        AdminCalendar existingEntry = adminCalendarRepository.findAll().stream()
+                .filter(entry -> entry.getTitle() != null
+                        && entry.getTitle().contains("[PROGRAM-" + program.getId() + "]"))
+                .findFirst()
+                .orElse(null);
+
+        // Si no existe una entrada vinculada a este programa, llama a createEntryFromProgram para crear una nueva
+        if (existingEntry == null) {
+            createEntryFromProgram(program);
+            return;
+        }
+
+        // Actualiza los campos de la entrada existente con los datos actuales del programa
+        existingEntry.setTitle("[PROGRAM-" + program.getId() + "] " + program.getName());
+        existingEntry.setStartDate(program.getInitDate());
+        existingEntry.setEndDate(program.getFinishDate());
+        existingEntry.setHour(program.getHour());
+        existingEntry.setDurationMinutes(program.getDurationMinutes());
+        existingEntry.setCategory("PROGRAM");
+        existingEntry.setDescription(program.getDescription());
+        // Si el programa tiene ponente asignado, se guarda su nombre completo;
+        // en caso contrario, se deja el campo como null
+        existingEntry.setSpeakerName(program.getSpeaker() != null
+                ? program.getSpeaker().getFirstName() + " " + program.getSpeaker().getLastName()
+                : null);
+
+        // Guarda la entrada actualizada en el repositorio de calendario
+        adminCalendarRepository.save(existingEntry);
     }
 
     // Entrada automática en el calendario al crear un evento

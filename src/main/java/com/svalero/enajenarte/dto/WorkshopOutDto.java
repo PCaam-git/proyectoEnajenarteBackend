@@ -18,8 +18,11 @@ public class WorkshopOutDto {
     private LocalDate confirmationDeadline;
     private int durationMinutes;
     private float price;
+    private Integer minimumParticipants;
+    private int maxCapacity;
     private boolean isOnline;
     private String status;
 
+    private long speakerId;
     private String speakerName;
 }

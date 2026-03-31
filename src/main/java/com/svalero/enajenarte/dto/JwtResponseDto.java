@@ -12,4 +12,5 @@ public class JwtResponseDto {
     private String token;
     private String username;
     private String role;
+    private long id;
 }

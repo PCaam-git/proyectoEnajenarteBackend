@@ -83,7 +83,11 @@ public class RegistrationService {
         Registration newRegistration = registrationRepository.save(registration);
 
         // Si el taller es presencial y se alcanza el mínimo de participantes, el estado cambia a CONFIRMED
-        confirmWorkshopifMinimumReached(workshop, currentParticipants + requestedTickets);
+        try {
+            confirmWorkshopifMinimumReached(workshop, currentParticipants + requestedTickets);
+        } catch (Exception e) {
+            System.err.println("Error confirmando el taller: " + e.getMessage());
+        }
 
         // Simulación de envío de confirmación
         simulateEmailConfirmation(newRegistration);
@@ -253,7 +257,11 @@ public class RegistrationService {
 
             // Simula envío de mensaje a los participantes
             for (Registration registration : registrations) {
-                simulateWorkshopConfirmationEmail(registration);
+                try {
+                    simulateWorkshopConfirmationEmail(registration);
+                } catch (Exception e) {
+                    System.err.println("Error en el envío de email a los usuarios inscritos: " + e.getMessage());
+                }
             }
         }
     }

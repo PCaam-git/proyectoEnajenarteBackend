@@ -82,7 +82,11 @@ public class ProgramRegistrationService {
 
         ProgramRegistration newRegistration = programRegistrationRepository.save(registration);
 
-        simulateEmailConfirmation(newRegistration, currentParticipants + requestedTickets);
+        try {
+            simulateEmailConfirmation(newRegistration, currentParticipants + requestedTickets);
+        } catch (Exception e) {
+            System.err.println("No se ha podido enviar el email de confirmación en la inscripción del programa: " + e.getMessage());
+        }
 
         ProgramRegistrationOutDto programRegistrationOutDto = modelMapper.map(newRegistration, ProgramRegistrationOutDto.class);
         programRegistrationOutDto.setFullName(newRegistration.getUser().getFullName());

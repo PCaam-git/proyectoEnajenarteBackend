@@ -33,8 +33,7 @@ public class ContactMessage {
     @NotNull(message = "Debes seleccionar una categoría")
     private String category;
 
-    @Column(name = "Debes seleccionar un tema")
-    @NotNull(message = "referenceId is mandatory")
+    @Column(name = "reference_id")
     private Long referenceId;
 
     @Column(columnDefinition = "TEXT")

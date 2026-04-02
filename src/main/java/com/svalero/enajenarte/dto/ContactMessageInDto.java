@@ -21,7 +21,6 @@ public class ContactMessageInDto {
     @NotEmpty(message = "Debes seleccionar una categoría")
     private String category;
 
-    @NotNull(message = "Debes seleccionar un tema")
     @Min(value = 1, message = "referenceId must be greater than 0")
     private Long referenceId;
 

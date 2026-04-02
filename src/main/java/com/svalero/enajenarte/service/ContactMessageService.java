@@ -20,6 +20,8 @@ public class ContactMessageService {
     private ContactMessageRepository contactMessageRepository;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private EmailService emailService;
 
     // POST
     public ContactMessageOutDto add(ContactMessageInDto contactMessageInDto) {
@@ -27,6 +29,17 @@ public class ContactMessageService {
         contactMessage.setCreatedAt(LocalDateTime.now());
 
         ContactMessage newContactMessage = contactMessageRepository.save(contactMessage);
+
+        emailService.sendContactNotification(
+                "Nuevo mensaje de contacto - " + newContactMessage.getCategory(),
+                "Se ha recibido un nuevo mensaje de contacto.\n\n"
+                        + "Nombre: " + newContactMessage.getFullName() + "\n"
+                        + "Email: " + newContactMessage.getEmail() + "\n"
+                        + "Categoría: " + newContactMessage.getCategory() + "\n"
+                        + "Referencia: " + newContactMessage.getReferenceId() + "\n\n"
+                        + "Mensaje:\n" + newContactMessage.getMessage()
+        );
+
         return modelMapper.map(newContactMessage, ContactMessageOutDto.class);
     }
 

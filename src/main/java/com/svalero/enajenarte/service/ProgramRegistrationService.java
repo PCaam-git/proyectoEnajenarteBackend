@@ -30,6 +30,8 @@ public class ProgramRegistrationService {
     private ProgramRepository programRepository;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private EmailService emailService;
 
     private static final String STATUS_CONFIRMED = "CONFIRMED";
     private static final PaymentStatus PAYMENT_STATUS_PENDING = PaymentStatus.PENDING;
@@ -219,17 +221,26 @@ public class ProgramRegistrationService {
     }
 
     private void simulateEmailConfirmation(ProgramRegistration registration, int totalParticipants) {
+        String subject = "Inscripción en " + registration.getProgram().getName();
+        String text;
+
         if (registration.getProgram().getMinimumParticipants() != null
                 && totalParticipants >= registration.getProgram().getMinimumParticipants()) {
 
-            System.out.println(registration.getUser().getFullName()
-                    + " La inscripción se ha realizado correctamente. Tu código de confirmación es: "
-                    + registration.getConfirmationCode());
+            text = "Tu inscripción se ha realizado correctamente.\n\n"
+                    + "Programa: " + registration.getProgram().getName() + "\n"
+                    + "Código de confirmación: " + registration.getConfirmationCode();
         } else {
-            System.out.println(registration.getUser().getFullName()
-                    + " La inscripción se ha realizado correctamente. Tu código de confirmación es: "
-                    + registration.getConfirmationCode()
-                    + ". Más adelante recibirás toda la información detallada del programa");
+            text = "Tu inscripción se ha realizado correctamente.\n\n"
+                    + "Programa: " + registration.getProgram().getName() + "\n"
+                    + "Código de confirmación: " + registration.getConfirmationCode() + "\n\n"
+                    + "Más adelante recibirás toda la información detallada del programa.";
         }
+
+        emailService.sendEmail(
+                registration.getUser().getEmail(),
+                subject,
+                text
+        );
     }
 }

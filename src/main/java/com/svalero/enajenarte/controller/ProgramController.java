@@ -69,14 +69,14 @@ public class ProgramController {
     // 404 - Program
     @ExceptionHandler(ProgramNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(ProgramNotFoundException pnfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The program does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("El programa no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     // 404 - Speaker
     @ExceptionHandler(SpeakerNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(SpeakerNotFoundException snfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The speaker does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("El ponente no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
@@ -86,7 +86,7 @@ public class ProgramController {
         ErrorResponse errorResponse = ErrorResponse.generalError(
                 409,
                 "conflict",
-                "Cannot save: there is already a program with the same name, date and conflicting modality or speaker"
+                "No se puede guardar. Ya existe un programa con el mismo nombre, fecha y modalidad o ponente"
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
@@ -94,7 +94,7 @@ public class ProgramController {
     // 400 - Fecha de confirmación posterior a la fecha de inicio
     @ExceptionHandler(InvalidDateRangeException.class)
     public ResponseEntity<ErrorResponse> handleException(InvalidDateRangeException idre) {
-        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", "confirmationDeadline must be before initDate");
+        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", "La fecha de confirmación debe ser anterior a la fecha de inicio");
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 

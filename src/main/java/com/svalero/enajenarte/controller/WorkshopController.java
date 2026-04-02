@@ -77,14 +77,14 @@ public class WorkshopController {
     // 404 - Speaker (relación)
     @ExceptionHandler(SpeakerNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(SpeakerNotFoundException snfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The speaker does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("El ponente no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     // 409 - Workshop con registros asociados
     @ExceptionHandler(HasAssociatedRegistrationsException.class)
     public ResponseEntity<ErrorResponse> handleException(HasAssociatedRegistrationsException hare) {
-        ErrorResponse errorResponse = ErrorResponse.generalError(409, "conflict", "Cannot delete: there are associated registrations");
+        ErrorResponse errorResponse = ErrorResponse.generalError(409, "conflict", "No se puede eliminar: el taller tiene registros asociados");
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
@@ -94,7 +94,7 @@ public class WorkshopController {
         ErrorResponse errorResponse = ErrorResponse.generalError(
                 409,
                 "conflict",
-                "Cannot save: there is already a workshop with the same name, date and conflicting modality or speaker"
+                "No se puede guardar: ya existe un taller con el mismo nombre, fecha y modalidad o ponente"
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
@@ -102,7 +102,7 @@ public class WorkshopController {
     // 400 - Fecha de confirmación posterior a la fecha de inicio
     @ExceptionHandler(InvalidDateRangeException.class)
     public ResponseEntity<ErrorResponse> handleException(InvalidDateRangeException idrе) {
-        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", "confirmationDeadline must be before startDate");
+        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", "La fecha de confirmación debe ser anterior a la fecha de inicio");
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
 
     }

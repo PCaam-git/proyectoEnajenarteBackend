@@ -25,26 +25,26 @@ public class User {
     private long id;
 
     @Column
-    @NotNull(message = "username is mandatory")
+    @NotNull(message = "Debes indicar un nombre de usuario")
     private String username;
 
     @Column
-    @NotNull(message = "password is mandatory")
+    @NotNull(message = "Debes indicar una contraseña")
     private String password;
 
     @Column
     @NotNull(message = "email is mandatory")
-    @Email(message = "email must be valid")
+    @Email(message = "El email debe de ser válido")
     private String email;
 
     @Column(name = "full_name")
-    @NotNull(message = "fullName is mandatory")
+    @NotNull(message = "Debes indicar un nombre completo")
     private String fullName;
 
     @Column
     @NotNull(message = "phone is mandatory")
-    @Min(value = 600000000, message = "phone must have 9 digits")
-    @Max(value = 799999999, message = "phone must have 9 digits")
+    @Min(value = 600000000, message = "El teléfono debe contener 9 cifras")
+    @Max(value = 999999999, message = "El teléfono debe contener 9 cifras")
     private int phone;
 
     @Enumerated(EnumType.STRING)
@@ -54,7 +54,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "age_group")
-    @NotNull(message = "ageGroup is mandatory")
+    @NotNull(message = "Por favor, selecciona un grupo de edad")
     private AgeGroup ageGroup;
 
     @Column(name = "is_active")

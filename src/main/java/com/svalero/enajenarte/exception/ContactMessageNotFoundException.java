@@ -3,6 +3,6 @@ package com.svalero.enajenarte.exception;
 public class ContactMessageNotFoundException extends Exception {
 
     public ContactMessageNotFoundException() {
-        super("The contact message does not exist");
+        super("El mensaje de contacto no existe");
     }
 }

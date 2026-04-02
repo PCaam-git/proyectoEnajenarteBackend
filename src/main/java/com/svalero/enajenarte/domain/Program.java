@@ -26,50 +26,50 @@ public class Program {
     private long id;
 
     @Column
-    @NotNull(message = "name is mandatory")
+    @NotNull(message = "Debes indicar un título")
     private String name;
 
     @Column(columnDefinition = "TEXT")
-    @NotNull(message = "description is mandatory")
+    @NotNull(message = "Debes incluir una descripción")
     private String description;
 
     @Column
-    @NotNull(message = "location is mandatory")
+    @NotNull(message = "Debes indicar una ubicación")
     private String location;
 
     @Column(name = "init_date")
-    @NotNull(message = "initDate is mandatory")
-    @Future(message = "initDate must be in the future")
+    @NotNull(message = "Debes indicar una fecha de inicio")
+    @Future(message = "La fecha de inicio debe ser futura")
     private LocalDate initDate;
 
     @Column(name = "finish_date")
-    @NotNull(message = "finishDate is mandatory")
-    @Future(message = "finishDate must be in the future")
+    @NotNull(message = "Debes indicar una fecha de finalización")
+    @Future(message = "La fecha de finalización debe ser futura y posterior a la fecha de inicio")
     private LocalDate finishDate;
 
     @Column
-    @NotNull(message = "hour is mandatory")
+    @NotNull(message = "Debes indicar una hora de comienzo")
     private String hour;
 
     @Column(name = "duration_minutes")
-    @Min(value = 1, message = "durationMinutes must be at least 1 minute")
+    @Min(value = 1, message = "La duración debe ser de, al menos, 1 minuto")
     private int durationMinutes;
 
     @Column(name = "confirmation_deadline")
-    @NotNull(message = "confirmationDeadline is mandatory")
-    @Future(message = "The confirmation deadline must be in the future")
+    @NotNull(message = "Debes indicar una fecha de confirmación")
+    @Future(message = "La fecha de confirmación debe ser futura")
     private LocalDate confirmationDeadline;
 
     @Column
-    @Min(value = 0, message = "price must be a positive number")
+    @Min(value = 0, message = "El precio debe ser positivo")
     private float price;
 
     @Column(name = "minimum_participants")
-    @Min(value = 1, message = "Minimum participants must be greater than or equal to 1")
+    @Min(value = 1, message = "El número mínimo de participantes es 1")
     private Integer minimumParticipants;
 
     @Column(name = "max_capacity")
-    @Min(value = 1, message = "maxCapacity must be at least 1")
+    @Min(value = 1, message = "La capacidad máxima debe ser superior a 1")
     private int maxCapacity;
 
     @Column(name = "is_online")

@@ -14,20 +14,21 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class SpeakerInDto {
 
-    @NotEmpty(message = "firstName is mandatory")
+    @NotEmpty(message = "Debes indicar el nombre")
     private String firstName;
 
-    @NotEmpty(message = "lastName is mandatory")
+    @NotEmpty(message = "Debes indicar el apellido")
     private String lastName;
 
-    @NotEmpty(message = "email is mandatory")
-    @Email(message = "email must be valid")
+    @NotEmpty(message = "Indica un email de contacto")
+    @Email(message = "El email debe ser válido")
+    @Pattern(regexp = "^[\\x00-\\x7F]+$", message = "email must contain only ASCII characters")
     private String email;
 
-    @NotEmpty(message = "speciality is mandatory")
+    @NotEmpty(message = "Indica, como mínimo, una especialidad")
     private String speciality;
 
-    @Min(value = 0, message = "years experience cannot be negative")
+    @Min(value = 0, message = "El número de años de experiencia debe ser superior a 0")
     private int yearsExperience;
 
     @Min(value = 0, message = "workshopHoursTotal must be positive")

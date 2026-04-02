@@ -15,40 +15,40 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class ProgramInDto {
 
-    @NotEmpty(message = "Name is mandatory")
+    @NotEmpty(message = "Debes indicar un título")
     private String name;
 
-    @NotEmpty(message = "Description is mandatory")
+    @NotEmpty(message = "Debes indicar una descripción")
     private String description;
 
-    @NotEmpty(message = "Location is mandatory")
+    @NotEmpty(message = "Debes indicar una ubicación")
     private String location;
 
-    @NotNull(message = "Init date is mandatory")
-    @Future(message = "The init date must be in the future")
+    @NotNull(message = "Debes indicar la fecha de inicio")
+    @Future(message = "La fecha de inicio debe ser futura")
     private LocalDate initDate;
 
-    @NotNull(message = "Finish date is mandatory")
-    @Future(message = "The finish date must be in the future")
+    @NotNull(message = "Debes indicar la fecha de finalización")
+    @Future(message = "La fecha de finalización debe ser futura")
     private LocalDate finishDate;
 
-    @NotEmpty(message = "Hour is mandatory")
+    @NotEmpty(message = "Indica la hora de inicio")
     private String hour;
 
-    @Min(value = 1, message = "Duration must be at least 1 minute")
+    @Min(value = 1, message = "La duración debe ser de, al menos, 1 minuto")
     private int durationMinutes;
 
-    @NotNull(message = "Confirmation deadline is mandatory")
-    @Future(message = "The confirmation deadline must be in the future")
+    @NotNull(message = "Debes indicar una fecha de confirmación")
+    @Future(message = "La fecha de confirmación debe ser futura")
     private LocalDate confirmationDeadline;
 
-    @Min(value = 0, message = "Price must be 0 or positive")
+    @Min(value = 0, message = "El precio debe ser igual o mayor a 0")
     private float price;
 
-    @Min(value = 1, message = "Minimum participants must be greater than or equal to 1")
+    @Min(value = 1, message = "El número mínimo de participantes debe ser igual o superior a 1")
     private Integer minimumParticipants;
 
-    @Min(value = 1, message = "Capacity must be at least 1")
+    @Min(value = 1, message = "El número máximo de participantes debe ser superior a 1")
     private int maxCapacity;
 
     private boolean isOnline;

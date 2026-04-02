@@ -2,6 +2,6 @@ package com.svalero.enajenarte.exception;
 
 public class HasAssociatedRegistrationsException extends Exception {
     public HasAssociatedRegistrationsException() {
-        super("Cannot delete: there are associated registrations");
+        super("No se puede eliminar: hay inscripciones asociadas");
     }
 }

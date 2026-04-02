@@ -74,14 +74,14 @@ public class EventController {
     // 404 - Event
     @ExceptionHandler(EventNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(EventNotFoundException enfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The event does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("El evento no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     // 404 - Speaker (relación)
     @ExceptionHandler(SpeakerNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(SpeakerNotFoundException snfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The speaker does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("EL ponente no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 

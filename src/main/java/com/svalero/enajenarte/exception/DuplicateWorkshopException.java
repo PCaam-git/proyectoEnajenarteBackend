@@ -3,6 +3,6 @@ package com.svalero.enajenarte.exception;
 public class DuplicateWorkshopException extends Exception {
 
     public DuplicateWorkshopException() {
-        super("A workshop with the same name, start date and conflicting modality or speaker already exists");
+        super("Ya existe un taller con el mismo nombre, fecha de inicio y un conflicto con la modalidad o el ponente");
     }
 }

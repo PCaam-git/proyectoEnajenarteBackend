@@ -32,7 +32,7 @@ public class ProgramRegistration {
     private boolean isPaid;
 
     @Column(name = "amount_paid")
-    @Min(value = 0, message = "amountPaid must be greater than or equal to 0")
+    @Min(value = 0, message = "La cantidad pagada debe ser igual o superior a 0")
     private double amountPaid;
 
     @Column(name = "number_of_tickets")

@@ -75,14 +75,14 @@ public class AdminCalendarController {
     // 404
     @ExceptionHandler(AdminCalendarNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(AdminCalendarNotFoundException acnfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The calendar block does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("No existe la entrada en el calendario");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     // 400 - EndDate after or equal StartDate
     @ExceptionHandler(InvalidDateRangeException.class)
     public ResponseEntity<ErrorResponse> handleException(InvalidDateRangeException idre) {
-        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", "endDate must be after or equal to startDate");
+        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", "La fecha de finalización debe ser posterior a la fecha de inicio");
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 

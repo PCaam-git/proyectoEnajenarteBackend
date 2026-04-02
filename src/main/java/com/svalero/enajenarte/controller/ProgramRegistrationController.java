@@ -74,21 +74,21 @@ public class ProgramRegistrationController {
     // 404 - Registration
     @ExceptionHandler(RegistrationNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(RegistrationNotFoundException rnfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The program registration does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("La inscripción al programa no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     // 404 - User
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(UserNotFoundException unfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The user does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("El usuario no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     // 404 - Program
     @ExceptionHandler(ProgramNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(ProgramNotFoundException pnfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The program does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("El programa no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 

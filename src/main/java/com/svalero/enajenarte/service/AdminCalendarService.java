@@ -257,7 +257,7 @@ public class AdminCalendarService {
         LocalDate today = LocalDate.now();
 
         if (adminCalendar.getStartDate().isBefore(today)) {
-            throw new InvalidStartDateTimeException("startDate must be in the future");
+            throw new InvalidStartDateTimeException("La fecha de inicio debe ser futura");
         }
 
         if (adminCalendar.getStartDate().isEqual(today)) {
@@ -265,7 +265,7 @@ public class AdminCalendarService {
             LocalTime now = LocalTime.now();
 
             if (!eventTime.isAfter(now)) {
-                throw new InvalidStartDateTimeException("startDate must be in the future");
+                throw new InvalidStartDateTimeException("La fecha de inicio debe ser futura");
             }
         }
     }

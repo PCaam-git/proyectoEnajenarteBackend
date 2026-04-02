@@ -38,17 +38,17 @@ public class Registration {
     private boolean isPaid;
 
     @Column(name = "number_of_tickets")
-    @Min(value = 1, message = "must register at least 1 person")
-    @Max(value = 5, message = "cannot register more than 5 people at once")
+    @Min(value = 1, message = "El número mínimo de plazas debe ser 1")
+    @Max(value = 5, message = "No es posible ")
     private int numberOfTickets;
 
     @Column
-    @Min(value = 0, message = "amountPaid must be positive")
+    @Min(value = 0, message = "La cantidad pagada debe ser positiva")
     private float amountPaid;
 
     @Column
-    @Min(value = 1, message = "rating must be between 1 and 5")
-    @Max(value = 5, message = "rating must be between 1 and 5")
+    @Min(value = 1, message = "La valoración debe ser entre 1 y 5")
+    @Max(value = 5, message = "La valoración debe ser entre 1 y 5")
     private Integer rating;
 
     @Column

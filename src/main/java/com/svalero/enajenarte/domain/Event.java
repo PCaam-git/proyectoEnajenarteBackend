@@ -24,27 +24,27 @@ public class Event {
     private long id;
 
     @Column
-    @NotNull(message = "title is mandatory")
+    @NotNull(message = "Debes rellenar el título")
     private String title;
 
     @Column
-    @NotNull(message = "location is mandatory")
+    @NotNull(message = "Debes rellenar la localización")
     private String location;
 
     @Column(name = "event_date")
-    @NotNull(message = "eventDate is mandatory")
+    @NotNull(message = "Debes rellenar la fecha del evento")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime eventDate;
 
     @Column(name = "entry_fee")
-    @Min(value = 0, message = "entryFee must be a positive number")
+    @Min(value = 0, message = "El precio de la entrada debe ser un número positivo")
     private float entryFee;
 
     @Column(name = "is_public")
     private boolean isPublic;
 
     @Column(name = "expected_attendance")
-    @Min(value = 0, message = "expectedAttendance must be a positive number")
+    @Min(value = 0, message = "La asistencia esperada debe ser un número positivo")
     private int expectedAttendance;
 
     @ManyToOne

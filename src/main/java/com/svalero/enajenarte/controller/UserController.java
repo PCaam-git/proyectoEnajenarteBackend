@@ -93,7 +93,7 @@ public class UserController {
     // 409 - User con registros asociados
     @ExceptionHandler(HasAssociatedRegistrationsException.class)
     public ResponseEntity<ErrorResponse> handleException(HasAssociatedRegistrationsException hare) {
-        ErrorResponse errorResponse = ErrorResponse.generalError(409, "conflict", "Cannot delete: there are associated registrations");
+        ErrorResponse errorResponse = ErrorResponse.generalError(409, "conflict", "No se puede eliminar: el usuario tiene registros asociados");
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 

@@ -24,27 +24,27 @@ public class AdminCalendar {
     private long id;
 
     @Column
-    @NotNull(message = "title is mandatory")
+    @NotNull(message = "Debes indicar el título")
     private String title;
 
     @Column(name = "start_date")
-    @NotNull(message = "startDate is mandatory")
+    @NotNull(message = "Debes indicar la fecha de inicio")
     private LocalDate startDate;
 
     @Column(name = "end_date")
-    @NotNull(message = "endDate is mandatory")
+    @NotNull(message = "Debes indicar la fecha de finalización")
     private LocalDate endDate;
 
     @Column
-    @NotNull(message = "hour is mandatory")
+    @NotNull(message = "Debes indicar la hora")
     private String hour;
 
     @Column(name = "duration_minutes")
-    @Min(value = 1, message = "durationMinutes must be at least 1 minute")
+    @Min(value = 1, message = "La duración debe ser, como mínimo, 1 minuto")
     private int durationMinutes;
 
     @Column
-    @NotNull(message = "category is mandatory")
+    @NotNull(message = "Debes indicar la categoría")
     private String category;
 
     @Column(columnDefinition = "TEXT")

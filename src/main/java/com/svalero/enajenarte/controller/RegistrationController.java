@@ -75,21 +75,21 @@ public class RegistrationController {
     // 404 - Registration
     @ExceptionHandler(RegistrationNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(RegistrationNotFoundException rnfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The registration does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("La inscripción no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     // 404 - User (relación)
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(UserNotFoundException unfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The user does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("El usuario no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     // 404 - Workshop (relación)
     @ExceptionHandler(WorkshopNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(WorkshopNotFoundException wnfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The workshop does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("El taller no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 

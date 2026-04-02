@@ -173,7 +173,7 @@ public class UserService {
                     .getAuthority();
 
             if (!role.equals("ROLE_ADMIN")) {
-                throw new RuntimeException("You cannot modify another user");
+                throw new RuntimeException("No puedes modificar los datos de otro usuario");
             }
         }
 

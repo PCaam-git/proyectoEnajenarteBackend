@@ -1,9 +1,6 @@
 package com.svalero.enajenarte.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,20 +10,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ContactMessageInDto {
 
-    @NotEmpty(message = "fullName is mandatory")
+    @NotEmpty(message = "Indica tu nombre completo, por favor")
     private String fullName;
 
-    @NotEmpty(message = "email is mandatory")
-    @Email(message = "email must be valid")
+    @NotEmpty(message = "Debes indicar un email de contacto")
+    @Email(message = "El email debe ser válido")
+    @Pattern(regexp = "^[\\x00-\\x7F]+$", message = "email must contain only ASCII characters")
     private String email;
 
-    @NotEmpty(message = "category is mandatory")
+    @NotEmpty(message = "Debes seleccionar una categoría")
     private String category;
 
-    @NotNull(message = "referenceId is mandatory")
+    @NotNull(message = "Debes seleccionar un tema")
     @Min(value = 1, message = "referenceId must be greater than 0")
     private Long referenceId;
 
-    @NotEmpty(message = "message is mandatory")
+    @NotEmpty(message = "Añade tu mensaje, por favor")
     private String message;
 }

@@ -15,33 +15,33 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class WorkshopInDto {
 
-    @NotEmpty(message = "Name is mandatory")
+    @NotEmpty(message = "Debes indicar un título")
     private String name;
 
-    @NotEmpty(message = "Description is mandatory")
+    @NotEmpty(message = "Debes indicar una descripción")
     private String description;
 
-    @NotNull(message = "Date is mandatory")
-    @Future(message = "The date must be in the future")
+    @NotNull(message = "Debes indicar la fecha del taller")
+    @Future(message = "La fecha debe ser futura")
     private LocalDate startDate;
 
-    @NotEmpty(message = "Hour is mandatory")
+    @NotEmpty(message = "Indica la hora del taller")
     private String hour;
 
-    @NotNull(message = "Confirmation deadline is mandatory")
-    @Future(message = "The confirmation deadline must be in the future")
+    @NotNull(message = "Debes seleccionar una fecha de confirmación")
+    @Future(message = "La fecha de confirmación debe ser futura")
     private LocalDate confirmationDeadline;
 
-    @Min(value = 1, message = "Duration must be at least 1 minute")
+    @Min(value = 1, message = "La duración debe ser de, al menos, 1 minuto")
     private int durationMinutes;
 
-    @Min(value = 0, message = "Price must be 0 or positive")
+    @Min(value = 0, message = "El precio debe ser positivo")
     private float price;
 
-    @Min(value = 1, message = "Minimum participants must be greater than or equal to 1")
+    @Min(value = 1, message = "El número mínimo de participantes debe ser igual o superior a 1")
     private Integer minimumParticipants;
 
-    @Min(value = 1, message = "Capacity must be at least 1")
+    @Min(value = 1, message = "El número máximo de participantes debe ser igual o superior a 1")
     private int maxCapacity;
 
     private boolean isOnline;

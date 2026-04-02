@@ -15,22 +15,22 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class AdminCalendarInDto {
 
-    @NotEmpty(message = "title is mandatory")
+    @NotEmpty(message = "Debes indicar un título")
     private String title;
 
-    @NotNull(message = "startDate is mandatory")
+    @NotNull(message = "Debes indicar una fecha de inicio")
     private LocalDate startDate;
 
-    @NotNull(message = "endDate is mandatory")
+    @NotNull(message = "Debes indicar una fecha de finalización")
     private LocalDate endDate;
 
-    @NotEmpty(message = "hour is mandatory")
+    @NotEmpty(message = "Debes indicar una hora de inicio")
     private String hour;
 
-    @Min(value = 1, message = "durationMinutes must be at least 1 minute")
+    @Min(value = 1, message = "La duración debe ser de, al menos, 1 minuto")
     private int durationMinutes;
 
-    @NotEmpty(message = "category is mandatory")
+    @NotEmpty(message = "Debes seleccionar una categoría")
     private String category;
 
     private String description;

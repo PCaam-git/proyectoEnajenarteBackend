@@ -22,18 +22,18 @@ public class ContactMessage {
     private long id;
 
     @Column(name = "full_name")
-    @NotNull(message = "fullName is mandatory")
+    @NotNull(message = "Debes indicar tu nombre completo")
     private String fullName;
 
     @Column
-    @NotNull(message = "email is mandatory")
+    @NotNull(message = "Debes indicar un email")
     private String email;
 
     @Column
-    @NotNull(message = "category is mandatory")
+    @NotNull(message = "Debes seleccionar una categoría")
     private String category;
 
-    @Column(name = "reference_id")
+    @Column(name = "Debes seleccionar un tema")
     @NotNull(message = "referenceId is mandatory")
     private Long referenceId;
 

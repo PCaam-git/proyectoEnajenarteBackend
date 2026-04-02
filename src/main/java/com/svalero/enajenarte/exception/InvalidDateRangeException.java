@@ -2,6 +2,6 @@ package com.svalero.enajenarte.exception;
 
 public class InvalidDateRangeException extends Exception{
     public InvalidDateRangeException() {
-        super("ConfirmationDeadline must be before a StartDate");
+        super("La fecha de confirmación debe ser anterior a la fecha de inicio");
     }
 }

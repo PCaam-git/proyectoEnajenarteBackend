@@ -74,21 +74,21 @@ public class SpeakerController {
     // 404 - Speaker
     @ExceptionHandler(SpeakerNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(SpeakerNotFoundException snfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The speaker does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("El ponente no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     // 404 - Workshop (relación)
     @ExceptionHandler(WorkshopNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(WorkshopNotFoundException wnfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The workshop does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("El taller no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     // 409 - Speaker con workshops asociados
     @ExceptionHandler(HasAssociatedRegistrationsException.class)
     public ResponseEntity<ErrorResponse> handleException(HasAssociatedRegistrationsException hare) {
-        ErrorResponse errorResponse = ErrorResponse.generalError(409, "conflict", "Cannot delete: there are associated workshops");
+        ErrorResponse errorResponse = ErrorResponse.generalError(409, "conflict", "No se puede eliminar: hay talleres asociados al ponente");
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 

@@ -60,7 +60,7 @@ public class ContactMessageController {
     // 404
     @ExceptionHandler(ContactMessageNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(ContactMessageNotFoundException cmnfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The contact message does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("El mensaje no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 

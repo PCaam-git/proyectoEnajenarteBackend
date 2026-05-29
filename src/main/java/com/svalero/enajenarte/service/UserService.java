@@ -14,6 +14,7 @@ import com.svalero.enajenarte.repository.RegistrationRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -29,6 +30,8 @@ public class UserService {
     private RegistrationRepository registrationRepository;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
 
     // GET all
@@ -133,6 +136,8 @@ public class UserService {
     public UserOutDto add(UserInDto userInDto) {
         User user = modelMapper.map(userInDto, User.class);
 
+        user.setPassword(passwordEncoder.encode(userInDto.getPassword()));
+
         // generadas por el sistema
         user.setRole("USER");
         user.setActive(true);
@@ -184,6 +189,8 @@ public class UserService {
         modelMapper.map(userInDto, existingUser);
         existingUser.setId(id);
 
+        existingUser.setPassword(passwordEncoder.encode(userInDto.getPassword()));
+
         existingUser.setRole(role);
         existingUser.setActive(active);
 
@@ -201,7 +208,6 @@ public class UserService {
         return userOutDto;
     }
 
-    // DELETE
     // DELETE
     public void delete(long id) throws UserNotFoundException, HasAssociatedRegistrationsException {
         User user = userRepository.findById(id)
@@ -223,9 +229,26 @@ public class UserService {
             throw new UserNotFoundException();
         }
 
-        if (!user.getPassword().equals(password)) {
+        String storedPassword = user.getPassword();
+
+        // comprueba si el usuario ya ha sido migrado a BCrypt
+        if (storedPassword != null && storedPassword.startsWith("$2")) {
+            if (!passwordEncoder.matches(password, storedPassword)) {
+                throw new UserNotFoundException();
+            }
+
+            return user;
+        }
+
+        // Compatibilidad temporal con los usuarios existentes:
+        if (storedPassword == null || !storedPassword.equals(password)) {
             throw new UserNotFoundException();
         }
+
+        // Si el usuario antiguo se autentica correctamente, su contraseña se migra automáticamente a BCrypt
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
+
         return user;
     }
 }

@@ -3,6 +3,7 @@ package com.svalero.enajenarte.service;
 import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.domain.Registration;
 import com.svalero.enajenarte.domain.enums.PaymentStatus;
+import com.svalero.enajenarte.dto.UserEditInDto;
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
 import com.svalero.enajenarte.dto.UserRegistrationOutDto;
@@ -157,7 +158,7 @@ public class UserService {
     }
 
     // PUT
-    public UserOutDto modify(long id, UserInDto userInDto) throws UserNotFoundException {
+    public UserOutDto modify(long id, UserEditInDto userEditInDto) throws UserNotFoundException {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
 
@@ -182,27 +183,26 @@ public class UserService {
             }
         }
 
-        // Datos de sistema
-        String role = existingUser.getRole();
-        boolean active = existingUser.isActive();
+        existingUser.setEmail(userEditInDto.getEmail());
+        existingUser.setFullName(userEditInDto.getFullName());
+        existingUser.setPhone(userEditInDto.getPhone());
+        existingUser.setGender(userEditInDto.getGender());
+        existingUser.setAgeGroup(userEditInDto.getAgeGroup());
 
-        modelMapper.map(userInDto, existingUser);
-        existingUser.setId(id);
-
-        existingUser.setPassword(passwordEncoder.encode(userInDto.getPassword()));
-
-        existingUser.setRole(role);
-        existingUser.setActive(active);
-
-        User updateUser = userRepository.save(existingUser);
-
-        UserOutDto userOutDto = modelMapper.map(updateUser, UserOutDto.class);
-
-        if (updateUser.getGender() != null) {
-            userOutDto.setGender(updateUser.getGender().getDisplayName());
+        if (userEditInDto.getPassword() != null
+                && !userEditInDto.getPassword().isBlank()) {
+            existingUser.setPassword(passwordEncoder.encode(userEditInDto.getPassword()));
         }
-        if (updateUser.getAgeGroup() != null) {
-            userOutDto.setAgeGroup(updateUser.getAgeGroup().getDisplayName());
+
+        User updatedUser = userRepository.save(existingUser);
+
+        UserOutDto userOutDto = modelMapper.map(updatedUser, UserOutDto.class);
+
+        if (updatedUser.getGender() != null) {
+            userOutDto.setGender(updatedUser.getGender().getDisplayName());
+        }
+        if (updatedUser.getAgeGroup() != null) {
+            userOutDto.setAgeGroup(updatedUser.getAgeGroup().getDisplayName());
         }
 
         return userOutDto;

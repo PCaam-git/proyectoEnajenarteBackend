@@ -50,7 +50,7 @@ public class RegistrationController {
     // POST
     @PostMapping("/registrations")
     public ResponseEntity<RegistrationOutDto> addRegistration(@Valid @RequestBody RegistrationInDto registrationInDto)
-            throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException {
+            throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException, AccessDeniedException {
 
         RegistrationOutDto newRegistration = registrationService.add(registrationInDto);
         return new ResponseEntity<>(newRegistration, HttpStatus.CREATED);
@@ -112,6 +112,15 @@ public class RegistrationController {
     public ResponseEntity<ErrorResponse> handleException(InvalidPaymentStatusException ipse) {
         ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", ipse.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // 403 - Acceso denegado
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleException(AccessDeniedException adee) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(
+                403, "forbidden", adee.getMessage()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
     // 400 - Validaciones

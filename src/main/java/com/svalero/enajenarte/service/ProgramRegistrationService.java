@@ -13,6 +13,7 @@ import com.svalero.enajenarte.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -38,10 +39,12 @@ public class ProgramRegistrationService {
 
     // POST
     public ProgramRegistrationOutDto add(ProgramRegistrationInDto programRegistrationInDto)
-            throws UserNotFoundException, ProgramNotFoundException, DuplicateProgramRegistrationException, ProgramCapacityExceededException {
+            throws UserNotFoundException, ProgramNotFoundException, DuplicateProgramRegistrationException, ProgramCapacityExceededException, AccessDeniedException {
 
         User user = userRepository.findById(programRegistrationInDto.getUserId())
                 .orElseThrow(UserNotFoundException::new);
+
+        validateRegistrationOwner(user);
 
         Program program = programRepository.findById(programRegistrationInDto.getProgramId())
                 .orElseThrow(ProgramNotFoundException::new);
@@ -246,5 +249,23 @@ public class ProgramRegistrationService {
                 subject,
                 text
         );
+    }
+
+    private void validateRegistrationOwner(User user) throws AccessDeniedException {
+        String authenticatedUsername = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        boolean isAdmin = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getAuthorities()
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin && !user.getUsername().equals(authenticatedUsername)) {
+            throw new AccessDeniedException();
+        }
     }
 }

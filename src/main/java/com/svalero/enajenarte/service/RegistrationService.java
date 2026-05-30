@@ -13,7 +13,7 @@ import com.svalero.enajenarte.repository.WorkshopRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -39,9 +39,11 @@ public class RegistrationService {
     private static final PaymentStatus PAYMENT_STATUS_PENDING = PaymentStatus.PENDING;
 
     // POST
-    public RegistrationOutDto add(RegistrationInDto registrationInDto) throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException {
+    public RegistrationOutDto add(RegistrationInDto registrationInDto) throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException, AccessDeniedException {
         User user = userRepository.findById(registrationInDto.getUserId())
                 .orElseThrow(UserNotFoundException::new);
+
+        validateRegistrationOwner(user);
 
         Workshop workshop = workshopRepository.findById(registrationInDto.getWorkshopId())
                 .orElseThrow(WorkshopNotFoundException::new);
@@ -303,6 +305,24 @@ public class RegistrationService {
                         + "Código de confirmación: " + registration.getConfirmationCode() + "\n\n"
                         + "Recibirás más información cuando el taller quede confirmado."
         );
+    }
+
+    private void validateRegistrationOwner(User user) throws AccessDeniedException {
+        String authenticatedUsername = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        boolean isAdmin = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getAuthorities()
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin && !user.getUsername().equals(authenticatedUsername)) {
+            throw new AccessDeniedException();
+        }
     }
 }
 

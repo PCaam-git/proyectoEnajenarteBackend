@@ -49,7 +49,7 @@ public class ProgramRegistrationController {
     // POST
     @PostMapping("/program-registrations")
     public ResponseEntity<ProgramRegistrationOutDto> add(@Valid @RequestBody ProgramRegistrationInDto inDto)
-            throws UserNotFoundException, ProgramNotFoundException, DuplicateProgramRegistrationException, ProgramCapacityExceededException {
+            throws UserNotFoundException, ProgramNotFoundException, DuplicateProgramRegistrationException, ProgramCapacityExceededException, AccessDeniedException {
 
         ProgramRegistrationOutDto newRegistration = programRegistrationService.add(inDto);
         return new ResponseEntity<>(newRegistration, HttpStatus.CREATED);
@@ -111,6 +111,17 @@ public class ProgramRegistrationController {
     public ResponseEntity<ErrorResponse> handleException(InvalidPaymentStatusException ipse) {
         ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", ipse.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // 403 - Acceso denegado
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleException(AccessDeniedException ade) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(
+                403,
+                "forbidden",
+                ade.getMessage()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
     // 400 - Validaciones

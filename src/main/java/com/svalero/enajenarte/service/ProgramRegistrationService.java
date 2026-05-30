@@ -35,6 +35,7 @@ public class ProgramRegistrationService {
     private EmailService emailService;
 
     private static final String STATUS_CONFIRMED = "CONFIRMED";
+    private static final String STATUS_PENDING = "PENDING";
     private static final PaymentStatus PAYMENT_STATUS_PENDING = PaymentStatus.PENDING;
 
     // POST
@@ -217,13 +218,18 @@ public class ProgramRegistrationService {
         registration.setAmountPaid(0);
         registration.setRating(null);
 
-        applyInitialStatus(registration);
+        applyInitialStatus(registration, program);
 
         return registration;
     }
 
-    private void applyInitialStatus(ProgramRegistration registration) {
-        registration.setStatus(STATUS_CONFIRMED);
+    private void applyInitialStatus(ProgramRegistration registration, Program program) {
+        if (STATUS_CONFIRMED.equals(program.getStatus())) {
+            registration.setStatus(STATUS_CONFIRMED);
+        } else {
+            registration.setStatus(STATUS_PENDING);
+        }
+
         registration.setPaymentStatus(PAYMENT_STATUS_PENDING.name());
     }
 

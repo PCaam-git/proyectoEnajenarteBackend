@@ -36,6 +36,7 @@ public class RegistrationService {
     private EmailService emailService;
 
     private static final String STATUS_CONFIRMED = "CONFIRMED";
+    private static final String STATUS_PENDING = "PENDING";
     private static final PaymentStatus PAYMENT_STATUS_PENDING = PaymentStatus.PENDING;
 
     // POST
@@ -236,13 +237,13 @@ public class RegistrationService {
     }
 
     private void applyInitialStatus(Registration registration, Workshop workshop) {
-        if (workshop.isOnline()) {
+        if (STATUS_CONFIRMED.equals(workshop.getStatus())) {
             registration.setStatus(STATUS_CONFIRMED);
-            registration.setPaymentStatus(PAYMENT_STATUS_PENDING);
         } else {
-            registration.setStatus(STATUS_CONFIRMED);
-            registration.setPaymentStatus(PAYMENT_STATUS_PENDING);
+            registration.setStatus(STATUS_PENDING);
         }
+
+        registration.setPaymentStatus(PAYMENT_STATUS_PENDING);
     }
 
     private void confirmWorkshopifMinimumReached(Workshop workshop, int totalParticipants) {

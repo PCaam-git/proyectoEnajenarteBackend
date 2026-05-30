@@ -33,5 +33,9 @@ build/
 ### Properties ###
 /src/main/resources/application.properties
 
+### Local secrets ###
+.env
+/src/main/resources/certs/
+
 ### VS Code ###
 .vscode/

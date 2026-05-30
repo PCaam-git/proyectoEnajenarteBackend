@@ -3,6 +3,7 @@ package com.svalero.enajenarte.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -12,8 +13,11 @@ import java.util.Date;
 @Component
 public class JwtUtils {
 
-    private final String jwtSecret = "enajenarteSecretKeyenajenarteSecretKey";
-    private final long jwtExpirationMs = 86400000;
+    @Value("${app.jwt.secret}")
+    private String jwtSecret;
+
+    @Value("${app.jwt.expiration-ms:86400000}")
+    private long jwtExpirationMs;
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));

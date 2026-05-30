@@ -3,6 +3,7 @@ package com.svalero.enajenarte.service;
 import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.domain.Registration;
 import com.svalero.enajenarte.domain.enums.PaymentStatus;
+import com.svalero.enajenarte.dto.UserEditInDto;
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
 import com.svalero.enajenarte.dto.UserRegistrationOutDto;
@@ -14,6 +15,7 @@ import com.svalero.enajenarte.repository.RegistrationRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -29,6 +31,8 @@ public class UserService {
     private RegistrationRepository registrationRepository;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
 
     // GET all
@@ -133,6 +137,8 @@ public class UserService {
     public UserOutDto add(UserInDto userInDto) {
         User user = modelMapper.map(userInDto, User.class);
 
+        user.setPassword(passwordEncoder.encode(userInDto.getPassword()));
+
         // generadas por el sistema
         user.setRole("USER");
         user.setActive(true);
@@ -152,7 +158,7 @@ public class UserService {
     }
 
     // PUT
-    public UserOutDto modify(long id, UserInDto userInDto) throws UserNotFoundException {
+    public UserOutDto modify(long id, UserEditInDto userEditInDto) throws UserNotFoundException {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
 
@@ -177,31 +183,31 @@ public class UserService {
             }
         }
 
-        // Datos de sistema
-        String role = existingUser.getRole();
-        boolean active = existingUser.isActive();
+        existingUser.setEmail(userEditInDto.getEmail());
+        existingUser.setFullName(userEditInDto.getFullName());
+        existingUser.setPhone(userEditInDto.getPhone());
+        existingUser.setGender(userEditInDto.getGender());
+        existingUser.setAgeGroup(userEditInDto.getAgeGroup());
 
-        modelMapper.map(userInDto, existingUser);
-        existingUser.setId(id);
-
-        existingUser.setRole(role);
-        existingUser.setActive(active);
-
-        User updateUser = userRepository.save(existingUser);
-
-        UserOutDto userOutDto = modelMapper.map(updateUser, UserOutDto.class);
-
-        if (updateUser.getGender() != null) {
-            userOutDto.setGender(updateUser.getGender().getDisplayName());
+        if (userEditInDto.getPassword() != null
+                && !userEditInDto.getPassword().isBlank()) {
+            existingUser.setPassword(passwordEncoder.encode(userEditInDto.getPassword()));
         }
-        if (updateUser.getAgeGroup() != null) {
-            userOutDto.setAgeGroup(updateUser.getAgeGroup().getDisplayName());
+
+        User updatedUser = userRepository.save(existingUser);
+
+        UserOutDto userOutDto = modelMapper.map(updatedUser, UserOutDto.class);
+
+        if (updatedUser.getGender() != null) {
+            userOutDto.setGender(updatedUser.getGender().getDisplayName());
+        }
+        if (updatedUser.getAgeGroup() != null) {
+            userOutDto.setAgeGroup(updatedUser.getAgeGroup().getDisplayName());
         }
 
         return userOutDto;
     }
 
-    // DELETE
     // DELETE
     public void delete(long id) throws UserNotFoundException, HasAssociatedRegistrationsException {
         User user = userRepository.findById(id)
@@ -223,9 +229,26 @@ public class UserService {
             throw new UserNotFoundException();
         }
 
-        if (!user.getPassword().equals(password)) {
+        String storedPassword = user.getPassword();
+
+        // comprueba si el usuario ya ha sido migrado a BCrypt
+        if (storedPassword != null && storedPassword.startsWith("$2")) {
+            if (!passwordEncoder.matches(password, storedPassword)) {
+                throw new UserNotFoundException();
+            }
+
+            return user;
+        }
+
+        // Compatibilidad temporal con los usuarios existentes:
+        if (storedPassword == null || !storedPassword.equals(password)) {
             throw new UserNotFoundException();
         }
+
+        // Si el usuario antiguo se autentica correctamente, su contraseña se migra automáticamente a BCrypt
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
+
         return user;
     }
 }

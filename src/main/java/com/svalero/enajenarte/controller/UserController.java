@@ -2,6 +2,7 @@ package com.svalero.enajenarte.controller;
 
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
+import com.svalero.enajenarte.dto.UserEditInDto;
 import com.svalero.enajenarte.dto.UserRegistrationOutDto;
 import com.svalero.enajenarte.exception.AccessDeniedException;
 import com.svalero.enajenarte.exception.ErrorResponse;
@@ -70,9 +71,9 @@ public class UserController {
 
     // PUT
     @PutMapping("/users/{id}")
-    public ResponseEntity<UserOutDto> modifyUser(@PathVariable long id, @Valid @RequestBody UserInDto userInDto)
+    public ResponseEntity<UserOutDto> modifyUser(@PathVariable long id, @Valid @RequestBody UserEditInDto userEditInDto)
             throws UserNotFoundException {
-        UserOutDto updatedUser = userService.modify(id, userInDto);
+        UserOutDto updatedUser = userService.modify(id, userEditInDto);
         return ResponseEntity.ok(updatedUser);
     }
 

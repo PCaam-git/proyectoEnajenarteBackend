@@ -4,6 +4,7 @@ import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
 import com.svalero.enajenarte.dto.UserEditInDto;
+import com.svalero.enajenarte.dto.ProgramRegistrationOutDto;
 import com.svalero.enajenarte.dto.UserRegistrationOutDto;
 import com.svalero.enajenarte.exception.AccessDeniedException;
 import com.svalero.enajenarte.exception.ErrorResponse;
@@ -66,6 +67,20 @@ public class UserController {
         if (registrationsOutDto.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
+        return ResponseEntity.ok(registrationsOutDto);
+    }
+
+    // Get programs registrations
+    @GetMapping("/users/{id}/program-registrations")
+    public ResponseEntity<List<ProgramRegistrationOutDto>> getUserProgramRegistrations(@PathVariable long id)
+            throws UserNotFoundException, AccessDeniedException {
+
+        List<ProgramRegistrationOutDto> registrationsOutDto = userService.getUserProgramRegistrations(id);
+
+        if (registrationsOutDto.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
         return ResponseEntity.ok(registrationsOutDto);
     }
 

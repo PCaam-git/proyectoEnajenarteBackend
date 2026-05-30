@@ -1,5 +1,6 @@
 package com.svalero.enajenarte.controller;
 
+import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
 import com.svalero.enajenarte.dto.UserEditInDto;
@@ -41,6 +42,12 @@ public class UserController {
         }
         // Si hay resultados, devuelve 200 Ok con la lista
         return ResponseEntity.ok(usersOutDto);
+    }
+
+    @GetMapping("users/me")
+    public ResponseEntity<UserOutDto> getCurrentUser() throws UserNotFoundException {
+        UserOutDto userOutDto = userService.findCurrentUser();
+        return ResponseEntity.ok(userOutDto);
     }
 
     // GET by id

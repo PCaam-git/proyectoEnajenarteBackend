@@ -16,4 +16,7 @@ public class SpeakerOutDto {
     private String email;
     private String speciality;
     private int yearsExperience;
+    private float workshopHoursTotal;
+    private boolean available;
+    private LocalDate joinDate;
 }

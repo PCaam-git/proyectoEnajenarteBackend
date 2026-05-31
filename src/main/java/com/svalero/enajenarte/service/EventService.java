@@ -43,6 +43,7 @@ public class EventService {
         // Modificación aplicada: Mapear -> Setear IDs -> Devolver. Evita que speakerId salga a 0
         EventOutDto eventOutDto = modelMapper.map(newEvent, EventOutDto.class);
         if (newEvent.getSpeaker() != null) {
+            eventOutDto.setSpeakerId(event.getSpeaker().getId());
             eventOutDto.setSpeakerName(newEvent.getSpeaker().getFirstName() + " " + newEvent.getSpeaker().getLastName());
         }
 
@@ -79,6 +80,7 @@ public class EventService {
         // Setear IDs manualmente para evitar que speakerId salga a 0
         for (int i = 0; i < filteredEvents.size(); i++) {
             if (filteredEvents.get(i).getSpeaker() != null) {
+                eventOutDtoList.get(i).setSpeakerId(filteredEvents.get(i).getSpeaker().getId());
                 eventOutDtoList.get(i).setSpeakerName(filteredEvents.get(i).getSpeaker().getFirstName() + " " + filteredEvents.get(i).getSpeaker().getLastName());
             }
         }
@@ -95,6 +97,7 @@ public class EventService {
 
         // Evita que speakerId salga a 0
         if (event.getSpeaker() != null) {
+            eventOutDto.setSpeakerId(event.getSpeaker().getId());
             eventOutDto.setSpeakerName(event.getSpeaker().getFirstName() + " " + event.getSpeaker().getLastName());
         }
 
@@ -116,6 +119,7 @@ public class EventService {
         EventOutDto updatedEventOutDto = modelMapper.map(updateEvent, EventOutDto.class);
 
         if (updateEvent.getSpeaker() != null) {
+            updatedEventOutDto.setSpeakerId(updateEvent.getSpeaker().getId());
             updatedEventOutDto.setSpeakerName(updateEvent.getSpeaker().getFirstName() + " " + updateEvent.getSpeaker().getLastName());
         }
         return updatedEventOutDto;

@@ -18,6 +18,8 @@ public class EventOutDto {
     private LocalDateTime eventDate;
     private float entryFee;
     private boolean isPublic;
+    private int expectedAttendance;
 
     private String speakerName;
+    private long speakerId;
 }

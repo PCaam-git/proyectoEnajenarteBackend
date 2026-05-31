@@ -53,7 +53,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/workshops/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/programs/**").permitAll()
 
-                        // USER autenticado / ADMIN - users
+                        // USER autenticado - perfil propio e inscripciones
+                        .requestMatchers(HttpMethod.GET, "/users/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/users/*/registrations").authenticated()
+
+                        // ADMIN - usuarios
+                        .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/users/*").hasRole("ADMIN")
+
+                        // USER autenticado / ADMIN - modificación controlada en UserService
                         .requestMatchers(HttpMethod.PUT, "/users/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/users/**").hasRole("ADMIN")
 

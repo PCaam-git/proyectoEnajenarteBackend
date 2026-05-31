@@ -61,11 +61,15 @@ public class ProgramService {
             throw new InvalidDateRangeException();
         }
 
-        if (program.isOnline()) {
-            program.setStatus("CONFIRMED");
-        } else {
-            program.setStatus("PENDING");
-        }
+        // En la versión actual, los programas publicados quedan confirmados.
+        // La lógica de PENDING queda preparada para una evolución futura.
+        program.setStatus("CONFIRMED");
+
+//        if (program.isOnline()) {
+//            program.setStatus("CONFIRMED");
+//        } else {
+//            program.setStatus("PENDING");
+//        }
 
         program.setSpeaker(speaker);
 

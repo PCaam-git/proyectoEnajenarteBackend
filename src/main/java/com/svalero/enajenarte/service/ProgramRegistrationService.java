@@ -13,6 +13,7 @@ import com.svalero.enajenarte.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -34,14 +35,17 @@ public class ProgramRegistrationService {
     private EmailService emailService;
 
     private static final String STATUS_CONFIRMED = "CONFIRMED";
+    private static final String STATUS_PENDING = "PENDING";
     private static final PaymentStatus PAYMENT_STATUS_PENDING = PaymentStatus.PENDING;
 
     // POST
     public ProgramRegistrationOutDto add(ProgramRegistrationInDto programRegistrationInDto)
-            throws UserNotFoundException, ProgramNotFoundException, DuplicateProgramRegistrationException, ProgramCapacityExceededException {
+            throws UserNotFoundException, ProgramNotFoundException, DuplicateProgramRegistrationException, ProgramCapacityExceededException, AccessDeniedException {
 
         User user = userRepository.findById(programRegistrationInDto.getUserId())
                 .orElseThrow(UserNotFoundException::new);
+
+        validateRegistrationOwner(user);
 
         Program program = programRepository.findById(programRegistrationInDto.getProgramId())
                 .orElseThrow(ProgramNotFoundException::new);
@@ -214,13 +218,18 @@ public class ProgramRegistrationService {
         registration.setAmountPaid(0);
         registration.setRating(null);
 
-        applyInitialStatus(registration);
+        applyInitialStatus(registration, program);
 
         return registration;
     }
 
-    private void applyInitialStatus(ProgramRegistration registration) {
-        registration.setStatus(STATUS_CONFIRMED);
+    private void applyInitialStatus(ProgramRegistration registration, Program program) {
+        if (STATUS_CONFIRMED.equals(program.getStatus())) {
+            registration.setStatus(STATUS_CONFIRMED);
+        } else {
+            registration.setStatus(STATUS_PENDING);
+        }
+
         registration.setPaymentStatus(PAYMENT_STATUS_PENDING.name());
     }
 
@@ -246,5 +255,23 @@ public class ProgramRegistrationService {
                 subject,
                 text
         );
+    }
+
+    private void validateRegistrationOwner(User user) throws AccessDeniedException {
+        String authenticatedUsername = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        boolean isAdmin = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getAuthorities()
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin && !user.getUsername().equals(authenticatedUsername)) {
+            throw new AccessDeniedException();
+        }
     }
 }

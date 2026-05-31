@@ -2,7 +2,9 @@ package com.svalero.enajenarte.service;
 
 import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.domain.Registration;
+import com.svalero.enajenarte.domain.ProgramRegistration;
 import com.svalero.enajenarte.domain.enums.PaymentStatus;
+import com.svalero.enajenarte.dto.ProgramRegistrationOutDto;
 import com.svalero.enajenarte.dto.UserEditInDto;
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
@@ -12,11 +14,13 @@ import com.svalero.enajenarte.exception.HasAssociatedRegistrationsException;
 import com.svalero.enajenarte.exception.UserNotFoundException;
 import com.svalero.enajenarte.repository.UserRepository;
 import com.svalero.enajenarte.repository.RegistrationRepository;
+import com.svalero.enajenarte.repository.ProgramRegistrationRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -29,6 +33,8 @@ public class UserService {
     private UserRepository userRepository;
     @Autowired
     private RegistrationRepository registrationRepository;
+    @Autowired
+    private ProgramRegistrationRepository programRegistrationRepository;
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
@@ -85,6 +91,31 @@ public class UserService {
         return userOutDto;
     }
 
+    public UserOutDto findCurrentUser() throws UserNotFoundException {
+        String authenticatedUsername = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByUsername(authenticatedUsername);
+
+        if (user == null) {
+            throw new UserNotFoundException();
+        }
+
+        UserOutDto userOutDto = modelMapper.map(user, UserOutDto.class);
+
+        if (user.getGender() != null) {
+            userOutDto.setGender(user.getGender().getDisplayName());
+        }
+        if (user.getAgeGroup() != null) {
+            userOutDto.setAgeGroup(user.getAgeGroup().getDisplayName());
+        }
+
+        return userOutDto;
+    }
+
+    // Obtener las inscripciones del usuario
     public List<UserRegistrationOutDto> getUserRegistrations(long userId) throws UserNotFoundException, AccessDeniedException {
         User user = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
@@ -131,6 +162,44 @@ public class UserService {
         }
 
         return userRegistrationOutDtos;
+    }
+
+    public List<ProgramRegistrationOutDto> getUserProgramRegistrations(long userId)
+            throws UserNotFoundException, AccessDeniedException {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
+        String authenticatedUsername = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        String authenticatedRole = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getAuthorities()
+                .iterator()
+                .next()
+                .getAuthority();
+
+        if (!user.getUsername().equals(authenticatedUsername) && !authenticatedRole.equals("ROLE_ADMIN")) {
+            throw new AccessDeniedException();
+        }
+
+        List<ProgramRegistration> registrations = programRegistrationRepository.findByUser(user);
+        List<ProgramRegistrationOutDto> outDtos = new ArrayList<>();
+
+        for (ProgramRegistration registration : registrations) {
+            ProgramRegistrationOutDto dto = modelMapper.map(registration, ProgramRegistrationOutDto.class);
+
+            dto.setFullName(user.getFullName());
+            dto.setProgramName(registration.getProgram().getName());
+
+            outDtos.add(dto);
+        }
+
+        return outDtos;
     }
 
     // POST

@@ -1,8 +1,10 @@
 package com.svalero.enajenarte.controller;
 
+import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
 import com.svalero.enajenarte.dto.UserEditInDto;
+import com.svalero.enajenarte.dto.ProgramRegistrationOutDto;
 import com.svalero.enajenarte.dto.UserRegistrationOutDto;
 import com.svalero.enajenarte.exception.AccessDeniedException;
 import com.svalero.enajenarte.exception.ErrorResponse;
@@ -43,6 +45,12 @@ public class UserController {
         return ResponseEntity.ok(usersOutDto);
     }
 
+    @GetMapping("users/me")
+    public ResponseEntity<UserOutDto> getCurrentUser() throws UserNotFoundException {
+        UserOutDto userOutDto = userService.findCurrentUser();
+        return ResponseEntity.ok(userOutDto);
+    }
+
     // GET by id
     @GetMapping("/users/{id}")
     public ResponseEntity<UserOutDto> get(@PathVariable long id) throws UserNotFoundException {
@@ -59,6 +67,20 @@ public class UserController {
         if (registrationsOutDto.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
+        return ResponseEntity.ok(registrationsOutDto);
+    }
+
+    // Get programs registrations
+    @GetMapping("/users/{id}/program-registrations")
+    public ResponseEntity<List<ProgramRegistrationOutDto>> getUserProgramRegistrations(@PathVariable long id)
+            throws UserNotFoundException, AccessDeniedException {
+
+        List<ProgramRegistrationOutDto> registrationsOutDto = userService.getUserProgramRegistrations(id);
+
+        if (registrationsOutDto.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
         return ResponseEntity.ok(registrationsOutDto);
     }
 

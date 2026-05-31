@@ -66,13 +66,18 @@ public class WorkshopService {
             throw new InvalidDateRangeException();
         }
 
+        // En la versión actual, los talleres publicados quedan confirmados.
+        // La lógica de PENDING queda preparada para una evolución futura.
+        workshop.setStatus("CONFIRMED");
+
+
         // En un futuro: inscripción a workshop online se confirma automáticamente. inscripción a workshop presencial, dependerá de si se alcanza el mínimo de usuarios
-        if (workshop.isOnline()) {
-            workshop.setStatus("CONFIRMED");
-        } else {
-            workshop.setStatus("PENDING");
-        }
-        workshop.setSpeaker(speaker);
+//        if (workshop.isOnline()) {
+//            workshop.setStatus("CONFIRMED");
+//        } else {
+//            workshop.setStatus("PENDING");
+//        }
+//        workshop.setSpeaker(speaker);
 
         Workshop newWorkshop = workshopRepository.save(workshop);
         // Añade la entrada al calendario con los datos del workshop

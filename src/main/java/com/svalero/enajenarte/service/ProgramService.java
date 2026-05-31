@@ -56,8 +56,14 @@ public class ProgramService {
 
         Program program = modelMapper.map(programInDto, Program.class);
 
+        if (program.getInitDate() != null
+                && program.getInitDate().isBefore(java.time.LocalDate.now())) {
+            throw new InvalidDateRangeException();
+        }
+
         // confirmationDeadline debe ser anterior a initDate
-        if (program.getConfirmationDeadline().isAfter(program.getInitDate())) {
+        if (program.getConfirmationDeadline() != null
+                && program.getConfirmationDeadline().isAfter(program.getInitDate())) {
             throw new InvalidDateRangeException();
         }
 
@@ -169,6 +175,11 @@ public class ProgramService {
         modelMapper.map(programInDto, existingProgram);
         existingProgram.setId(id);
         existingProgram.setSpeaker(speaker);
+
+        if (existingProgram.getInitDate() != null
+                && existingProgram.getInitDate().isBefore(java.time.LocalDate.now())) {
+            throw new InvalidDateRangeException();
+        }
 
         if (existingProgram.getConfirmationDeadline() != null
                 && existingProgram.getInitDate() != null

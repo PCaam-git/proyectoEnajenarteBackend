@@ -62,7 +62,13 @@ public class WorkshopService {
 
         Workshop workshop = modelMapper.map(workshopInDto, Workshop.class);
         // La fecha para informar al cliente de que el taller será cancelado debe ser anterior a la fecha del taller
-        if (workshop.getConfirmationDeadline().isAfter(workshop.getStartDate())) {
+        if (workshop.getStartDate() != null
+                && workshop.getStartDate().isBefore(java.time.LocalDate.now())) {
+            throw new InvalidDateRangeException();
+        }
+
+        if (workshop.getConfirmationDeadline() != null
+                && workshop.getConfirmationDeadline().isAfter(workshop.getStartDate())) {
             throw new InvalidDateRangeException();
         }
 
@@ -162,15 +168,15 @@ public class WorkshopService {
 
         boolean duplicatedWorkshopExists = workshopRepository.findAll().stream()
                 .anyMatch(workshop ->
-                        existingWorkshop.getId() != id
-                                && existingWorkshop.getName() != null
-                                && existingWorkshop.getName().equalsIgnoreCase(workshopInDto.getName())
-                                && existingWorkshop.getStartDate() != null
-                                && existingWorkshop.getStartDate().equals(workshopInDto.getStartDate())
+                        workshop.getId() != id
+                                && workshop.getName() != null
+                                && workshop.getName().equalsIgnoreCase(workshopInDto.getName())
+                                && workshop.getStartDate() != null
+                                && workshop.getStartDate().equals(workshopInDto.getStartDate())
                                 && (
-                                existingWorkshop.isOnline() == workshopInDto.isOnline()
-                                        || (existingWorkshop.getSpeaker() != null
-                                        && existingWorkshop.getSpeaker().getId() == speaker.getId())
+                                workshop.isOnline() == workshopInDto.isOnline()
+                                        || (workshop.getSpeaker() != null
+                                        && workshop.getSpeaker().getId() == speaker.getId())
                         )
                 );
 
@@ -183,6 +189,11 @@ public class WorkshopService {
         modelMapper.map(workshopInDto, existingWorkshop);
         existingWorkshop.setId(id);
         existingWorkshop.setSpeaker(speaker);
+
+        if (existingWorkshop.getStartDate() != null
+                && existingWorkshop.getStartDate().isBefore(java.time.LocalDate.now())) {
+            throw new InvalidDateRangeException();
+        }
 
         if (existingWorkshop.getConfirmationDeadline() != null
                 && existingWorkshop.getStartDate() != null

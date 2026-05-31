@@ -2,9 +2,7 @@ package com.svalero.enajenarte.controller;
 
 import com.svalero.enajenarte.dto.EventInDto;
 import com.svalero.enajenarte.dto.EventOutDto;
-import com.svalero.enajenarte.exception.ErrorResponse;
-import com.svalero.enajenarte.exception.EventNotFoundException;
-import com.svalero.enajenarte.exception.SpeakerNotFoundException;
+import com.svalero.enajenarte.exception.*;
 import com.svalero.enajenarte.service.EventService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +48,7 @@ public class EventController {
 
     // POST
     @PostMapping("/events")
-    public ResponseEntity<EventOutDto> addEvent(@Valid @RequestBody EventInDto eventInDto) throws SpeakerNotFoundException {
+    public ResponseEntity<EventOutDto> addEvent(@Valid @RequestBody EventInDto eventInDto) throws SpeakerNotFoundException, DuplicateEventException, InvalidEventDateException{
         EventOutDto newEvent = eventService.add(eventInDto);
         return new ResponseEntity<>(newEvent, HttpStatus.CREATED);
     }
@@ -58,7 +56,7 @@ public class EventController {
     // PUT
     @PutMapping("/events/{id}")
     public ResponseEntity<EventOutDto> modifyEvent(@PathVariable long id, @Valid @RequestBody EventInDto eventInDto)
-            throws EventNotFoundException, SpeakerNotFoundException {
+            throws EventNotFoundException, SpeakerNotFoundException, DuplicateEventException, InvalidEventDateException {
 
         EventOutDto updatedEvent = eventService.modify(id, eventInDto);
         return ResponseEntity.ok(updatedEvent);
@@ -96,6 +94,28 @@ public class EventController {
         });
 
         ErrorResponse errorResponse = ErrorResponse.validationError(errors);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // 400 - Error duplicados
+    @ExceptionHandler(DuplicateEventException.class)
+    public ResponseEntity<ErrorResponse> handleException(DuplicateEventException dee) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(
+                400,
+                "bad-request",
+                dee.getMessage()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // 400 - Error fecha inválida
+    @ExceptionHandler(InvalidDateRangeException.class)
+    public ResponseEntity<ErrorResponse> handleException(InvalidDateRangeException idre) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(
+                400,
+                "bad-request",
+                idre.getMessage()
+        );
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 }

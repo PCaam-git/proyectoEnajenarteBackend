@@ -6,6 +6,8 @@ import com.svalero.enajenarte.dto.EventInDto;
 import com.svalero.enajenarte.dto.EventOutDto;
 import com.svalero.enajenarte.exception.EventNotFoundException;
 import com.svalero.enajenarte.exception.SpeakerNotFoundException;
+import com.svalero.enajenarte.exception.DuplicateEventException;
+import com.svalero.enajenarte.exception.InvalidEventDateException;
 import com.svalero.enajenarte.repository.EventRepository;
 import com.svalero.enajenarte.repository.SpeakerRepository;
 import org.modelmapper.ModelMapper;
@@ -28,9 +30,24 @@ public class EventService {
     private ModelMapper modelMapper;
 
     // POST
-    public EventOutDto add (EventInDto eventInDto)throws SpeakerNotFoundException {
+    public EventOutDto add (EventInDto eventInDto)throws SpeakerNotFoundException, DuplicateEventException, InvalidEventDateException {
         Speaker speaker = speakerRepository.findById(eventInDto.getSpeakerId())
                 .orElseThrow(SpeakerNotFoundException::new);
+
+        validateEventDate(eventInDto);
+
+        boolean duplicatedEventExists = eventRepository.findAll().stream()
+                .anyMatch(event ->
+                        event.getTitle() != null
+                                && eventInDto.getTitle() != null
+                                && event.getTitle().trim().equalsIgnoreCase(eventInDto.getTitle().trim())
+                                && event.getEventDate() != null
+                                && event.getEventDate().equals(eventInDto.getEventDate())
+                );
+
+        if (duplicatedEventExists) {
+            throw new DuplicateEventException();
+        }
 
         Event event = modelMapper.map(eventInDto, Event.class);
         event.setSpeaker(speaker);
@@ -105,11 +122,27 @@ public class EventService {
     }
 
     // PUT
-    public EventOutDto modify(long id, EventInDto eventInDto) throws EventNotFoundException, SpeakerNotFoundException {
+    public EventOutDto modify(long id, EventInDto eventInDto) throws EventNotFoundException, SpeakerNotFoundException, DuplicateEventException, InvalidEventDateException {
         Event existingEvent = eventRepository.findById(id)
                 .orElseThrow(EventNotFoundException::new);
         Speaker speaker = speakerRepository.findById(eventInDto.getSpeakerId())
                 .orElseThrow(SpeakerNotFoundException::new);
+
+        validateEventDate(eventInDto);
+
+        boolean duplicatedEventExists = eventRepository.findAll().stream()
+                .anyMatch(event ->
+                        event.getId() != id
+                                && event.getTitle() != null
+                                && eventInDto.getTitle() != null
+                                && event.getTitle().trim().equalsIgnoreCase(eventInDto.getTitle().trim())
+                                && event.getEventDate() != null
+                                && event.getEventDate().equals(eventInDto.getEventDate())
+                );
+
+        if (duplicatedEventExists) {
+            throw new DuplicateEventException();
+        }
 
         modelMapper.map(eventInDto, existingEvent);
         existingEvent.setId(id);
@@ -123,5 +156,12 @@ public class EventService {
             updatedEventOutDto.setSpeakerName(updateEvent.getSpeaker().getFirstName() + " " + updateEvent.getSpeaker().getLastName());
         }
         return updatedEventOutDto;
+    }
+
+    private void validateEventDate(EventInDto eventInDto) throws InvalidEventDateException {
+        if (eventInDto.getEventDate() != null
+        && eventInDto.getEventDate().isBefore(java.time.LocalDateTime.now())) {
+            throw new InvalidEventDateException();
+        }
     }
 }

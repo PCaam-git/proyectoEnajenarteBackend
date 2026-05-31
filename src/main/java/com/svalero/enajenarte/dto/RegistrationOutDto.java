@@ -23,4 +23,7 @@ public class RegistrationOutDto {
 
     private String username;
     private String workshopName;
+
+    private long userId;
+    private long workshopId;
 }

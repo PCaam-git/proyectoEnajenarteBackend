@@ -98,6 +98,8 @@ public class RegistrationService {
         RegistrationOutDto registrationOutDto = modelMapper.map(newRegistration, RegistrationOutDto.class);
         registrationOutDto.setUsername(newRegistration.getUser().getFullName());
         registrationOutDto.setWorkshopName(newRegistration.getWorkshop().getName());
+        registrationOutDto.setUserId(newRegistration.getUser().getId());
+        registrationOutDto.setWorkshopId(newRegistration.getWorkshop().getId());
         registrationOutDto.setPaymentStatus(newRegistration.getPaymentStatus().name());
 
         return registrationOutDto;
@@ -137,6 +139,7 @@ public class RegistrationService {
 
             if (registration.getUser() != null) {
                 registrationOutDto.setUsername(registration.getUser().getFullName());
+                registrationOutDto.setWorkshopId(registration.getWorkshop().getId());
             }
             if (registration.getWorkshop() != null) {
                 registrationOutDto.setWorkshopName(registration.getWorkshop().getName());
@@ -159,6 +162,8 @@ public class RegistrationService {
         RegistrationOutDto registrationOutDto = modelMapper.map(registration, RegistrationOutDto.class);
         registrationOutDto.setUsername(registration.getUser().getFullName());
         registrationOutDto.setWorkshopName(registration.getWorkshop().getName());
+        registrationOutDto.setUserId(registration.getUser().getId());
+        registrationOutDto.setWorkshopId(registration.getWorkshop().getId());
         registrationOutDto.setPaymentStatus(registration.getPaymentStatus().name());
 
         return registrationOutDto;
@@ -212,6 +217,8 @@ public class RegistrationService {
         RegistrationOutDto registrationOutDto = modelMapper.map(updateRegistration, RegistrationOutDto.class);
         registrationOutDto.setUsername(updateRegistration.getUser().getFullName());
         registrationOutDto.setWorkshopName(updateRegistration.getWorkshop().getName());
+        registrationOutDto.setUserId(updateRegistration.getUser().getId());
+        registrationOutDto.setWorkshopId(updateRegistration.getWorkshop().getId());
         registrationOutDto.setPaymentStatus(updateRegistration.getPaymentStatus().name());
 
         return registrationOutDto;

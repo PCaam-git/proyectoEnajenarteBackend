@@ -13,7 +13,6 @@ import com.svalero.enajenarte.repository.AdminCalendarRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -165,6 +164,18 @@ public class AdminCalendarService {
         adminCalendarRepository.save(existingEntry);
     }
 
+    public void deleteEntryFromWorkshop(Workshop workshop) {
+        AdminCalendar existingEntry = adminCalendarRepository.findAll().stream()
+                .filter(entry -> entry.getTitle() != null
+                        && entry.getTitle().contains("[WORKSHOP-" + workshop.getId() + "]"))
+                .findFirst()
+                .orElse(null);
+
+        if (existingEntry != null) {
+            adminCalendarRepository.delete(existingEntry);
+        }
+    }
+
     // Entrada automática en el calendario al crear un programa
     public void createEntryFromProgram(Program program) {
         // Busca en el calendario si ya existe una entrada vinculada a ese programa identificándola con el identificador
@@ -235,10 +246,31 @@ public class AdminCalendarService {
         adminCalendarRepository.save(existingEntry);
     }
 
+    public void deleteEntryFromProgram(Program program) {
+        AdminCalendar existingEntry = adminCalendarRepository.findAll().stream()
+                .filter(entry -> entry.getTitle() != null
+                        && entry.getTitle().contains("[PROGRAM-" + program.getId() + "]"))
+                .findFirst()
+                .orElse(null);
+
+        if (existingEntry != null) {
+            adminCalendarRepository.delete(existingEntry);
+        }
+    }
+
     // Entrada automática en el calendario al crear un evento
     public void createEntryFromEvent(Event event) {
+        List<AdminCalendar> existingEntries = adminCalendarRepository.findAll().stream()
+                .filter(entry -> entry.getTitle() != null
+                        && entry.getTitle().contains("[EVENT-" + event.getId() + "]"))
+                .toList();
+
+        if (!existingEntries.isEmpty()) {
+            return;
+        }
+
         AdminCalendar adminCalendar = AdminCalendar.builder()
-                .title(event.getTitle())
+                .title("[EVENT-" + event.getId() + "] " + event.getTitle())
                 .startDate(event.getEventDate().toLocalDate())
                 .endDate(event.getEventDate().toLocalDate())
                 .hour(event.getEventDate().toLocalTime().toString())
@@ -251,6 +283,44 @@ public class AdminCalendarService {
                 .build();
 
         adminCalendarRepository.save(adminCalendar);
+    }
+
+    public void updateEntryFromEvent(Event event) {
+        AdminCalendar existingEntry = adminCalendarRepository.findAll().stream()
+                .filter(entry -> entry.getTitle() != null
+                        && entry.getTitle().contains("[EVENT-" + event.getId() + "]"))
+                .findFirst()
+                .orElse(null);
+
+        if (existingEntry == null) {
+            createEntryFromEvent(event);
+            return;
+        }
+
+        existingEntry.setTitle("[EVENT-" + event.getId() + "] " + event.getTitle());
+        existingEntry.setStartDate(event.getEventDate().toLocalDate());
+        existingEntry.setEndDate(event.getEventDate().toLocalDate());
+        existingEntry.setHour(event.getEventDate().toLocalTime().toString());
+        existingEntry.setDurationMinutes(60);
+        existingEntry.setCategory("EVENT");
+        existingEntry.setDescription(event.getLocation());
+        existingEntry.setSpeakerName(event.getSpeaker() != null
+                ? event.getSpeaker().getFirstName() + " " + event.getSpeaker().getLastName()
+                : null);
+
+        adminCalendarRepository.save(existingEntry);
+    }
+
+    public void deleteEntryFromEvent(Event event) {
+        AdminCalendar existingEntry = adminCalendarRepository.findAll().stream()
+                .filter(entry -> entry.getTitle() != null
+                        && entry.getTitle().contains("[EVENT-" + event.getId() + "]"))
+                .findFirst()
+                .orElse(null);
+
+        if (existingEntry != null) {
+            adminCalendarRepository.delete(existingEntry);
+        }
     }
 
     private void validateStartDateTime(AdminCalendar adminCalendar) throws InvalidStartDateTimeException {

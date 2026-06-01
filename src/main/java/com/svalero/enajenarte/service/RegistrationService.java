@@ -113,8 +113,7 @@ public class RegistrationService {
         registrationRepository.delete(registration);
     }
 
-    // GET ALL (Con filtros simultáneos)
-    // He eliminado las excepciones para poder probar filtros sin recibir error 404
+    // GET ALL
     public List<RegistrationOutDto> findAll(String workshopId, String userId, String isPaid) {
 
         // Variables finales para el stream. O utiliza el valor asignado en el filtro, o lo marca como null
@@ -140,10 +139,11 @@ public class RegistrationService {
 
             if (registration.getUser() != null) {
                 registrationOutDto.setUsername(registration.getUser().getFullName());
-                registrationOutDto.setWorkshopId(registration.getWorkshop().getId());
+                registrationOutDto.setUserId(registration.getUser().getId());
             }
             if (registration.getWorkshop() != null) {
                 registrationOutDto.setWorkshopName(registration.getWorkshop().getName());
+                registrationOutDto.setWorkshopId(registration.getWorkshop().getId());
             }
             if (registration.getPaymentStatus() != null) {
                 registrationOutDto.setPaymentStatus(registration.getPaymentStatus().name());

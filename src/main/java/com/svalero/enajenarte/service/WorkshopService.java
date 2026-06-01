@@ -92,6 +92,7 @@ public class WorkshopService {
             throw new HasAssociatedRegistrationsException();
         }
 
+        adminCalendarService.deleteEntryFromWorkshop(workshop);
         workshopRepository.delete(workshop);
     }
 

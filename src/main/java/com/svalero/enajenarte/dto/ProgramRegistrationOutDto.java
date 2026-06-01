@@ -23,4 +23,7 @@ public class ProgramRegistrationOutDto {
     private String fullName;
     private String programName;
 
+    private long userId;
+    private long programId;
+
 }

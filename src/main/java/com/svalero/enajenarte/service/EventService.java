@@ -72,6 +72,7 @@ public class EventService {
         Event event = eventRepository.findById(id)
                 .orElseThrow(EventNotFoundException::new);
 
+        adminCalendarService.deleteEntryFromEvent(event);
         eventRepository.delete(event);
     }
 
@@ -149,6 +150,8 @@ public class EventService {
         existingEvent.setSpeaker(speaker);
 
         Event updateEvent = eventRepository.save(existingEvent);
+        adminCalendarService.updateEntryFromEvent(updateEvent);
+
         EventOutDto updatedEventOutDto = modelMapper.map(updateEvent, EventOutDto.class);
 
         if (updateEvent.getSpeaker() != null) {

@@ -56,6 +56,7 @@ public class SecurityConfig {
                         // USER autenticado - perfil propio e inscripciones
                         .requestMatchers(HttpMethod.GET, "/users/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/users/*/registrations").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/users/*/program-registrations").authenticated()
 
                         // ADMIN - usuarios
                         .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")

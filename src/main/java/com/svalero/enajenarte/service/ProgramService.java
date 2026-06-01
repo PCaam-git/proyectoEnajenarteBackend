@@ -256,14 +256,14 @@ public class ProgramService {
                         programRegistrationRepository.save(registration);
 
                         // Simulamos notificar al cliente
-                        simulateProgramCancellationNotification(registration);
+                        sendProgramCancellationNotification(registration);
                     }
                 }
             }
         }
     }
 
-    private void simulateProgramCancellationNotification(ProgramRegistration registration) {
+    private void sendProgramCancellationNotification(ProgramRegistration registration) {
         System.out.println(registration.getUser().getFullName()
                 + " , el programa se ha cancelado. Te informaremos cuando haya una nueva convocatoria.");
     }

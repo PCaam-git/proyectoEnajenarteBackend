@@ -23,15 +23,15 @@ import java.util.List;
 public class SpeakerService {
 
     @Autowired
-    public SpeakerRepository speakerRepository;
+    private SpeakerRepository speakerRepository;
     @Autowired
-    public WorkshopRepository workshopRepository;
+    private WorkshopRepository workshopRepository;
     @Autowired
-    public ProgramRepository programRepository;
+    private ProgramRepository programRepository;
     @Autowired
-    public EventRepository eventRepository;
+    private EventRepository eventRepository;
     @Autowired
-    public ModelMapper modelMapper;
+    private ModelMapper modelMapper;
 
     // GET (con filtros simultáneos
     public List<SpeakerOutDto> findAll(String speciality, String available, String yearsExperience) {
@@ -51,9 +51,7 @@ public class SpeakerService {
                 }.getType());
 
        return speakerOutDtoList;
-}
-
-
+    }
 
     // GET by ID
     public SpeakerOutDto findById(long id) throws SpeakerNotFoundException {
@@ -65,7 +63,7 @@ public class SpeakerService {
 
     // POST
     public SpeakerOutDto add(SpeakerInDto speakerInDto) {
-        Speaker speaker= modelMapper.map(speakerInDto, Speaker.class);
+        Speaker speaker = modelMapper.map(speakerInDto, Speaker.class);
 
         // generado por el sistema
         speaker.setWorkshopHoursTotal(0);

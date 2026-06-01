@@ -95,7 +95,6 @@ public class WorkshopService {
     }
 
     // GET ALL (con filtros)
-    // Eliminada la excepción para permitir pruebas con los filtros
     public List<WorkshopOutDto> findAll(String name, String isOnline, String speakerId) {
 
         // Convertir parámetros a variables finales para el stream. Si el filtro no se usa, devuelve null. Si se usa, aplica el valor del filtro
@@ -257,7 +256,7 @@ public class WorkshopService {
                         registrationRepository.save(registration);
 
                         // Simulamos notificar al cliente
-                        simulateWorkshopCancellationNotification(registration);
+                        sendWorkshopCancellationNotification(registration);
                     }
                 }
             }
@@ -265,8 +264,8 @@ public class WorkshopService {
 
     }
 
-    private void simulateWorkshopCancellationNotification(Registration registration) {
-        System.out.println("Simulando notificación de cancelación para la inscripción con código: "
+    private void sendWorkshopCancellationNotification(Registration registration) {
+        System.out.println("Notificación de cancelación para la inscripción con código: "
                 + registration.getConfirmationCode());
     }
 }

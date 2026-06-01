@@ -3,7 +3,6 @@ package com.svalero.enajenarte.service;
 import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.domain.Registration;
 import com.svalero.enajenarte.domain.ProgramRegistration;
-import com.svalero.enajenarte.domain.enums.PaymentStatus;
 import com.svalero.enajenarte.dto.ProgramRegistrationOutDto;
 import com.svalero.enajenarte.dto.UserEditInDto;
 import com.svalero.enajenarte.dto.UserInDto;
@@ -22,7 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
 

@@ -2,7 +2,6 @@ package com.svalero.enajenarte.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -35,7 +34,6 @@ public class Workshop {
 
     @Column(name = "start_date")
     @NotNull(message = "Debes indicar una fecha de inicio")
-    @Future(message = "La fecha de inicio debe ser futura")
     private LocalDate startDate;
 
     @Column
@@ -43,8 +41,6 @@ public class Workshop {
     private String hour;
 
     @Column(name = "confirmation_deadline")
-    @NotNull(message = "Debes indicar una fecha de confirmación")
-    @Future(message = "La fecha de confirmación debe ser futura")
     private LocalDate confirmationDeadline;
 
     @Column(name = "duration_minutes")

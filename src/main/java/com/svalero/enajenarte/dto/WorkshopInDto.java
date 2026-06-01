@@ -1,6 +1,5 @@
 package com.svalero.enajenarte.dto;
 
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -22,14 +21,11 @@ public class WorkshopInDto {
     private String description;
 
     @NotNull(message = "Debes indicar la fecha del taller")
-    @Future(message = "La fecha debe ser futura")
     private LocalDate startDate;
 
     @NotEmpty(message = "Indica la hora del taller")
     private String hour;
 
-    @NotNull(message = "Debes seleccionar una fecha de confirmación")
-    @Future(message = "La fecha de confirmación debe ser futura")
     private LocalDate confirmationDeadline;
 
     @Min(value = 1, message = "La duración debe ser de, al menos, 1 minuto")
@@ -45,6 +41,9 @@ public class WorkshopInDto {
     private int maxCapacity;
 
     private boolean isOnline;
+
+    @NotEmpty(message = "Debes indicar el estado del taller")
+    private String status;
 
     @Min(value = 1, message = "Speaker ID is mandatory")
     private long speakerId;

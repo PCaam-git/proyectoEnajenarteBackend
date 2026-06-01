@@ -48,6 +48,7 @@ public class RegistrationService {
 
         Workshop workshop = workshopRepository.findById(registrationInDto.getWorkshopId())
                 .orElseThrow(WorkshopNotFoundException::new);
+        validateWorkshopAvailableForRegistration(workshop);
 
         // Validación: evitar inscripción duplicada
         boolean exists = registrationRepository.existsByUserIdAndWorkshopId(
@@ -265,8 +266,11 @@ public class RegistrationService {
             // Obtiene todas las inscripciones del workshop
             List<Registration> registrations = registrationRepository.findByWorkshop(workshop);
 
-            // Simula envío de mensaje a los participantes
+            // Envío de mail a los participantes
             for (Registration registration : registrations) {
+                registration.setStatus(STATUS_CONFIRMED);
+                registrationRepository.save(registration);
+
                 try {
                     simulateWorkshopConfirmationEmail(registration);
                 } catch (Exception e) {
@@ -313,6 +317,17 @@ public class RegistrationService {
                         + "Código de confirmación: " + registration.getConfirmationCode() + "\n\n"
                         + "Recibirás más información cuando el taller quede confirmado."
         );
+    }
+
+    private void validateWorkshopAvailableForRegistration(Workshop workshop) throws WorkshopCapacityExceededException {
+        if ("CANCELLED".equals(workshop.getStatus())) {
+            throw new WorkshopCapacityExceededException("No es posible inscribirse a un taller cancelado");
+        }
+
+        if (workshop.getStartDate() != null
+                && workshop.getStartDate().isBefore(java.time.LocalDate.now())) {
+            throw new WorkshopCapacityExceededException("No es posible inscribirse a un taller ya finalizado");
+        }
     }
 
     private void validateRegistrationOwner(User user) throws AccessDeniedException {

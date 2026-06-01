@@ -93,8 +93,7 @@ public class RegistrationService {
             System.err.println("Error confirmando el taller: " + e.getMessage());
         }
 
-        // Simulación de envío de confirmación
-        simulateEmailConfirmation(newRegistration);
+        sendWorkshopRegistrationEmail(newRegistration);
 
         RegistrationOutDto registrationOutDto = modelMapper.map(newRegistration, RegistrationOutDto.class);
         registrationOutDto.setUsername(newRegistration.getUser().getFullName());
@@ -141,9 +140,11 @@ public class RegistrationService {
                 registrationOutDto.setUsername(registration.getUser().getFullName());
                 registrationOutDto.setUserId(registration.getUser().getId());
             }
+
             if (registration.getWorkshop() != null) {
                 registrationOutDto.setWorkshopName(registration.getWorkshop().getName());
                 registrationOutDto.setWorkshopId(registration.getWorkshop().getId());
+
             }
             if (registration.getPaymentStatus() != null) {
                 registrationOutDto.setPaymentStatus(registration.getPaymentStatus().name());
@@ -290,25 +291,25 @@ public class RegistrationService {
         );
     }
 
-    private void simulateEmailConfirmation(Registration registration) {
-        if (registration.getWorkshop() != null && registration.getWorkshop().isOnline()) {
-            sendOnlineRegistrationConfirmationNotification(registration);
+    private void sendWorkshopRegistrationEmail(Registration registration) {
+        if (STATUS_CONFIRMED.equals(registration.getStatus())) {
+            sendConfirmedWorkshopRegistrationEmail(registration);
         } else {
-            sendPendingWorkshopRegistrationNotification(registration);
+            sendPendingWorkshopRegistrationEmail(registration);
         }
     }
 
-    private void sendOnlineRegistrationConfirmationNotification(Registration registration) {
+    private void sendConfirmedWorkshopRegistrationEmail(Registration registration) {
         emailService.sendEmail(
                 registration.getUser().getEmail(),
                 "Inscripción confirmada en " + registration.getWorkshop().getName(),
-                "Tu inscripción online se ha realizado correctamente.\n\n"
+                "Tu inscripción está confirmada.\n\n"
                         + "Taller: " + registration.getWorkshop().getName() + "\n"
                         + "Código de confirmación: " + registration.getConfirmationCode()
         );
     }
 
-    private void sendPendingWorkshopRegistrationNotification(Registration registration) {
+    private void sendPendingWorkshopRegistrationEmail(Registration registration) {
         emailService.sendEmail(
                 registration.getUser().getEmail(),
                 "Inscripción registrada en " + registration.getWorkshop().getName(),

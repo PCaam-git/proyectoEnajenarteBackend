@@ -33,8 +33,6 @@ public class WorkshopService {
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
-    private RegistrationService registrationService;
-    @Autowired
     private AdminCalendarService adminCalendarService;
 
     private static final String STATUS_CONFIRMED = "CONFIRMED";
@@ -109,7 +107,8 @@ public class WorkshopService {
         List<Workshop> filteredWorkshops = workshopRepository.findAll().stream()
                 .filter(workshop -> finalName == null || workshop.getName().toLowerCase().contains(finalName))
                 .filter(workshop -> finalIsOnline == null || workshop.isOnline() == finalIsOnline)
-                .filter(workshop -> finalSpeakerId == null || workshop.getSpeaker().getId() == finalSpeakerId)
+                .filter(workshop -> finalSpeakerId == null
+                        || (workshop.getSpeaker() != null && workshop.getSpeaker().getId() == finalSpeakerId))
                 .toList();
 
         // Mapear DTOs

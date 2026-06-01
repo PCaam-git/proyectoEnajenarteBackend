@@ -91,10 +91,14 @@ public class ProgramRegistrationService {
 
         confirmProgramIfMinimumReached(program, currentParticipants + requestedTickets);
 
+        if (STATUS_CONFIRMED.equals(program.getStatus())) {
+            newRegistration.setStatus(STATUS_CONFIRMED);
+        }
+
         try {
-            simulateEmailConfirmation(newRegistration, currentParticipants + requestedTickets);
+            sendProgramRegistrationEmail(newRegistration);
         } catch (Exception e) {
-            System.err.println("No se ha podido enviar el email de confirmación en la inscripción del programa: " + e.getMessage());
+            System.err.println("No se ha podido enviar el email de inscripción en el programa: " + e.getMessage());
         }
 
         ProgramRegistrationOutDto programRegistrationOutDto = modelMapper.map(newRegistration, ProgramRegistrationOutDto.class);
@@ -209,12 +213,14 @@ public class ProgramRegistrationService {
 
         ProgramRegistration updated = programRegistrationRepository.save(existing);
 
-        ProgramRegistrationOutDto dto = modelMapper.map(updated, ProgramRegistrationOutDto.class);
-        dto.setFullName(updated.getUser().getFullName());
-        dto.setProgramName(updated.getProgram().getName());
-        dto.setPaymentStatus(updated.getPaymentStatus());
+        ProgramRegistrationOutDto programRegistrationOutDto = modelMapper.map(updated, ProgramRegistrationOutDto.class);
+        programRegistrationOutDto.setFullName(updated.getUser().getFullName());
+        programRegistrationOutDto.setProgramName(updated.getProgram().getName());
+        programRegistrationOutDto.setUserId(updated.getUser().getId());
+        programRegistrationOutDto.setProgramId(updated.getProgram().getId());
+        programRegistrationOutDto.setPaymentStatus(updated.getPaymentStatus());
 
-        return dto;
+        return programRegistrationOutDto;
     }
 
     private ProgramRegistration buildRegistration(ProgramRegistrationInDto inDto, User user, Program program) {
@@ -244,21 +250,19 @@ public class ProgramRegistrationService {
         registration.setPaymentStatus(PAYMENT_STATUS_PENDING.name());
     }
 
-    private void simulateEmailConfirmation(ProgramRegistration registration, int totalParticipants) {
+    private void sendProgramRegistrationEmail(ProgramRegistration registration) {
         String subject = "Inscripción en " + registration.getProgram().getName();
         String text;
 
-        if (registration.getProgram().getMinimumParticipants() != null
-                && totalParticipants >= registration.getProgram().getMinimumParticipants()) {
-
-            text = "Tu inscripción se ha realizado correctamente.\n\n"
+        if (STATUS_CONFIRMED.equals(registration.getStatus())) {
+            text = "Tu inscripción ha quedado confirmada.\n\n"
                     + "Programa: " + registration.getProgram().getName() + "\n"
                     + "Código de confirmación: " + registration.getConfirmationCode();
         } else {
-            text = "Tu inscripción se ha realizado correctamente.\n\n"
+            text = "Tu inscripción se ha registrado correctamente.\n\n"
                     + "Programa: " + registration.getProgram().getName() + "\n"
                     + "Código de confirmación: " + registration.getConfirmationCode() + "\n\n"
-                    + "Más adelante recibirás toda la información detallada del programa.";
+                    + "Recibirás más información cuando el programa quede confirmado.";
         }
 
         emailService.sendEmail(

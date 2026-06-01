@@ -191,12 +191,14 @@ public class UserService {
         List<ProgramRegistrationOutDto> outDtos = new ArrayList<>();
 
         for (ProgramRegistration registration : registrations) {
-            ProgramRegistrationOutDto dto = modelMapper.map(registration, ProgramRegistrationOutDto.class);
+            ProgramRegistrationOutDto programRegistrationOutDto = modelMapper.map(registration, ProgramRegistrationOutDto.class);
 
-            dto.setFullName(user.getFullName());
-            dto.setProgramName(registration.getProgram().getName());
+            programRegistrationOutDto.setFullName(user.getFullName());
+            programRegistrationOutDto.setUserId(registration.getUser().getId());
+            programRegistrationOutDto.setProgramName(registration.getProgram().getName());
+            programRegistrationOutDto.setProgramId(registration.getProgram().getId());
 
-            outDtos.add(dto);
+            outDtos.add(programRegistrationOutDto);
         }
 
         return outDtos;
@@ -227,7 +229,7 @@ public class UserService {
     }
 
     // PUT
-    public UserOutDto modify(long id, UserEditInDto userEditInDto) throws UserNotFoundException {
+    public UserOutDto modify(long id, UserEditInDto userEditInDto) throws UserNotFoundException, AccessDeniedException {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
 
@@ -248,7 +250,7 @@ public class UserService {
                     .getAuthority();
 
             if (!role.equals("ROLE_ADMIN")) {
-                throw new RuntimeException("No puedes modificar los datos de otro usuario");
+                throw new AccessDeniedException();
             }
         }
 

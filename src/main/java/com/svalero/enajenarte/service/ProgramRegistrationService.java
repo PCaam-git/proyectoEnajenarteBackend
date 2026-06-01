@@ -50,6 +50,9 @@ public class ProgramRegistrationService {
         Program program = programRepository.findById(programRegistrationInDto.getProgramId())
                 .orElseThrow(ProgramNotFoundException::new);
 
+        validateProgramAvailableForRegistration(program);
+
+
         boolean exists = programRegistrationRepository.existsByUserIdAndProgramId(
                 programRegistrationInDto.getUserId(),
                 programRegistrationInDto.getProgramId()
@@ -85,6 +88,8 @@ public class ProgramRegistrationService {
         ProgramRegistration registration = buildRegistration(programRegistrationInDto, user, program);
 
         ProgramRegistration newRegistration = programRegistrationRepository.save(registration);
+
+        confirmProgramIfMinimumReached(program, currentParticipants + requestedTickets);
 
         try {
             simulateEmailConfirmation(newRegistration, currentParticipants + requestedTickets);
@@ -255,6 +260,34 @@ public class ProgramRegistrationService {
                 subject,
                 text
         );
+    }
+
+    private void confirmProgramIfMinimumReached(Program program, int totalParticipants) {
+        if (STATUS_PENDING.equals(program.getStatus())
+                && program.getMinimumParticipants() != null
+                && totalParticipants >= program.getMinimumParticipants()) {
+
+            program.setStatus(STATUS_CONFIRMED);
+            programRepository.save(program);
+
+            List<ProgramRegistration> registrations = programRegistrationRepository.findByProgram(program);
+
+            for (ProgramRegistration registration : registrations) {
+                registration.setStatus(STATUS_CONFIRMED);
+                programRegistrationRepository.save(registration);
+            }
+        }
+    }
+
+    private void validateProgramAvailableForRegistration(Program program) throws ProgramCapacityExceededException {
+        if ("CANCELLED".equals(program.getStatus())) {
+            throw new ProgramCapacityExceededException("No es posible inscribirse a un programa cancelado");
+        }
+
+        if (program.getInitDate() != null
+                && program.getInitDate().isBefore(java.time.LocalDate.now())) {
+            throw new ProgramCapacityExceededException("No es posible inscribirse a un programa ya finalizado");
+        }
     }
 
     private void validateRegistrationOwner(User user) throws AccessDeniedException {

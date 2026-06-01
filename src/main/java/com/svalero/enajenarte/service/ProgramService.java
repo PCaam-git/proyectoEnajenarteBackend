@@ -34,6 +34,10 @@ public class ProgramService {
     @Autowired
     private ModelMapper modelMapper;
 
+    private static final String STATUS_CONFIRMED = "CONFIRMED";
+    private static final String STATUS_PENDING = "PENDING";
+    private static final String STATUS_CANCELLED = "CANCELLED";
+
     // POST
     public ProgramOutDto add(ProgramInDto programInDto) throws SpeakerNotFoundException, InvalidDateRangeException, DuplicateProgramException {
         Speaker speaker = speakerRepository.findById(programInDto.getSpeakerId())
@@ -56,27 +60,7 @@ public class ProgramService {
 
         Program program = modelMapper.map(programInDto, Program.class);
 
-        if (program.getInitDate() != null
-                && program.getInitDate().isBefore(java.time.LocalDate.now())) {
-            throw new InvalidDateRangeException();
-        }
-
-        // confirmationDeadline debe ser anterior a initDate
-        if (program.getConfirmationDeadline() != null
-                && program.getConfirmationDeadline().isAfter(program.getInitDate())) {
-            throw new InvalidDateRangeException();
-        }
-
-        // En la versión actual, los programas publicados quedan confirmados.
-        // La lógica de PENDING queda preparada para una evolución futura.
-        program.setStatus("CONFIRMED");
-
-//        if (program.isOnline()) {
-//            program.setStatus("CONFIRMED");
-//        } else {
-//            program.setStatus("PENDING");
-//        }
-
+        validateProgramDatesAndStatus(program);
         program.setSpeaker(speaker);
 
         Program newProgram = programRepository.save(program);
@@ -170,32 +154,11 @@ public class ProgramService {
             throw new DuplicateProgramException();
         }
 
-        String status = existingProgram.getStatus();
-
         modelMapper.map(programInDto, existingProgram);
         existingProgram.setId(id);
         existingProgram.setSpeaker(speaker);
 
-        if (existingProgram.getInitDate() != null
-                && existingProgram.getInitDate().isBefore(java.time.LocalDate.now())) {
-            throw new InvalidDateRangeException();
-        }
-
-        if (existingProgram.getConfirmationDeadline() != null
-                && existingProgram.getInitDate() != null
-                && existingProgram.getConfirmationDeadline().isAfter(existingProgram.getInitDate())) {
-            throw new InvalidDateRangeException();
-        }
-
-        if (existingProgram.isOnline()) {
-            if (!"CANCELLED".equals(status)) {
-                existingProgram.setStatus("CONFIRMED");
-            } else {
-                existingProgram.setStatus(status);
-            }
-        } else {
-            existingProgram.setStatus(status);
-        }
+        validateProgramDatesAndStatus(existingProgram);
 
         Program updatedProgram = programRepository.save(existingProgram);
         adminCalendarService.updateEntryFromProgram(updatedProgram);
@@ -207,6 +170,57 @@ public class ProgramService {
         }
 
         return updatedProgramOutDto;
+    }
+
+    private void validateProgramDatesAndStatus(Program program) throws InvalidDateRangeException {
+        String status = program.getStatus();
+
+        if (status == null || status.isBlank()) {
+            program.setStatus(STATUS_CONFIRMED);
+            status = STATUS_CONFIRMED;
+        }
+
+        if (!STATUS_CONFIRMED.equals(status)
+                && !STATUS_PENDING.equals(status)
+                && !STATUS_CANCELLED.equals(status)) {
+            throw new InvalidDateRangeException();
+        }
+
+        if (program.getInitDate() != null
+                && program.getFinishDate() != null
+                && program.getFinishDate().isBefore(program.getInitDate())) {
+            throw new InvalidDateRangeException();
+        }
+
+        if (STATUS_CONFIRMED.equals(status) || STATUS_CANCELLED.equals(status)) {
+            program.setConfirmationDeadline(null);
+            return;
+        }
+
+        if (STATUS_PENDING.equals(status)) {
+            if (program.getInitDate() != null
+                    && program.getInitDate().isBefore(java.time.LocalDate.now())) {
+                throw new InvalidDateRangeException();
+            }
+
+            if (program.getFinishDate() != null
+                    && program.getFinishDate().isBefore(java.time.LocalDate.now())) {
+                throw new InvalidDateRangeException();
+            }
+
+            if (program.getConfirmationDeadline() == null) {
+                throw new InvalidDateRangeException();
+            }
+
+            if (program.getConfirmationDeadline().isBefore(java.time.LocalDate.now())) {
+                throw new InvalidDateRangeException();
+            }
+
+            if (program.getInitDate() != null
+                    && program.getConfirmationDeadline().isAfter(program.getInitDate())) {
+                throw new InvalidDateRangeException();
+            }
+        }
     }
 
     @Scheduled(cron = "0 0 * * * *") // se ejecuta cada hora

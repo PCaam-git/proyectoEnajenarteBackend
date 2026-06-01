@@ -37,6 +37,10 @@ public class WorkshopService {
     @Autowired
     private AdminCalendarService adminCalendarService;
 
+    private static final String STATUS_CONFIRMED = "CONFIRMED";
+    private static final String STATUS_PENDING = "PENDING";
+    private static final String STATUS_CANCELLED = "CANCELLED";
+
 
     // POST
     public WorkshopOutDto add(WorkshopInDto workshopInDto) throws SpeakerNotFoundException, InvalidDateRangeException, DuplicateWorkshopException {
@@ -61,30 +65,9 @@ public class WorkshopService {
         }
 
         Workshop workshop = modelMapper.map(workshopInDto, Workshop.class);
-        // La fecha para informar al cliente de que el taller será cancelado debe ser anterior a la fecha del taller
-        if (workshop.getStartDate() != null
-                && workshop.getStartDate().isBefore(java.time.LocalDate.now())) {
-            throw new InvalidDateRangeException();
-        }
+        validateWorkshopDatesAndStatus(workshop);
 
-        if (workshop.getConfirmationDeadline() != null
-                && workshop.getConfirmationDeadline().isAfter(workshop.getStartDate())) {
-            throw new InvalidDateRangeException();
-        }
-
-        // En la versión actual, los talleres publicados quedan confirmados.
-        // La lógica de PENDING queda preparada para una evolución futura.
-        workshop.setStatus("CONFIRMED");
-
-
-        // En un futuro: inscripción a workshop online se confirma automáticamente. inscripción a workshop presencial, dependerá de si se alcanza el mínimo de usuarios
-//        if (workshop.isOnline()) {
-//            workshop.setStatus("CONFIRMED");
-//        } else {
-//            workshop.setStatus("PENDING");
-//        }
-//        workshop.setSpeaker(speaker);
-
+        workshop.setSpeaker(speaker);
         Workshop newWorkshop = workshopRepository.save(workshop);
         // Añade la entrada al calendario con los datos del workshop
         adminCalendarService.createEntryFromWorkshop(newWorkshop);
@@ -184,32 +167,11 @@ public class WorkshopService {
             throw new DuplicateWorkshopException();
         }
 
-        String status = existingWorkshop.getStatus();
-
         modelMapper.map(workshopInDto, existingWorkshop);
         existingWorkshop.setId(id);
         existingWorkshop.setSpeaker(speaker);
 
-        if (existingWorkshop.getStartDate() != null
-                && existingWorkshop.getStartDate().isBefore(java.time.LocalDate.now())) {
-            throw new InvalidDateRangeException();
-        }
-
-        if (existingWorkshop.getConfirmationDeadline() != null
-                && existingWorkshop.getStartDate() != null
-                && existingWorkshop.getConfirmationDeadline().isAfter(existingWorkshop.getStartDate())) {
-            throw new InvalidDateRangeException();
-        }
-
-        if (existingWorkshop.isOnline()) {
-            if (!"CANCELLED".equals(status)) {
-                existingWorkshop.setStatus("CONFIRMED");
-            } else {
-                existingWorkshop.setStatus(status);
-            }
-        } else {
-            existingWorkshop.setStatus(status);
-        }
+        validateWorkshopDatesAndStatus(existingWorkshop);
 
         Workshop updatedWorkshop = workshopRepository.save(existingWorkshop);
         adminCalendarService.updateEntryFromWorkshop(updatedWorkshop);
@@ -222,6 +184,46 @@ public class WorkshopService {
         }
 
         return updatedWorkshopOutDto;
+    }
+
+    private void validateWorkshopDatesAndStatus(Workshop workshop) throws InvalidDateRangeException {
+        String status = workshop.getStatus();
+
+        if (status == null || status.isBlank()) {
+            workshop.setStatus(STATUS_CONFIRMED);
+            status = STATUS_CONFIRMED;
+        }
+
+        if (!STATUS_CONFIRMED.equals(status)
+                && !STATUS_PENDING.equals(status)
+                && !STATUS_CANCELLED.equals(status)) {
+            throw new InvalidDateRangeException();
+        }
+
+        if ((STATUS_CONFIRMED.equals(status) || STATUS_CANCELLED.equals(status))) {
+            workshop.setConfirmationDeadline(null);
+            return;
+        }
+
+        if (STATUS_PENDING.equals(status)) {
+            if (workshop.getStartDate() != null
+                    && workshop.getStartDate().isBefore(java.time.LocalDate.now())) {
+                throw new InvalidDateRangeException();
+            }
+
+            if (workshop.getConfirmationDeadline() == null) {
+                throw new InvalidDateRangeException();
+            }
+
+            if (workshop.getConfirmationDeadline().isBefore(java.time.LocalDate.now())) {
+                throw new InvalidDateRangeException();
+            }
+
+            if (workshop.getStartDate() != null
+                    && workshop.getConfirmationDeadline().isAfter(workshop.getStartDate())) {
+                throw new InvalidDateRangeException();
+            }
+        }
     }
 
     @Scheduled(cron = "0 0 * * * *") // se ejecuta cada hora

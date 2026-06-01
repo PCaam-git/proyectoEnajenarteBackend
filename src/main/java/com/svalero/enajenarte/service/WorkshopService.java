@@ -33,8 +33,6 @@ public class WorkshopService {
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
-    private RegistrationService registrationService;
-    @Autowired
     private AdminCalendarService adminCalendarService;
 
     private static final String STATUS_CONFIRMED = "CONFIRMED";
@@ -92,11 +90,11 @@ public class WorkshopService {
             throw new HasAssociatedRegistrationsException();
         }
 
+        adminCalendarService.deleteEntryFromWorkshop(workshop);
         workshopRepository.delete(workshop);
     }
 
     // GET ALL (con filtros)
-    // Eliminada la excepción para permitir pruebas con los filtros
     public List<WorkshopOutDto> findAll(String name, String isOnline, String speakerId) {
 
         // Convertir parámetros a variables finales para el stream. Si el filtro no se usa, devuelve null. Si se usa, aplica el valor del filtro
@@ -108,7 +106,8 @@ public class WorkshopService {
         List<Workshop> filteredWorkshops = workshopRepository.findAll().stream()
                 .filter(workshop -> finalName == null || workshop.getName().toLowerCase().contains(finalName))
                 .filter(workshop -> finalIsOnline == null || workshop.isOnline() == finalIsOnline)
-                .filter(workshop -> finalSpeakerId == null || workshop.getSpeaker().getId() == finalSpeakerId)
+                .filter(workshop -> finalSpeakerId == null
+                        || (workshop.getSpeaker() != null && workshop.getSpeaker().getId() == finalSpeakerId))
                 .toList();
 
         // Mapear DTOs
@@ -257,7 +256,7 @@ public class WorkshopService {
                         registrationRepository.save(registration);
 
                         // Simulamos notificar al cliente
-                        simulateWorkshopCancellationNotification(registration);
+                        sendWorkshopCancellationNotification(registration);
                     }
                 }
             }
@@ -265,8 +264,8 @@ public class WorkshopService {
 
     }
 
-    private void simulateWorkshopCancellationNotification(Registration registration) {
-        System.out.println("Simulando notificación de cancelación para la inscripción con código: "
+    private void sendWorkshopCancellationNotification(Registration registration) {
+        System.out.println("Notificación de cancelación para la inscripción con código: "
                 + registration.getConfirmationCode());
     }
 }

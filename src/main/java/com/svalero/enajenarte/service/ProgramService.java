@@ -5,10 +5,7 @@ import com.svalero.enajenarte.domain.Speaker;
 import com.svalero.enajenarte.domain.ProgramRegistration;
 import com.svalero.enajenarte.dto.ProgramInDto;
 import com.svalero.enajenarte.dto.ProgramOutDto;
-import com.svalero.enajenarte.exception.DuplicateProgramException;
-import com.svalero.enajenarte.exception.InvalidDateRangeException;
-import com.svalero.enajenarte.exception.ProgramNotFoundException;
-import com.svalero.enajenarte.exception.SpeakerNotFoundException;
+import com.svalero.enajenarte.exception.*;
 import com.svalero.enajenarte.repository.ProgramRepository;
 import com.svalero.enajenarte.repository.SpeakerRepository;
 import com.svalero.enajenarte.repository.ProgramRegistrationRepository;
@@ -78,10 +75,16 @@ public class ProgramService {
     }
 
     // DELETE
-    public void delete(long id) throws ProgramNotFoundException {
+    public void delete(long id) throws ProgramNotFoundException, HasAssociatedRegistrationsException {
         Program program = programRepository.findById(id)
                 .orElseThrow(ProgramNotFoundException::new);
 
+        List<ProgramRegistration> registrations = programRegistrationRepository.findByProgram(program);
+        if (!registrations.isEmpty()) {
+            throw new HasAssociatedRegistrationsException();
+        }
+
+        adminCalendarService.deleteEntryFromProgram(program);
         programRepository.delete(program);
     }
 
@@ -253,14 +256,14 @@ public class ProgramService {
                         programRegistrationRepository.save(registration);
 
                         // Simulamos notificar al cliente
-                        simulateProgramCancellationNotification(registration);
+                        sendProgramCancellationNotification(registration);
                     }
                 }
             }
         }
     }
 
-    private void simulateProgramCancellationNotification(ProgramRegistration registration) {
+    private void sendProgramCancellationNotification(ProgramRegistration registration) {
         System.out.println(registration.getUser().getFullName()
                 + " , el programa se ha cancelado. Te informaremos cuando haya una nueva convocatoria.");
     }

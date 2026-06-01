@@ -94,7 +94,7 @@ public class UserController {
     // PUT
     @PutMapping("/users/{id}")
     public ResponseEntity<UserOutDto> modifyUser(@PathVariable long id, @Valid @RequestBody UserEditInDto userEditInDto)
-            throws UserNotFoundException {
+            throws UserNotFoundException, AccessDeniedException {
         UserOutDto updatedUser = userService.modify(id, userEditInDto);
         return ResponseEntity.ok(updatedUser);
     }

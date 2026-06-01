@@ -3,7 +3,6 @@ package com.svalero.enajenarte.service;
 import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.domain.Registration;
 import com.svalero.enajenarte.domain.ProgramRegistration;
-import com.svalero.enajenarte.domain.enums.PaymentStatus;
 import com.svalero.enajenarte.dto.ProgramRegistrationOutDto;
 import com.svalero.enajenarte.dto.UserEditInDto;
 import com.svalero.enajenarte.dto.UserInDto;
@@ -22,7 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -191,12 +189,14 @@ public class UserService {
         List<ProgramRegistrationOutDto> outDtos = new ArrayList<>();
 
         for (ProgramRegistration registration : registrations) {
-            ProgramRegistrationOutDto dto = modelMapper.map(registration, ProgramRegistrationOutDto.class);
+            ProgramRegistrationOutDto programRegistrationOutDto = modelMapper.map(registration, ProgramRegistrationOutDto.class);
 
-            dto.setFullName(user.getFullName());
-            dto.setProgramName(registration.getProgram().getName());
+            programRegistrationOutDto.setFullName(user.getFullName());
+            programRegistrationOutDto.setUserId(registration.getUser().getId());
+            programRegistrationOutDto.setProgramName(registration.getProgram().getName());
+            programRegistrationOutDto.setProgramId(registration.getProgram().getId());
 
-            outDtos.add(dto);
+            outDtos.add(programRegistrationOutDto);
         }
 
         return outDtos;
@@ -227,7 +227,7 @@ public class UserService {
     }
 
     // PUT
-    public UserOutDto modify(long id, UserEditInDto userEditInDto) throws UserNotFoundException {
+    public UserOutDto modify(long id, UserEditInDto userEditInDto) throws UserNotFoundException, AccessDeniedException {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
 
@@ -248,7 +248,7 @@ public class UserService {
                     .getAuthority();
 
             if (!role.equals("ROLE_ADMIN")) {
-                throw new RuntimeException("No puedes modificar los datos de otro usuario");
+                throw new AccessDeniedException();
             }
         }
 
@@ -278,12 +278,18 @@ public class UserService {
     }
 
     // DELETE
+    // No se puede eliminar un usuario con inscripciones asociadas
     public void delete(long id) throws UserNotFoundException, HasAssociatedRegistrationsException {
         User user = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
 
         List<Registration> registrations = registrationRepository.findByUser(user);
         if (!registrations.isEmpty()) {
+            throw new HasAssociatedRegistrationsException();
+        }
+
+        List<ProgramRegistration> programRegistrations = programRegistrationRepository.findByUser(user);
+        if (!programRegistrations.isEmpty()) {
             throw new HasAssociatedRegistrationsException();
         }
 

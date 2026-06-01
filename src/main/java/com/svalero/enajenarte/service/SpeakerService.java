@@ -2,12 +2,16 @@ package com.svalero.enajenarte.service;
 
 import com.svalero.enajenarte.domain.Speaker;
 import com.svalero.enajenarte.domain.Workshop;
+import com.svalero.enajenarte.domain.Program;
+import com.svalero.enajenarte.domain.Event;
 import com.svalero.enajenarte.dto.SpeakerInDto;
 import com.svalero.enajenarte.dto.SpeakerOutDto;
 import com.svalero.enajenarte.exception.HasAssociatedRegistrationsException;
 import com.svalero.enajenarte.exception.SpeakerNotFoundException;
 import com.svalero.enajenarte.repository.SpeakerRepository;
 import com.svalero.enajenarte.repository.WorkshopRepository;
+import com.svalero.enajenarte.repository.ProgramRepository;
+import com.svalero.enajenarte.repository.EventRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +23,15 @@ import java.util.List;
 public class SpeakerService {
 
     @Autowired
-    public SpeakerRepository speakerRepository;
+    private SpeakerRepository speakerRepository;
     @Autowired
-    public WorkshopRepository workshopRepository;
+    private WorkshopRepository workshopRepository;
     @Autowired
-    public ModelMapper modelMapper;
+    private ProgramRepository programRepository;
+    @Autowired
+    private EventRepository eventRepository;
+    @Autowired
+    private ModelMapper modelMapper;
 
     // GET (con filtros simultáneos
     public List<SpeakerOutDto> findAll(String speciality, String available, String yearsExperience) {
@@ -43,9 +51,7 @@ public class SpeakerService {
                 }.getType());
 
        return speakerOutDtoList;
-}
-
-
+    }
 
     // GET by ID
     public SpeakerOutDto findById(long id) throws SpeakerNotFoundException {
@@ -57,7 +63,7 @@ public class SpeakerService {
 
     // POST
     public SpeakerOutDto add(SpeakerInDto speakerInDto) {
-        Speaker speaker= modelMapper.map(speakerInDto, Speaker.class);
+        Speaker speaker = modelMapper.map(speakerInDto, Speaker.class);
 
         // generado por el sistema
         speaker.setWorkshopHoursTotal(0);
@@ -82,12 +88,27 @@ public class SpeakerService {
     }
 
     // DELETE
+    // No se puede eliminar un ponente con actividades asociadas
     public void delete(long id) throws SpeakerNotFoundException, HasAssociatedRegistrationsException {
         Speaker speaker = speakerRepository.findById(id)
                 .orElseThrow(SpeakerNotFoundException::new);
 
         List<Workshop> workshops = workshopRepository.findBySpeaker(speaker);
         if (!workshops.isEmpty()) {
+            throw new HasAssociatedRegistrationsException();
+        }
+
+        List<Program> programs = programRepository.findBySpeaker(speaker);
+        if (!programs.isEmpty()) {
+            throw new HasAssociatedRegistrationsException();
+        }
+
+        List<Event> events = eventRepository.findAll().stream()
+                .filter(event -> event.getSpeaker() != null
+                        && event.getSpeaker().getId() == speaker.getId())
+                .toList();
+
+        if (!events.isEmpty()) {
             throw new HasAssociatedRegistrationsException();
         }
 

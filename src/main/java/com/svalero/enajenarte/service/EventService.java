@@ -30,7 +30,8 @@ public class EventService {
     private ModelMapper modelMapper;
 
     // POST
-    public EventOutDto add (EventInDto eventInDto)throws SpeakerNotFoundException, DuplicateEventException, InvalidEventDateException {
+    public EventOutDto add (EventInDto eventInDto)
+            throws SpeakerNotFoundException, DuplicateEventException, InvalidEventDateException {
         Speaker speaker = speakerRepository.findById(eventInDto.getSpeakerId())
                 .orElseThrow(SpeakerNotFoundException::new);
 
@@ -72,6 +73,7 @@ public class EventService {
         Event event = eventRepository.findById(id)
                 .orElseThrow(EventNotFoundException::new);
 
+        adminCalendarService.deleteEntryFromEvent(event);
         eventRepository.delete(event);
     }
 
@@ -149,6 +151,8 @@ public class EventService {
         existingEvent.setSpeaker(speaker);
 
         Event updateEvent = eventRepository.save(existingEvent);
+        adminCalendarService.updateEntryFromEvent(updateEvent);
+
         EventOutDto updatedEventOutDto = modelMapper.map(updateEvent, EventOutDto.class);
 
         if (updateEvent.getSpeaker() != null) {
@@ -160,7 +164,7 @@ public class EventService {
 
     private void validateEventDate(EventInDto eventInDto) throws InvalidEventDateException {
         if (eventInDto.getEventDate() != null
-        && eventInDto.getEventDate().isBefore(java.time.LocalDateTime.now())) {
+                && eventInDto.getEventDate().isBefore(java.time.LocalDateTime.now())) {
             throw new InvalidEventDateException();
         }
     }

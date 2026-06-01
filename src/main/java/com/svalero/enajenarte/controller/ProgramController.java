@@ -61,7 +61,7 @@ public class ProgramController {
 
     // DELETE
     @DeleteMapping("/programs/{id}")
-    public ResponseEntity<Void> deleteProgram(@PathVariable long id) throws ProgramNotFoundException {
+    public ResponseEntity<Void> deleteProgram(@PathVariable long id) throws ProgramNotFoundException, HasAssociatedRegistrationsException {
         programService.delete(id);
         return ResponseEntity.noContent().build();
     }
@@ -71,6 +71,16 @@ public class ProgramController {
     public ResponseEntity<ErrorResponse> handleException(ProgramNotFoundException pnfe) {
         ErrorResponse errorResponse = ErrorResponse.notFound("El programa no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(HasAssociatedRegistrationsException.class)
+    public ResponseEntity<ErrorResponse> handleException(HasAssociatedRegistrationsException hare) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(
+                409,
+                "conflict",
+                hare.getMessage()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     // 404 - Speaker

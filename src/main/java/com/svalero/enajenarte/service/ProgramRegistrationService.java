@@ -91,15 +91,21 @@ public class ProgramRegistrationService {
 
         confirmProgramIfMinimumReached(program, currentParticipants + requestedTickets);
 
+        if (STATUS_CONFIRMED.equals(program.getStatus())) {
+            newRegistration.setStatus(STATUS_CONFIRMED);
+        }
+
         try {
-            simulateEmailConfirmation(newRegistration, currentParticipants + requestedTickets);
+            sendProgramRegistrationEmail(newRegistration);
         } catch (Exception e) {
-            System.err.println("No se ha podido enviar el email de confirmación en la inscripción del programa: " + e.getMessage());
+            System.err.println("No se ha podido enviar el email de inscripción en el programa: " + e.getMessage());
         }
 
         ProgramRegistrationOutDto programRegistrationOutDto = modelMapper.map(newRegistration, ProgramRegistrationOutDto.class);
         programRegistrationOutDto.setFullName(newRegistration.getUser().getFullName());
         programRegistrationOutDto.setProgramName(newRegistration.getProgram().getName());
+        programRegistrationOutDto.setUserId(newRegistration.getUser().getId());
+        programRegistrationOutDto.setProgramId(newRegistration.getProgram().getId());
         programRegistrationOutDto.setPaymentStatus(newRegistration.getPaymentStatus());
 
         return programRegistrationOutDto;
@@ -121,26 +127,28 @@ public class ProgramRegistrationService {
         final Boolean finalIsPaid = isPaid.isEmpty() ? null : Boolean.parseBoolean(isPaid);
 
         List<ProgramRegistration> filtered = programRegistrationRepository.findAll().stream()
-                .filter(r -> finalProgramId == null || r.getProgram().getId() == finalProgramId)
-                .filter(r -> finalUserId == null || r.getUser().getId() == finalUserId)
-                .filter(r -> finalIsPaid == null || r.isPaid() == finalIsPaid)
+                .filter(programRegistration -> finalProgramId == null || programRegistration.getProgram().getId() == finalProgramId)
+                .filter(programRegistration -> finalUserId == null || programRegistration.getUser().getId() == finalUserId)
+                .filter(programRegistration -> finalIsPaid == null || programRegistration.isPaid() == finalIsPaid)
                 .toList();
 
         List<ProgramRegistrationOutDto> outDtos =
                 modelMapper.map(filtered, new TypeToken<List<ProgramRegistrationOutDto>>() {}.getType());
 
         for (int i = 0; i < filtered.size(); i++) {
-            ProgramRegistration r = filtered.get(i);
-            ProgramRegistrationOutDto dto = outDtos.get(i);
+            ProgramRegistration programRegistration = filtered.get(i);
+            ProgramRegistrationOutDto programRegistrationOutDto = outDtos.get(i);
 
-            if (r.getUser() != null) {
-                dto.setFullName(r.getUser().getFullName());
+            if (programRegistration.getUser() != null) {
+                programRegistrationOutDto.setFullName(programRegistration.getUser().getFullName());
+                programRegistrationOutDto.setUserId(programRegistration.getUser().getId());
             }
-            if (r.getProgram() != null) {
-                dto.setProgramName(r.getProgram().getName());
+            if (programRegistration.getProgram() != null) {
+                programRegistrationOutDto.setProgramName(programRegistration.getProgram().getName());
+                programRegistrationOutDto.setProgramId(programRegistration.getProgram().getId());
             }
-            if (r.getPaymentStatus() != null) {
-                dto.setPaymentStatus(r.getPaymentStatus());
+            if (programRegistration.getPaymentStatus() != null) {
+                programRegistrationOutDto.setPaymentStatus(programRegistration.getPaymentStatus());
             }
         }
 
@@ -152,12 +160,14 @@ public class ProgramRegistrationService {
         ProgramRegistration registration = programRegistrationRepository.findById(id)
                 .orElseThrow(RegistrationNotFoundException::new);
 
-        ProgramRegistrationOutDto dto = modelMapper.map(registration, ProgramRegistrationOutDto.class);
-        dto.setFullName(registration.getUser().getFullName());
-        dto.setProgramName(registration.getProgram().getName());
-        dto.setPaymentStatus(registration.getPaymentStatus());
+        ProgramRegistrationOutDto programRegistrationOutDto = modelMapper.map(registration, ProgramRegistrationOutDto.class);
+        programRegistrationOutDto.setFullName(registration.getUser().getFullName());
+        programRegistrationOutDto.setProgramName(registration.getProgram().getName());
+        programRegistrationOutDto.setUserId(registration.getUser().getId());
+        programRegistrationOutDto.setProgramId(registration.getProgram().getId());
+        programRegistrationOutDto.setPaymentStatus(registration.getPaymentStatus());
 
-        return dto;
+        return programRegistrationOutDto;
     }
 
     // PUT
@@ -203,12 +213,14 @@ public class ProgramRegistrationService {
 
         ProgramRegistration updated = programRegistrationRepository.save(existing);
 
-        ProgramRegistrationOutDto dto = modelMapper.map(updated, ProgramRegistrationOutDto.class);
-        dto.setFullName(updated.getUser().getFullName());
-        dto.setProgramName(updated.getProgram().getName());
-        dto.setPaymentStatus(updated.getPaymentStatus());
+        ProgramRegistrationOutDto programRegistrationOutDto = modelMapper.map(updated, ProgramRegistrationOutDto.class);
+        programRegistrationOutDto.setFullName(updated.getUser().getFullName());
+        programRegistrationOutDto.setProgramName(updated.getProgram().getName());
+        programRegistrationOutDto.setUserId(updated.getUser().getId());
+        programRegistrationOutDto.setProgramId(updated.getProgram().getId());
+        programRegistrationOutDto.setPaymentStatus(updated.getPaymentStatus());
 
-        return dto;
+        return programRegistrationOutDto;
     }
 
     private ProgramRegistration buildRegistration(ProgramRegistrationInDto inDto, User user, Program program) {
@@ -238,21 +250,19 @@ public class ProgramRegistrationService {
         registration.setPaymentStatus(PAYMENT_STATUS_PENDING.name());
     }
 
-    private void simulateEmailConfirmation(ProgramRegistration registration, int totalParticipants) {
+    private void sendProgramRegistrationEmail(ProgramRegistration registration) {
         String subject = "Inscripción en " + registration.getProgram().getName();
         String text;
 
-        if (registration.getProgram().getMinimumParticipants() != null
-                && totalParticipants >= registration.getProgram().getMinimumParticipants()) {
-
-            text = "Tu inscripción se ha realizado correctamente.\n\n"
+        if (STATUS_CONFIRMED.equals(registration.getStatus())) {
+            text = "Tu inscripción ha quedado confirmada.\n\n"
                     + "Programa: " + registration.getProgram().getName() + "\n"
                     + "Código de confirmación: " + registration.getConfirmationCode();
         } else {
-            text = "Tu inscripción se ha realizado correctamente.\n\n"
+            text = "Tu inscripción se ha registrado correctamente.\n\n"
                     + "Programa: " + registration.getProgram().getName() + "\n"
                     + "Código de confirmación: " + registration.getConfirmationCode() + "\n\n"
-                    + "Más adelante recibirás toda la información detallada del programa.";
+                    + "Recibirás más información cuando el programa quede confirmado.";
         }
 
         emailService.sendEmail(

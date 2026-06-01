@@ -88,7 +88,7 @@ public class SpeakerController {
     // 409 - Speaker con workshops asociados
     @ExceptionHandler(HasAssociatedRegistrationsException.class)
     public ResponseEntity<ErrorResponse> handleException(HasAssociatedRegistrationsException hare) {
-        ErrorResponse errorResponse = ErrorResponse.generalError(409, "conflict", "No se puede eliminar: hay talleres asociados al ponente");
+        ErrorResponse errorResponse = ErrorResponse.generalError(409, "conflict", "No se puede eliminar: hay actividades asociadas al ponente");
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 

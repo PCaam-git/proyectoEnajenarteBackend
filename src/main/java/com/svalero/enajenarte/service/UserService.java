@@ -278,12 +278,18 @@ public class UserService {
     }
 
     // DELETE
+    // No se puede eliminar un usuario con inscripciones asociadas
     public void delete(long id) throws UserNotFoundException, HasAssociatedRegistrationsException {
         User user = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
 
         List<Registration> registrations = registrationRepository.findByUser(user);
         if (!registrations.isEmpty()) {
+            throw new HasAssociatedRegistrationsException();
+        }
+
+        List<ProgramRegistration> programRegistrations = programRegistrationRepository.findByUser(user);
+        if (!programRegistrations.isEmpty()) {
             throw new HasAssociatedRegistrationsException();
         }
 

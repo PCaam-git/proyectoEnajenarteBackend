@@ -102,7 +102,7 @@ public class WorkshopController {
     // 400 - Fecha de confirmación posterior a la fecha de inicio
     @ExceptionHandler(InvalidDateRangeException.class)
     public ResponseEntity<ErrorResponse> handleException(InvalidDateRangeException idrе) {
-        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", "La fecha de confirmación debe ser anterior a la fecha de inicio");
+        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", idrе.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
 
     }

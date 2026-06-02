@@ -196,7 +196,7 @@ public class WorkshopService {
         if (!STATUS_CONFIRMED.equals(status)
                 && !STATUS_PENDING.equals(status)
                 && !STATUS_CANCELLED.equals(status)) {
-            throw new InvalidDateRangeException();
+            throw new InvalidDateRangeException("El estado del taller no es válido");
         }
 
         if ((STATUS_CONFIRMED.equals(status) || STATUS_CANCELLED.equals(status))) {
@@ -207,20 +207,20 @@ public class WorkshopService {
         if (STATUS_PENDING.equals(status)) {
             if (workshop.getStartDate() != null
                     && workshop.getStartDate().isBefore(java.time.LocalDate.now())) {
-                throw new InvalidDateRangeException();
+                throw new InvalidDateRangeException("La fecha de inicio del taller no puede ser anterior a la fecha actual");
             }
 
             if (workshop.getConfirmationDeadline() == null) {
-                throw new InvalidDateRangeException();
+                throw new InvalidDateRangeException("Debes indicar una fecha de confirmación para talleres pendientes");
             }
 
             if (workshop.getConfirmationDeadline().isBefore(java.time.LocalDate.now())) {
-                throw new InvalidDateRangeException();
+                throw new InvalidDateRangeException("La fecha de confirmación del taller no puede ser anterior a la fecha actual");
             }
 
             if (workshop.getStartDate() != null
                     && workshop.getConfirmationDeadline().isAfter(workshop.getStartDate())) {
-                throw new InvalidDateRangeException();
+                throw new InvalidDateRangeException("La fecha de confirmación debe ser anterior a la fecha de inicio del taller");
             }
         }
     }

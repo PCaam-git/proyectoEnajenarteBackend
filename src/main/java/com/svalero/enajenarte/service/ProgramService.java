@@ -195,22 +195,7 @@ public class ProgramService {
             throw new InvalidDateRangeException("La fecha de finalización debe ser posterior a la fecha de inicio del programa");
         }
 
-        if (STATUS_CONFIRMED.equals(status) || STATUS_CANCELLED.equals(status)) {
-            program.setConfirmationDeadline(null);
-            return;
-        }
-
         if (STATUS_PENDING.equals(status)) {
-            if (program.getInitDate() != null
-                    && program.getInitDate().isBefore(java.time.LocalDate.now())) {
-                throw new InvalidDateRangeException("La fecha de inicio del programa no puede ser anterior a la fecha actual");
-            }
-
-            if (program.getFinishDate() != null
-                    && program.getFinishDate().isBefore(java.time.LocalDate.now())) {
-                throw new InvalidDateRangeException("La fecha de finalización del programa no puede ser anterior a la fecha actual");
-            }
-
             if (program.getConfirmationDeadline() == null) {
                 throw new InvalidDateRangeException("Debes indicar una fecha de confirmación para programas pendientes");
             }
@@ -220,9 +205,23 @@ public class ProgramService {
             }
 
             if (program.getInitDate() != null
-                    && program.getConfirmationDeadline().isAfter(program.getInitDate())) {
+                    && !program.getConfirmationDeadline().isBefore(program.getInitDate())) {
                 throw new InvalidDateRangeException("La fecha de confirmación debe ser anterior a la fecha de inicio del programa");
             }
+        }
+
+        if (program.getInitDate() != null
+                && program.getInitDate().isBefore(java.time.LocalDate.now())) {
+            throw new InvalidDateRangeException("La fecha de inicio del programa no puede ser anterior a la fecha actual");
+        }
+
+        if (program.getFinishDate() != null
+                && program.getFinishDate().isBefore(java.time.LocalDate.now())) {
+            throw new InvalidDateRangeException("La fecha de finalización del programa no puede ser anterior a la fecha actual");
+        }
+
+        if (STATUS_CONFIRMED.equals(status) || STATUS_CANCELLED.equals(status)) {
+            program.setConfirmationDeadline(null);
         }
     }
 

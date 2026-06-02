@@ -22,6 +22,7 @@ public class ProgramOutDto {
     private LocalDate confirmationDeadline;
     private float price;
     private Integer minimumParticipants;
+    private int maxCapacity;
     private boolean isOnline;
     private String status;
 

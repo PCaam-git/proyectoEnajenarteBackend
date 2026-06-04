@@ -204,10 +204,12 @@ public class RegistrationService {
         existingRegistration.setStatus(status);
 
         if (registrationInDto.getPaymentStatus() != null) {
+            String paymentStatus = registrationInDto.getPaymentStatus().toUpperCase();
+
             try {
-                existingRegistration.setPaymentStatus(
-                        PaymentStatus.valueOf(registrationInDto.getPaymentStatus().toUpperCase())
-                );
+                PaymentStatus validPaymentStatus = PaymentStatus.valueOf(paymentStatus);
+                existingRegistration.setPaymentStatus(validPaymentStatus);
+                existingRegistration.setPaid(PaymentStatus.PAID.equals(validPaymentStatus));
             } catch (IllegalArgumentException e) {
                 throw new InvalidPaymentStatusException();
             }

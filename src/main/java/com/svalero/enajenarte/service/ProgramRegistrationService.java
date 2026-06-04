@@ -205,9 +205,14 @@ public class ProgramRegistrationService {
         existing.setRating(rating);
         existing.setStatus(status);
 
+        // payment status = PAID -> paid = true
+        // payment status = PENDING -> paid = false
         if (inDto.getPaymentStatus() != null) {
+            String paymentStatus = inDto.getPaymentStatus().toUpperCase();
             try {
-                existing.setPaymentStatus(inDto.getPaymentStatus().toUpperCase());
+                PaymentStatus.valueOf(paymentStatus);
+                existing.setPaymentStatus(paymentStatus);
+                existing.setPaid(PaymentStatus.PAID.name().equals(paymentStatus));
             } catch (IllegalArgumentException e) {
                 throw new InvalidPaymentStatusException();
             }

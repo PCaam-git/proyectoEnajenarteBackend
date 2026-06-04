@@ -31,6 +31,8 @@ public class WorkshopService {
     @Autowired
     private RegistrationRepository registrationRepository;
     @Autowired
+    private EmailService emailService;
+    @Autowired
     private ModelMapper modelMapper;
     @Autowired
     private AdminCalendarService adminCalendarService;
@@ -166,6 +168,9 @@ public class WorkshopService {
             throw new DuplicateWorkshopException();
         }
 
+        // Guarda el estado anterior antes de aplicar los cambios del formulario
+        String previousStatus = existingWorkshop.getStatus();
+
         modelMapper.map(workshopInDto, existingWorkshop);
         existingWorkshop.setId(id);
         existingWorkshop.setSpeaker(speaker);
@@ -174,6 +179,9 @@ public class WorkshopService {
 
         Workshop updatedWorkshop = workshopRepository.save(existingWorkshop);
         adminCalendarService.updateEntryFromWorkshop(updatedWorkshop);
+
+        notifyWorkshopStatusChangeIfNeeded(previousStatus, updatedWorkshop);
+
         WorkshopOutDto updatedWorkshopOutDto = modelMapper.map(updatedWorkshop, WorkshopOutDto.class);
 
         // Modificación aplicada: Mapear -> Setear IDs -> Devolver. Evita que speakerId salga a 0
@@ -263,8 +271,48 @@ public class WorkshopService {
 
     }
 
+    private void notifyWorkshopStatusChangeIfNeeded(String previousStatus, Workshop workshop) {
+        if (previousStatus == null || previousStatus.equals(workshop.getStatus())) {
+            return;
+        }
+
+        List<Registration> registrations = registrationRepository.findByWorkshop(workshop);
+
+        if (STATUS_CONFIRMED.equals(workshop.getStatus())) {
+            for (Registration registration : registrations) {
+                registration.setStatus(STATUS_CONFIRMED);
+                registrationRepository.save(registration);
+                sendWorkshopConfirmationNotification(registration);
+            }
+        }
+
+        if (STATUS_CANCELLED.equals(workshop.getStatus())) {
+            for (Registration registration : registrations) {
+                registration.setStatus(STATUS_CANCELLED);
+                registrationRepository.save(registration);
+                sendWorkshopCancellationNotification(registration);
+            }
+        }
+    }
+
     private void sendWorkshopCancellationNotification(Registration registration) {
-        System.out.println("Notificación de cancelación para la inscripción con código: "
-                + registration.getConfirmationCode());
+        emailService.sendEmail(
+                registration.getUser().getEmail(),
+                "Cancelación del taller " + registration.getWorkshop().getName(),
+                "El taller al que te habías inscrito ha sido cancelado.\n\n"
+                        + "Taller: " + registration.getWorkshop().getName() + "\n"
+                        + "Código de inscripción: " + registration.getConfirmationCode() + "\n\n"
+                        + "Te informaremos si se abre una nueva convocatoria."
+        );
+    }
+
+    private void sendWorkshopConfirmationNotification(Registration registration) {
+        emailService.sendEmail(
+                registration.getUser().getEmail(),
+                "Confirmación del taller " + registration.getWorkshop().getName(),
+                "El taller al que te habías inscrito ha quedado confirmado.\n\n"
+                        + "Taller: " + registration.getWorkshop().getName() + "\n"
+                        + "Código de inscripción: " + registration.getConfirmationCode()
+        );
     }
 }

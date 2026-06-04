@@ -29,6 +29,8 @@ public class ProgramService {
     @Autowired
     private AdminCalendarService adminCalendarService;
     @Autowired
+    private EmailService emailService;
+    @Autowired
     private ModelMapper modelMapper;
 
     private static final String STATUS_CONFIRMED = "CONFIRMED";
@@ -157,6 +159,9 @@ public class ProgramService {
             throw new DuplicateProgramException();
         }
 
+        // Guarda el estado anterior antes de los cambios en el formulario
+        String previousStatus = existingProgram.getStatus();
+
         modelMapper.map(programInDto, existingProgram);
         existingProgram.setId(id);
         existingProgram.setSpeaker(speaker);
@@ -165,6 +170,9 @@ public class ProgramService {
 
         Program updatedProgram = programRepository.save(existingProgram);
         adminCalendarService.updateEntryFromProgram(updatedProgram);
+
+        notifyProgramStatusChangeIfNeeded(previousStatus, updatedProgram);
+
         ProgramOutDto updatedProgramOutDto = modelMapper.map(updatedProgram, ProgramOutDto.class);
 
         if (updatedProgram.getSpeaker() != null) {
@@ -262,8 +270,48 @@ public class ProgramService {
         }
     }
 
+    private void notifyProgramStatusChangeIfNeeded(String previousStatus, Program program) {
+        if (previousStatus == null || previousStatus.equals(program.getStatus())) {
+            return;
+        }
+
+        List<ProgramRegistration> registrations = programRegistrationRepository.findByProgram(program);
+
+        if (STATUS_CONFIRMED.equals(program.getStatus())) {
+            for (ProgramRegistration registration : registrations) {
+                registration.setStatus(STATUS_CONFIRMED);
+                programRegistrationRepository.save(registration);
+                sendProgramConfirmationNotification(registration);
+            }
+        }
+
+        if (STATUS_CANCELLED.equals(program.getStatus())) {
+            for (ProgramRegistration registration : registrations) {
+                registration.setStatus(STATUS_CANCELLED);
+                programRegistrationRepository.save(registration);
+                sendProgramCancellationNotification(registration);
+            }
+        }
+    }
+
+    private void sendProgramConfirmationNotification(ProgramRegistration registration) {
+        emailService.sendEmail(
+                registration.getUser().getEmail(),
+                "Confirmación del programa " + registration.getProgram().getName(),
+                "El programa al que te habías inscrito ha quedado confirmado.\n\n"
+                        + "Programa: " + registration.getProgram().getName() + "\n"
+                        + "Código de inscripción: " + registration.getConfirmationCode()
+        );
+    }
+
     private void sendProgramCancellationNotification(ProgramRegistration registration) {
-        System.out.println(registration.getUser().getFullName()
-                + " , el programa se ha cancelado. Te informaremos cuando haya una nueva convocatoria.");
+        emailService.sendEmail(
+                registration.getUser().getEmail(),
+                "Cancelación del programa " + registration.getProgram().getName(),
+                "El programa al que te habías inscrito ha sido cancelado.\n\n"
+                        + "Programa: " + registration.getProgram().getName() + "\n"
+                        + "Código de inscripción: " + registration.getConfirmationCode() + "\n\n"
+                        + "Te informaremos si se abre una nueva convocatoria."
+        );
     }
 }

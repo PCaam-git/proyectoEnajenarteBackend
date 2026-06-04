@@ -89,16 +89,18 @@ public class ProgramRegistrationService {
 
         ProgramRegistration newRegistration = programRegistrationRepository.save(registration);
 
-        confirmProgramIfMinimumReached(program, currentParticipants + requestedTickets);
+        boolean programConfirmedByMinimum = confirmProgramIfMinimumReached(program, currentParticipants + requestedTickets);
 
         if (STATUS_CONFIRMED.equals(program.getStatus())) {
             newRegistration.setStatus(STATUS_CONFIRMED);
         }
 
-        try {
-            sendProgramRegistrationEmail(newRegistration);
-        } catch (Exception e) {
-            System.err.println("No se ha podido enviar el email de inscripción en el programa: " + e.getMessage());
+        if (!programConfirmedByMinimum) {
+            try {
+                sendProgramRegistrationEmail(newRegistration);
+            } catch (Exception e) {
+                System.err.println("No se ha podido enviar el email de inscripción en el programa: " + e.getMessage());
+            }
         }
 
         ProgramRegistrationOutDto programRegistrationOutDto = modelMapper.map(newRegistration, ProgramRegistrationOutDto.class);
@@ -272,7 +274,17 @@ public class ProgramRegistrationService {
         );
     }
 
-    private void confirmProgramIfMinimumReached(Program program, int totalParticipants) {
+    private void sendProgramConfirmationEmail(ProgramRegistration registration) {
+        emailService.sendEmail(
+                registration.getUser().getEmail(),
+                "Confirmación del programa " + registration.getProgram().getName(),
+                "Tu inscripción ha quedado confirmada.\n\n"
+                        + "Programa: " + registration.getProgram().getName() + "\n"
+                        + "Código de confirmación: " + registration.getConfirmationCode()
+        );
+    }
+
+    private boolean confirmProgramIfMinimumReached(Program program, int totalParticipants) {
         if (STATUS_PENDING.equals(program.getStatus())
                 && program.getMinimumParticipants() != null
                 && totalParticipants >= program.getMinimumParticipants()) {
@@ -285,8 +297,16 @@ public class ProgramRegistrationService {
             for (ProgramRegistration registration : registrations) {
                 registration.setStatus(STATUS_CONFIRMED);
                 programRegistrationRepository.save(registration);
+
+                try {
+                    sendProgramConfirmationEmail(registration);
+                } catch (Exception e) {
+                    System.err.println("Error enviando email de confirmación del programa: " + e.getMessage());
+                }
             }
+            return true;
         }
+        return false;
     }
 
     private void validateProgramAvailableForRegistration(Program program) throws ProgramCapacityExceededException {

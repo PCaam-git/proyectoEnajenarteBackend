@@ -1,0 +1,2453 @@
+{
+  "info": {
+    "_postman_id": "499f9e70-c819-480a-be1d-24cfe64924b0",
+    "name": "enajenArte API - Colección de validación manual",
+    "description": "Colección Postman generada a partir del backup SQL y del código del backend. Incluye autenticación, consultas públicas, flujos de usuario autenticado, operaciones administrativas y pruebas de errores. Antes de ejecutarla, importa también el entorno y revisa las contraseñas de los usuarios de prueba.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48848621"
+  },
+  "item": [
+    {
+      "name": "00 - Autenticación",
+      "item": [
+        {
+          "name": "Login ADMIN - guardar token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Login ADMIN correcto', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "pm.environment.set('adminToken', data.token);",
+                  "pm.environment.set('adminUserId', data.id);",
+                  "pm.environment.set('adminUsernameResponse', data.username);",
+                  "pm.environment.set('adminRole', data.role);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{adminUsername}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Ejecuta esta petición primero para guardar {{adminToken}}. Revisa en el entorno que adminUsername/adminPassword coinciden con tus datos de prueba."
+          },
+          "response": []
+        },
+        {
+          "name": "Login USER - guardar token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login USER correcto', function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "pm.environment.set('userToken', data.token);",
+                  "pm.environment.set('userId', data.id);",
+                  "pm.environment.set('userUsernameResponse', data.username);",
+                  "pm.environment.set('userRole', data.role);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{userUsername}}\",\n  \"password\": \"{{userPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Ejecuta esta petición después del login admin para guardar {{userToken}} y {{userId}}."
+          },
+          "response": []
+        },
+        {
+          "name": "Login incorrecto - 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([401]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"usuario_inexistente\",\n  \"password\": \"error\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Prueba negativa de autenticación con credenciales inválidas."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "01 - Consultas públicas y contacto",
+      "item": [
+        {
+          "name": "GET talleres públicos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta correcta', function () {",
+                  "    pm.expect([200, 201, 204]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/workshops",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workshops"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET taller por id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/workshops/{{workshopId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workshops",
+                "{{workshopId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET talleres filtrados por ponente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta correcta', function () {",
+                  "    pm.expect([200, 201, 204]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/workshops?speakerId={{speakerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workshops"
+              ],
+              "query": [
+                {
+                  "key": "speakerId",
+                  "value": "{{speakerId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET programas públicos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta correcta', function () {",
+                  "    pm.expect([200, 201, 204]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/programs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "programs"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET programa por id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/programs/{{programId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "programs",
+                "{{programId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET programas filtrados por online",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta correcta', function () {",
+                  "    pm.expect([200, 201, 204]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/programs?isOnline=false",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "programs"
+              ],
+              "query": [
+                {
+                  "key": "isOnline",
+                  "value": "false"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET eventos públicos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta correcta', function () {",
+                  "    pm.expect([200, 201, 204]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET evento por id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{eventId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{eventId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST mensaje de contacto público",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([201]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Prueba Postman\",\n  \"email\": \"postman@example.com\",\n  \"category\": \"WORKSHOP\",\n  \"referenceId\": 25,\n  \"message\": \"Mensaje de prueba enviado desde Postman.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contact-messages"
+              ]
+            },
+            "description": "Endpoint público. Envía notificación al correo configurado si el backend tiene el servicio de mail activo."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Usuario autenticado",
+      "item": [
+        {
+          "name": "GET usuario actual",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET mis inscripciones a talleres",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta correcta', function () {",
+                  "    pm.expect([200, 201, 204]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/registrations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "registrations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET mis inscripciones a programas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta correcta', function () {",
+                  "    pm.expect([200, 201, 204]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/program-registrations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "program-registrations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST inscripción a taller",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([201, 409]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numberOfTickets\": 1,\n  \"userId\": \"{{userId}}\",\n  \"workshopId\": 25,\n  \"paymentStatus\": \"PENDING\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/registrations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations"
+              ]
+            },
+            "description": "Puede devolver 409 si ya existe una inscripción previa para ese usuario y taller."
+          },
+          "response": []
+        },
+        {
+          "name": "POST inscripción duplicada a taller - 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([409, 403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numberOfTickets\": 1,\n  \"userId\": 52,\n  \"workshopId\": 26,\n  \"paymentStatus\": \"PENDING\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/registrations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations"
+              ]
+            },
+            "description": "Usa datos del backup SQL: user 52 ya está inscrito en workshop 26. Si entras con otro usuario, puede devolver 403 por protección de propietario."
+          },
+          "response": []
+        },
+        {
+          "name": "POST inscripción a programa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([201, 409]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numberOfTickets\": 1,\n  \"userId\": \"{{userId}}\",\n  \"programId\": 6,\n  \"paymentStatus\": \"PENDING\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/program-registrations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "program-registrations"
+              ]
+            },
+            "description": "Puede devolver 409 si ya existe una inscripción previa para ese usuario y programa."
+          },
+          "response": []
+        },
+        {
+          "name": "POST inscripción duplicada a programa - 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([409, 403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numberOfTickets\": 1,\n  \"userId\": 52,\n  \"programId\": 3,\n  \"paymentStatus\": \"PENDING\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/program-registrations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "program-registrations"
+              ]
+            },
+            "description": "Usa datos del backup SQL: user 52 ya está inscrito en program 3. Si entras con otro usuario, puede devolver 403 por protección de propietario."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT editar mi perfil",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"\",\n  \"email\": \"postman.user@example.com\",\n  \"fullName\": \"Usuario Postman\",\n  \"phone\": 666123456,\n  \"gender\": \"FEMALE\",\n  \"ageGroup\": \"BETWEEN_35_44\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "description": "Modifica datos del usuario autenticado. No modifica username."
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{userToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "03 - Administración",
+      "item": [
+        {
+          "name": "GET usuarios",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta correcta', function () {",
+                  "    pm.expect([200, 201, 204]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET usuarios filtrados por active=true",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta correcta', function () {",
+                  "    pm.expect([200, 201, 204]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users?active=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "active",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET usuario por id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET ponentes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta correcta', function () {",
+                  "    pm.expect([200, 201, 204]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/speakers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "speakers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET ponente por id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/speakers/{{speakerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "speakers",
+                "{{speakerId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST crear ponente",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('suffix', Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([201]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Ponente\",\n  \"lastName\": \"Postman {{$timestamp}}\",\n  \"email\": \"ponente{{$timestamp}}@example.com\",\n  \"speciality\": \"Creatividad\",\n  \"yearsExperience\": 3,\n  \"workshopHoursTotal\": 0,\n  \"available\": true,\n  \"joinDate\": \"2026-06-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/speakers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "speakers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT editar ponente existente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Cristina\",\n  \"lastName\": \"Gómez\",\n  \"email\": \"cristina.gomez@example.com\",\n  \"speciality\": \"Periodismo e inteligencia emocional\",\n  \"yearsExperience\": 8,\n  \"workshopHoursTotal\": 0,\n  \"available\": true,\n  \"joinDate\": \"2023-11-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/speakers/{{speakerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "speakers",
+                "{{speakerId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST crear taller",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('suffix', Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([201]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Taller Postman {{$timestamp}}\",\n  \"description\": \"Taller creado desde Postman para validar el endpoint.\",\n  \"startDate\": \"2027-12-12\",\n  \"hour\": \"10:00\",\n  \"confirmationDeadline\": null,\n  \"durationMinutes\": 90,\n  \"price\": 50,\n  \"minimumParticipants\": 5,\n  \"maxCapacity\": 20,\n  \"isOnline\": false,\n  \"status\": \"CONFIRMED\",\n  \"speakerId\": 32\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/workshops",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workshops"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST taller con fecha pasada - 400",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('suffix', Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([400]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Taller fecha pasada {{$timestamp}}\",\n  \"description\": \"Prueba de validación de fecha.\",\n  \"startDate\": \"2020-01-01\",\n  \"hour\": \"10:00\",\n  \"confirmationDeadline\": null,\n  \"durationMinutes\": 90,\n  \"price\": 50,\n  \"minimumParticipants\": 5,\n  \"maxCapacity\": 20,\n  \"isOnline\": false,\n  \"status\": \"CONFIRMED\",\n  \"speakerId\": 32\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/workshops",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workshops"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT editar taller existente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Historias en el espejo\",\n  \"description\": \"Ejercicios de escritura emocional\",\n  \"startDate\": \"2027-03-12\",\n  \"hour\": \"09:00\",\n  \"confirmationDeadline\": null,\n  \"durationMinutes\": 180,\n  \"price\": 50,\n  \"minimumParticipants\": 15,\n  \"maxCapacity\": 50,\n  \"isOnline\": false,\n  \"status\": \"CONFIRMED\",\n  \"speakerId\": 32\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/workshops/{{workshopId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workshops",
+                "{{workshopId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE taller con inscripciones asociadas - 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([409, 204]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/workshops/{{workshopId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workshops",
+                "{{workshopId}}"
+              ]
+            },
+            "description": "Si el taller mantiene inscripciones asociadas, debe devolver 409. Si se han cambiado los datos, podría devolver 204."
+          },
+          "response": []
+        },
+        {
+          "name": "POST crear programa",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('suffix', Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([201]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Programa Postman {{$timestamp}}\",\n  \"description\": \"Programa creado desde Postman.\",\n  \"location\": \"Zaragoza\",\n  \"initDate\": \"2027-01-10\",\n  \"finishDate\": \"2027-06-10\",\n  \"hour\": \"17:00\",\n  \"durationMinutes\": 120,\n  \"confirmationDeadline\": \"2026-12-01\",\n  \"price\": 60,\n  \"minimumParticipants\": 5,\n  \"maxCapacity\": 20,\n  \"isOnline\": false,\n  \"status\": \"PENDING\",\n  \"speakerId\": 31\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/programs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "programs"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT editar programa existente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"re ESCRIBIR te\",\n  \"description\": \"Programa de escritura emocional.\",\n  \"location\": \"Editorial ZAFIRO. Paseo de las Damas 44, local 4\",\n  \"initDate\": \"2026-10-19\",\n  \"finishDate\": \"2027-05-24\",\n  \"hour\": \"17:00\",\n  \"durationMinutes\": 120,\n  \"confirmationDeadline\": \"2026-09-15\",\n  \"price\": 60,\n  \"minimumParticipants\": 10,\n  \"maxCapacity\": 25,\n  \"isOnline\": false,\n  \"status\": \"PENDING\",\n  \"speakerId\": 32\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/programs/{{programId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "programs",
+                "{{programId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST crear evento",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('suffix', Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([201]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Evento Postman {{$timestamp}}\",\n  \"location\": \"Zaragoza\",\n  \"eventDate\": \"2027-09-09T10:00:00\",\n  \"entryFee\": 0,\n  \"isPublic\": false,\n  \"expectedAttendance\": 30,\n  \"speakerId\": 32\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET inscripciones a talleres",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta correcta', function () {",
+                  "    pm.expect([200, 201, 204]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/registrations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET inscripción a taller por id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/registrations/{{registrationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations",
+                "{{registrationId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT actualizar estado de pago inscripción taller",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numberOfTickets\": 1,\n  \"userId\": 52,\n  \"workshopId\": 26,\n  \"paymentStatus\": \"PAID\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/registrations/{{registrationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations",
+                "{{registrationId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET inscripciones a programas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta correcta', function () {",
+                  "    pm.expect([200, 201, 204]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/program-registrations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "program-registrations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET inscripción a programa por id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/program-registrations/{{programRegistrationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "program-registrations",
+                "{{programRegistrationId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT actualizar estado de pago inscripción programa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numberOfTickets\": 1,\n  \"userId\": 52,\n  \"programId\": 3,\n  \"paymentStatus\": \"PAID\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/program-registrations/{{programRegistrationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "program-registrations",
+                "{{programRegistrationId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET mensajes de contacto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta correcta', function () {",
+                  "    pm.expect([200, 201, 204]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contact-messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contact-messages"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET mensaje de contacto por id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([200]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contact-messages/{{contactMessageId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contact-messages",
+                "{{contactMessageId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET calendario administrativo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta correcta', function () {",
+                  "    pm.expect([200, 201, 204]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin-calendar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin-calendar"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST crear entrada calendario",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('suffix', Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([201]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Entrada Postman {{$timestamp}}\",\n  \"startDate\": \"2027-02-01\",\n  \"endDate\": \"2027-02-01\",\n  \"hour\": \"11:00\",\n  \"durationMinutes\": 60,\n  \"category\": \"OTHER\",\n  \"description\": \"Entrada manual creada desde Postman.\",\n  \"speakerName\": \"Cristina Gómez\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin-calendar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin-calendar"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{adminToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "04 - Seguridad y errores",
+      "item": [
+        {
+          "name": "GET registrations con USER - 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/registrations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations"
+              ]
+            },
+            "description": "Prueba de autorización por rol: un usuario normal no puede listar todas las inscripciones."
+          },
+          "response": []
+        },
+        {
+          "name": "GET admin-calendar sin token - 401/403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([401, 403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin-calendar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin-calendar"
+              ]
+            },
+            "description": "Prueba sin token. Según configuración de Spring Security puede responder 401 o 403."
+          },
+          "response": []
+        },
+        {
+          "name": "POST crear taller sin token - 401/403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código esperado', function () {",
+                  "    pm.expect([401, 403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sin token\",\n  \"description\": \"Debe fallar\",\n  \"startDate\": \"2027-12-12\",\n  \"hour\": \"10:00\",\n  \"confirmationDeadline\": null,\n  \"durationMinutes\": 90,\n  \"price\": 50,\n  \"minimumParticipants\": 5,\n  \"maxCapacity\": 20,\n  \"isOnline\": false,\n  \"status\": \"CONFIRMED\",\n  \"speakerId\": 32\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/workshops",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "workshops"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Colección enajenArte",
+          "// Ejecutar primero los logins para guardar adminToken y userToken."
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Tests comunes definidos a nivel de request."
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "speakerId",
+      "value": "32"
+    },
+    {
+      "key": "workshopId",
+      "value": "25"
+    },
+    {
+      "key": "workshopDuplicateId",
+      "value": "26"
+    },
+    {
+      "key": "programId",
+      "value": "3"
+    },
+    {
+      "key": "programAlternativeId",
+      "value": "6"
+    },
+    {
+      "key": "eventId",
+      "value": "45"
+    },
+    {
+      "key": "registrationId",
+      "value": "45"
+    },
+    {
+      "key": "programRegistrationId",
+      "value": "16"
+    },
+    {
+      "key": "calendarId",
+      "value": "32"
+    },
+    {
+      "key": "contactMessageId",
+      "value": "5"
+    }
+  ]
+}

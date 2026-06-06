@@ -2,11 +2,8 @@ package com.svalero.enajenarte.controller;
 
 import com.svalero.enajenarte.dto.WorkshopInDto;
 import com.svalero.enajenarte.dto.WorkshopOutDto;
-import com.svalero.enajenarte.exception.ErrorResponse;
-import com.svalero.enajenarte.exception.InvalidDateRangeException;
+import com.svalero.enajenarte.exception.*;
 import com.svalero.enajenarte.service.WorkshopService;
-import com.svalero.enajenarte.exception.SpeakerNotFoundException;
-import com.svalero.enajenarte.exception.WorkshopNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -50,7 +47,7 @@ public class WorkshopController {
 
     //POST
     @PostMapping("/workshops")
-    public ResponseEntity<WorkshopOutDto> addWorkshop(@Valid @RequestBody WorkshopInDto workshopInDto) throws SpeakerNotFoundException, InvalidDateRangeException{
+    public ResponseEntity<WorkshopOutDto> addWorkshop(@Valid @RequestBody WorkshopInDto workshopInDto) throws SpeakerNotFoundException, InvalidDateRangeException, DuplicateWorkshopException{
         WorkshopOutDto newWorkshop = workshopService.add(workshopInDto);
         return new ResponseEntity<>(newWorkshop, HttpStatus.CREATED);
     }
@@ -58,14 +55,14 @@ public class WorkshopController {
     // PUT
     @PutMapping("/workshops/{id}")
     public ResponseEntity<WorkshopOutDto> modifyWorkshop(@PathVariable long id, @Valid @RequestBody WorkshopInDto workshopInDto)
-        throws SpeakerNotFoundException, WorkshopNotFoundException, InvalidDateRangeException {
+        throws SpeakerNotFoundException, WorkshopNotFoundException, InvalidDateRangeException, DuplicateWorkshopException {
         WorkshopOutDto updateWorkshop = workshopService.modify(id, workshopInDto);
         return ResponseEntity.ok(updateWorkshop);
     }
 
     // DELETE
     @DeleteMapping("/workshops/{id}")
-    public ResponseEntity<Void> deleteWorkshop(@PathVariable long id) throws WorkshopNotFoundException {
+    public ResponseEntity<Void> deleteWorkshop(@PathVariable long id) throws WorkshopNotFoundException, HasAssociatedRegistrationsException {
         workshopService.delete(id);
         return ResponseEntity.noContent().build();
     }
@@ -80,14 +77,32 @@ public class WorkshopController {
     // 404 - Speaker (relación)
     @ExceptionHandler(SpeakerNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(SpeakerNotFoundException snfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The speaker does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("El ponente no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    // 409 - Workshop con registros asociados
+    @ExceptionHandler(HasAssociatedRegistrationsException.class)
+    public ResponseEntity<ErrorResponse> handleException(HasAssociatedRegistrationsException hare) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(409, "conflict", "No se puede eliminar: el taller tiene registros asociados");
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    // 409 - Entrada duplicada
+    @ExceptionHandler(DuplicateWorkshopException.class)
+    public ResponseEntity<ErrorResponse> handleException(DuplicateWorkshopException dwe) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(
+                409,
+                "conflict",
+                "No se puede guardar: ya existe un taller con el mismo nombre, fecha y modalidad o ponente"
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     // 400 - Fecha de confirmación posterior a la fecha de inicio
     @ExceptionHandler(InvalidDateRangeException.class)
     public ResponseEntity<ErrorResponse> handleException(InvalidDateRangeException idrе) {
-        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", "confirmationDeadline must be before startDate");
+        ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", idrе.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
 
     }

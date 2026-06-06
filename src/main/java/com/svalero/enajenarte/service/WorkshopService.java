@@ -5,9 +5,11 @@ import com.svalero.enajenarte.domain.Speaker;
 import com.svalero.enajenarte.domain.Workshop;
 import com.svalero.enajenarte.dto.WorkshopInDto;
 import com.svalero.enajenarte.dto.WorkshopOutDto;
+import com.svalero.enajenarte.exception.HasAssociatedRegistrationsException;
 import com.svalero.enajenarte.exception.InvalidDateRangeException;
 import com.svalero.enajenarte.exception.SpeakerNotFoundException;
 import com.svalero.enajenarte.exception.WorkshopNotFoundException;
+import com.svalero.enajenarte.exception.DuplicateWorkshopException;
 import com.svalero.enajenarte.repository.SpeakerRepository;
 import com.svalero.enajenarte.repository.WorkshopRepository;
 import com.svalero.enajenarte.repository.RegistrationRepository;
@@ -29,51 +31,72 @@ public class WorkshopService {
     @Autowired
     private RegistrationRepository registrationRepository;
     @Autowired
+    private EmailService emailService;
+    @Autowired
     private ModelMapper modelMapper;
     @Autowired
-    private RegistrationService registrationService;
+    private AdminCalendarService adminCalendarService;
+
+    private static final String STATUS_CONFIRMED = "CONFIRMED";
+    private static final String STATUS_PENDING = "PENDING";
+    private static final String STATUS_CANCELLED = "CANCELLED";
 
 
     // POST
-    public WorkshopOutDto add(WorkshopInDto workshopInDto) throws SpeakerNotFoundException, InvalidDateRangeException {
+    public WorkshopOutDto add(WorkshopInDto workshopInDto) throws SpeakerNotFoundException, InvalidDateRangeException, DuplicateWorkshopException {
         Speaker speaker = speakerRepository.findById(workshopInDto.getSpeakerId())
                 .orElseThrow(SpeakerNotFoundException::new);
 
+        boolean duplicatedWorkshopExists = workshopRepository.findAll().stream()
+                .anyMatch(existingWorkshop ->
+                        existingWorkshop.getName() != null
+                                && existingWorkshop.getName().equalsIgnoreCase(workshopInDto.getName())
+                                && existingWorkshop.getStartDate() != null
+                                && existingWorkshop.getStartDate().equals(workshopInDto.getStartDate())
+                                && (
+                                existingWorkshop.isOnline() == workshopInDto.isOnline()
+                                        || (existingWorkshop.getSpeaker() != null
+                                        && existingWorkshop.getSpeaker().getId() == speaker.getId())
+                        )
+                );
+
+        if (duplicatedWorkshopExists) {
+            throw new DuplicateWorkshopException();
+        }
+
         Workshop workshop = modelMapper.map(workshopInDto, Workshop.class);
-        // La fecha para informar al cliente de que el taller será cancelado debe ser anterior a la fecha del taller
-        if (workshop.getConfirmationDeadline().isAfter(workshop.getStartDate())) {
-            throw new InvalidDateRangeException();
-        }
+        validateWorkshopDatesAndStatus(workshop);
 
-        // En un futuro: inscripción a workshop online se confirma automáticamente. inscripción a workshop presencial, dependerá de si se alcanza el mínimo de usuarios
-        if (workshop.isOnline()) {
-            workshop.setStatus("CONFIRMED");
-        } else {
-            workshop.setStatus("PENDING");
-        }
         workshop.setSpeaker(speaker);
-
         Workshop newWorkshop = workshopRepository.save(workshop);
+        // Añade la entrada al calendario con los datos del workshop
+        adminCalendarService.createEntryFromWorkshop(newWorkshop);
 
         // Modificación aplicada: Mapear -> Setear IDs -> Devolver. Evita que speakerId salga a 0
         WorkshopOutDto workshopOutDto = modelMapper.map(newWorkshop, WorkshopOutDto.class);
         if (newWorkshop.getSpeaker() != null) {
             workshopOutDto.setSpeakerId(newWorkshop.getSpeaker().getId());
+            workshopOutDto.setSpeakerName(newWorkshop.getSpeaker().getFirstName() + " " + newWorkshop.getSpeaker().getLastName());
         }
 
         return workshopOutDto;
     }
 
     // DELETE
-    public void delete(long id) throws WorkshopNotFoundException {
+    public void delete(long id) throws WorkshopNotFoundException, HasAssociatedRegistrationsException {
         Workshop workshop = workshopRepository.findById(id)
                 .orElseThrow(WorkshopNotFoundException::new);
 
+        List<Registration> registrations = registrationRepository.findByWorkshop(workshop);
+        if (!registrations.isEmpty()) {
+            throw new HasAssociatedRegistrationsException();
+        }
+
+        adminCalendarService.deleteEntryFromWorkshop(workshop);
         workshopRepository.delete(workshop);
     }
 
     // GET ALL (con filtros)
-    // Eliminada la excepción para permitir pruebas con los filtros
     public List<WorkshopOutDto> findAll(String name, String isOnline, String speakerId) {
 
         // Convertir parámetros a variables finales para el stream. Si el filtro no se usa, devuelve null. Si se usa, aplica el valor del filtro
@@ -85,7 +108,8 @@ public class WorkshopService {
         List<Workshop> filteredWorkshops = workshopRepository.findAll().stream()
                 .filter(workshop -> finalName == null || workshop.getName().toLowerCase().contains(finalName))
                 .filter(workshop -> finalIsOnline == null || workshop.isOnline() == finalIsOnline)
-                .filter(workshop -> finalSpeakerId == null || workshop.getSpeaker().getId() == finalSpeakerId)
+                .filter(workshop -> finalSpeakerId == null
+                        || (workshop.getSpeaker() != null && workshop.getSpeaker().getId() == finalSpeakerId))
                 .toList();
 
         // Mapear DTOs
@@ -96,6 +120,7 @@ public class WorkshopService {
         for (int i = 0; i < filteredWorkshops.size(); i++) {
             if (filteredWorkshops.get(i).getSpeaker() != null) {
                 workshopsOutDtos.get(i).setSpeakerId(filteredWorkshops.get(i).getSpeaker().getId());
+                workshopsOutDtos.get(i).setSpeakerName(filteredWorkshops.get(i).getSpeaker().getFirstName() + " " + filteredWorkshops.get(i).getSpeaker().getLastName());
             }
         }
 
@@ -112,49 +137,99 @@ public class WorkshopService {
         // Modificación aplicada: Mapear -> Setear IDs -> Devolver. Evita que speakerId salga a 0
         if (workshop.getSpeaker() != null) {
             workshopOutDto.setSpeakerId(workshop.getSpeaker().getId());
+            workshopOutDto.setSpeakerName(workshop.getSpeaker().getFirstName() + " " + workshop.getSpeaker().getLastName());
         }
 
         return workshopOutDto;
     }
 
     // PUT
-    public WorkshopOutDto modify(long id, WorkshopInDto workshopInDto) throws WorkshopNotFoundException, SpeakerNotFoundException, InvalidDateRangeException {
+    public WorkshopOutDto modify(long id, WorkshopInDto workshopInDto) throws WorkshopNotFoundException, SpeakerNotFoundException, InvalidDateRangeException, DuplicateWorkshopException{
         Workshop existingWorkshop = workshopRepository.findById(id)
                 .orElseThrow(WorkshopNotFoundException::new);
         Speaker speaker = speakerRepository.findById(workshopInDto.getSpeakerId())
                 .orElseThrow(SpeakerNotFoundException::new);
 
-        String status = existingWorkshop.getStatus();
+        boolean duplicatedWorkshopExists = workshopRepository.findAll().stream()
+                .anyMatch(workshop ->
+                        workshop.getId() != id
+                                && workshop.getName() != null
+                                && workshop.getName().equalsIgnoreCase(workshopInDto.getName())
+                                && workshop.getStartDate() != null
+                                && workshop.getStartDate().equals(workshopInDto.getStartDate())
+                                && (
+                                workshop.isOnline() == workshopInDto.isOnline()
+                                        || (workshop.getSpeaker() != null
+                                        && workshop.getSpeaker().getId() == speaker.getId())
+                        )
+                );
+
+        if (duplicatedWorkshopExists) {
+            throw new DuplicateWorkshopException();
+        }
+
+        // Guarda el estado anterior antes de aplicar los cambios del formulario
+        String previousStatus = existingWorkshop.getStatus();
 
         modelMapper.map(workshopInDto, existingWorkshop);
         existingWorkshop.setId(id);
         existingWorkshop.setSpeaker(speaker);
 
-        if (existingWorkshop.getConfirmationDeadline() != null
-                && existingWorkshop.getStartDate() != null
-                && existingWorkshop.getConfirmationDeadline().isAfter(existingWorkshop.getStartDate())) {
-            throw new InvalidDateRangeException();
-        }
-
-        if (existingWorkshop.isOnline()) {
-            if (!"CANCELLED".equals(status)) {
-                existingWorkshop.setStatus("CONFIRMED");
-            } else {
-                existingWorkshop.setStatus(status);
-            }
-        } else {
-            existingWorkshop.setStatus(status);
-        }
+        validateWorkshopDatesAndStatus(existingWorkshop);
 
         Workshop updatedWorkshop = workshopRepository.save(existingWorkshop);
+        adminCalendarService.updateEntryFromWorkshop(updatedWorkshop);
+
+        notifyWorkshopStatusChangeIfNeeded(previousStatus, updatedWorkshop);
+
         WorkshopOutDto updatedWorkshopOutDto = modelMapper.map(updatedWorkshop, WorkshopOutDto.class);
 
         // Modificación aplicada: Mapear -> Setear IDs -> Devolver. Evita que speakerId salga a 0
         if (updatedWorkshop.getSpeaker() != null) {
             updatedWorkshopOutDto.setSpeakerId(updatedWorkshop.getSpeaker().getId());
+            updatedWorkshopOutDto.setSpeakerName(updatedWorkshop.getSpeaker().getFirstName() + " " + updatedWorkshop.getSpeaker().getLastName());
         }
 
         return updatedWorkshopOutDto;
+    }
+
+    private void validateWorkshopDatesAndStatus(Workshop workshop) throws InvalidDateRangeException {
+        String status = workshop.getStatus();
+
+        if (status == null || status.isBlank()) {
+            workshop.setStatus(STATUS_CONFIRMED);
+            status = STATUS_CONFIRMED;
+        }
+
+        if (!STATUS_CONFIRMED.equals(status)
+                && !STATUS_PENDING.equals(status)
+                && !STATUS_CANCELLED.equals(status)) {
+            throw new InvalidDateRangeException("El estado del taller no es válido");
+        }
+
+        if (STATUS_PENDING.equals(status)) {
+            if (workshop.getConfirmationDeadline() == null) {
+                throw new InvalidDateRangeException("Debes indicar una fecha de confirmación para talleres pendientes");
+            }
+
+            if (workshop.getConfirmationDeadline().isBefore(java.time.LocalDate.now())) {
+                throw new InvalidDateRangeException("La fecha de confirmación del taller no puede ser anterior a la fecha actual");
+            }
+
+            if (workshop.getStartDate() != null
+                    && !workshop.getConfirmationDeadline().isBefore(workshop.getStartDate())) {
+                throw new InvalidDateRangeException("La fecha de confirmación debe ser anterior a la fecha de inicio del taller");
+            }
+        }
+
+        if (workshop.getStartDate() != null
+                && workshop.getStartDate().isBefore(java.time.LocalDate.now())) {
+            throw new InvalidDateRangeException("La fecha de inicio del taller no puede ser anterior a la fecha actual");
+        }
+
+        if (STATUS_CONFIRMED.equals(status) || STATUS_CANCELLED.equals(status)) {
+            workshop.setConfirmationDeadline(null);
+        }
     }
 
     @Scheduled(cron = "0 0 * * * *") // se ejecuta cada hora
@@ -188,7 +263,7 @@ public class WorkshopService {
                         registrationRepository.save(registration);
 
                         // Simulamos notificar al cliente
-                        simulateWorkshopCancellationNotification(registration);
+                        sendWorkshopCancellationNotification(registration);
                     }
                 }
             }
@@ -196,8 +271,48 @@ public class WorkshopService {
 
     }
 
-    private void simulateWorkshopCancellationNotification(Registration registration) {
-        System.out.println("Simulando notificación de cancelación para la inscripción con código: "
-                + registration.getConfirmationCode());
+    private void notifyWorkshopStatusChangeIfNeeded(String previousStatus, Workshop workshop) {
+        if (previousStatus == null || previousStatus.equals(workshop.getStatus())) {
+            return;
+        }
+
+        List<Registration> registrations = registrationRepository.findByWorkshop(workshop);
+
+        if (STATUS_CONFIRMED.equals(workshop.getStatus())) {
+            for (Registration registration : registrations) {
+                registration.setStatus(STATUS_CONFIRMED);
+                registrationRepository.save(registration);
+                sendWorkshopConfirmationNotification(registration);
+            }
+        }
+
+        if (STATUS_CANCELLED.equals(workshop.getStatus())) {
+            for (Registration registration : registrations) {
+                registration.setStatus(STATUS_CANCELLED);
+                registrationRepository.save(registration);
+                sendWorkshopCancellationNotification(registration);
+            }
+        }
+    }
+
+    private void sendWorkshopCancellationNotification(Registration registration) {
+        emailService.sendEmail(
+                registration.getUser().getEmail(),
+                "Cancelación del taller " + registration.getWorkshop().getName(),
+                "El taller al que te habías inscrito ha sido cancelado.\n\n"
+                        + "Taller: " + registration.getWorkshop().getName() + "\n"
+                        + "Código de inscripción: " + registration.getConfirmationCode() + "\n\n"
+                        + "Te informaremos si se abre una nueva convocatoria."
+        );
+    }
+
+    private void sendWorkshopConfirmationNotification(Registration registration) {
+        emailService.sendEmail(
+                registration.getUser().getEmail(),
+                "Confirmación del taller " + registration.getWorkshop().getName(),
+                "El taller al que te habías inscrito ha quedado confirmado.\n\n"
+                        + "Taller: " + registration.getWorkshop().getName() + "\n"
+                        + "Código de inscripción: " + registration.getConfirmationCode()
+        );
     }
 }

@@ -7,8 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.svalero.enajenarte.domain.enums.AgeGroup;
+import com.svalero.enajenarte.domain.enums.Gender;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -24,33 +25,40 @@ public class User {
     private long id;
 
     @Column
-    @NotNull(message = "username is mandatory")
+    @NotNull(message = "Debes indicar un nombre de usuario")
     private String username;
 
     @Column
-    @NotNull(message = "password is mandatory")
+    @NotNull(message = "Debes indicar una contraseña")
     private String password;
 
     @Column
     @NotNull(message = "email is mandatory")
-    @Email(message = "email must be valid")
+    @Email(message = "El email debe de ser válido")
     private String email;
 
     @Column(name = "full_name")
-    @NotNull(message = "fullName is mandatory")
+    @NotNull(message = "Debes indicar un nombre completo")
     private String fullName;
 
     @Column
-    @Min(value = 12, message = "age must be at least 12")
-    @Max(value = 120, message = "age must be realistic")
-    private int age;
+    @NotNull(message = "phone is mandatory")
+    @Min(value = 600000000, message = "El teléfono debe contener 9 cifras")
+    @Max(value = 999999999, message = "El teléfono debe contener 9 cifras")
+    private int phone;
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    @NotNull(message = "gender is mandatory")
+    private Gender gender;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "age_group")
+    @NotNull(message = "Por favor, selecciona un grupo de edad")
+    private AgeGroup ageGroup;
 
     @Column(name = "is_active")
     private boolean active;
-
-    @Column
-    @Min(value = 0, message = "balance must be a positive number")
-    private float balance;
 
     @Column
     private String role;

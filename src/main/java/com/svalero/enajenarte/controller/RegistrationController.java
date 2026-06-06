@@ -50,7 +50,7 @@ public class RegistrationController {
     // POST
     @PostMapping("/registrations")
     public ResponseEntity<RegistrationOutDto> addRegistration(@Valid @RequestBody RegistrationInDto registrationInDto)
-            throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException {
+            throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException, AccessDeniedException {
 
         RegistrationOutDto newRegistration = registrationService.add(registrationInDto);
         return new ResponseEntity<>(newRegistration, HttpStatus.CREATED);
@@ -75,21 +75,21 @@ public class RegistrationController {
     // 404 - Registration
     @ExceptionHandler(RegistrationNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(RegistrationNotFoundException rnfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The registration does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("La inscripción no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     // 404 - User (relación)
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(UserNotFoundException unfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The user does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("El usuario no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     // 404 - Workshop (relación)
     @ExceptionHandler(WorkshopNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(WorkshopNotFoundException wnfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The workshop does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("El taller no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
@@ -112,6 +112,15 @@ public class RegistrationController {
     public ResponseEntity<ErrorResponse> handleException(InvalidPaymentStatusException ipse) {
         ErrorResponse errorResponse = ErrorResponse.generalError(400, "bad-request", ipse.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // 403 - Acceso denegado
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleException(AccessDeniedException adee) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(
+                403, "forbidden", adee.getMessage()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
     // 400 - Validaciones

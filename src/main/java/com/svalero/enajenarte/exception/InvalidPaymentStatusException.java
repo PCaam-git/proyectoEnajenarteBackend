@@ -2,6 +2,6 @@ package com.svalero.enajenarte.exception;
 
 public class InvalidPaymentStatusException  extends Exception{
     public InvalidPaymentStatusException() {
-        super("Invalid paymentStatus value");
+        super("Estado de pago inválido");
     }
 }

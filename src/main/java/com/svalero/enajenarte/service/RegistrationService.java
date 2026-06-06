@@ -13,7 +13,7 @@ import com.svalero.enajenarte.repository.WorkshopRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
@@ -32,17 +32,23 @@ public class RegistrationService {
     private WorkshopRepository workshopRepository;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private EmailService emailService;
 
     private static final String STATUS_CONFIRMED = "CONFIRMED";
+    private static final String STATUS_PENDING = "PENDING";
     private static final PaymentStatus PAYMENT_STATUS_PENDING = PaymentStatus.PENDING;
 
     // POST
-    public RegistrationOutDto add(RegistrationInDto registrationInDto) throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException {
+    public RegistrationOutDto add(RegistrationInDto registrationInDto) throws UserNotFoundException, WorkshopNotFoundException, DuplicateRegistrationException, WorkshopCapacityExceededException, AccessDeniedException {
         User user = userRepository.findById(registrationInDto.getUserId())
                 .orElseThrow(UserNotFoundException::new);
 
+        validateRegistrationOwner(user);
+
         Workshop workshop = workshopRepository.findById(registrationInDto.getWorkshopId())
                 .orElseThrow(WorkshopNotFoundException::new);
+        validateWorkshopAvailableForRegistration(workshop);
 
         // Validación: evitar inscripción duplicada
         boolean exists = registrationRepository.existsByUserIdAndWorkshopId(
@@ -68,7 +74,12 @@ public class RegistrationService {
         int requestedTickets = registrationInDto.getNumberOfTickets();
 
         if (currentCapacity + requestedTickets > workshop.getMaxCapacity()) {
-            throw new WorkshopCapacityExceededException();
+
+            int availableSpots = workshop.getMaxCapacity() - currentCapacity;
+
+            throw new WorkshopCapacityExceededException(
+                    "No hay suficientes plazas disponibles. Actualmente quedan " + availableSpots + " plazas"
+            );
         }
 
         Registration registration = buildRegistration(registrationInDto, user, workshop);
@@ -76,12 +87,17 @@ public class RegistrationService {
         Registration newRegistration = registrationRepository.save(registration);
 
         // Si el taller es presencial y se alcanza el mínimo de participantes, el estado cambia a CONFIRMED
-        confirmWorkshopifMinimumReached(workshop, currentParticipants + requestedTickets);
+        try {
+            confirmWorkshopifMinimumReached(workshop, currentParticipants + requestedTickets);
+        } catch (Exception e) {
+            System.err.println("Error confirmando el taller: " + e.getMessage());
+        }
 
-        // Simulación de envío de confirmación
-        simulateEmailConfirmation(newRegistration);
+        sendWorkshopRegistrationEmail(newRegistration);
 
         RegistrationOutDto registrationOutDto = modelMapper.map(newRegistration, RegistrationOutDto.class);
+        registrationOutDto.setUsername(newRegistration.getUser().getFullName());
+        registrationOutDto.setWorkshopName(newRegistration.getWorkshop().getName());
         registrationOutDto.setUserId(newRegistration.getUser().getId());
         registrationOutDto.setWorkshopId(newRegistration.getWorkshop().getId());
         registrationOutDto.setPaymentStatus(newRegistration.getPaymentStatus().name());
@@ -96,8 +112,7 @@ public class RegistrationService {
         registrationRepository.delete(registration);
     }
 
-    // GET ALL (Con filtros simultáneos)
-    // He eliminado las excepciones para poder probar filtros sin recibir error 404
+    // GET ALL
     public List<RegistrationOutDto> findAll(String workshopId, String userId, String isPaid) {
 
         // Variables finales para el stream. O utiliza el valor asignado en el filtro, o lo marca como null
@@ -114,17 +129,22 @@ public class RegistrationService {
 
         // Mapear y setear IDs manualmente para evitar que User o Workshop salgan a 0
         List<RegistrationOutDto> registrationsOutDtos =
-                modelMapper.map(filteredRegistrations, new TypeToken<List<RegistrationOutDto>>() {}.getType());
+                modelMapper.map(filteredRegistrations, new TypeToken<List<RegistrationOutDto>>() {
+                }.getType());
 
         for (int i = 0; i < filteredRegistrations.size(); i++) {
             Registration registration = filteredRegistrations.get(i);
             RegistrationOutDto registrationOutDto = registrationsOutDtos.get(i);
 
             if (registration.getUser() != null) {
+                registrationOutDto.setUsername(registration.getUser().getFullName());
                 registrationOutDto.setUserId(registration.getUser().getId());
             }
+
             if (registration.getWorkshop() != null) {
+                registrationOutDto.setWorkshopName(registration.getWorkshop().getName());
                 registrationOutDto.setWorkshopId(registration.getWorkshop().getId());
+
             }
             if (registration.getPaymentStatus() != null) {
                 registrationOutDto.setPaymentStatus(registration.getPaymentStatus().name());
@@ -135,13 +155,15 @@ public class RegistrationService {
     }
 
 
-        // GET BY ID
+    // GET BY ID
     public RegistrationOutDto findById(long id) throws RegistrationNotFoundException {
         Registration registration = registrationRepository.findById(id)
                 .orElseThrow(RegistrationNotFoundException::new);
 
         // Mapear -> Setear IDs -> Devolver. Evita que workshopId y userId salgan a 0
         RegistrationOutDto registrationOutDto = modelMapper.map(registration, RegistrationOutDto.class);
+        registrationOutDto.setUsername(registration.getUser().getFullName());
+        registrationOutDto.setWorkshopName(registration.getWorkshop().getName());
         registrationOutDto.setUserId(registration.getUser().getId());
         registrationOutDto.setWorkshopId(registration.getWorkshop().getId());
         registrationOutDto.setPaymentStatus(registration.getPaymentStatus().name());
@@ -161,46 +183,50 @@ public class RegistrationService {
                 .orElseThrow(WorkshopNotFoundException::new);
 
         // Sistema. Estos datos NO se podrán modificar para evita que el usuario haga acciones malintencionadas.
-            LocalDate registrationDate = existingRegistration.getRegistrationDate();
-            String confirmationCode = existingRegistration.getConfirmationCode();
-            boolean paid = existingRegistration.isPaid();
-            float amountPaid = existingRegistration.getAmountPaid();
-            Integer rating = existingRegistration.getRating();
-            String status = existingRegistration.getStatus();
+        LocalDate registrationDate = existingRegistration.getRegistrationDate();
+        String confirmationCode = existingRegistration.getConfirmationCode();
+        boolean paid = existingRegistration.isPaid();
+        float amountPaid = existingRegistration.getAmountPaid();
+        Integer rating = existingRegistration.getRating();
+        String status = existingRegistration.getStatus();
 
-            modelMapper.map(registrationInDto, existingRegistration);
-            existingRegistration.setId(id);
+        modelMapper.map(registrationInDto, existingRegistration);
+        existingRegistration.setId(id);
 
-            existingRegistration.setUser(user);
-            existingRegistration.setWorkshop(workshop);
+        existingRegistration.setUser(user);
+        existingRegistration.setWorkshop(workshop);
 
-            existingRegistration.setRegistrationDate(registrationDate);
-            existingRegistration.setConfirmationCode(confirmationCode);
-            existingRegistration.setPaid(paid);
-            existingRegistration.setAmountPaid(amountPaid);
-            existingRegistration.setRating(rating);
-            existingRegistration.setStatus(status);
+        existingRegistration.setRegistrationDate(registrationDate);
+        existingRegistration.setConfirmationCode(confirmationCode);
+        existingRegistration.setPaid(paid);
+        existingRegistration.setAmountPaid(amountPaid);
+        existingRegistration.setRating(rating);
+        existingRegistration.setStatus(status);
 
         if (registrationInDto.getPaymentStatus() != null) {
+            String paymentStatus = registrationInDto.getPaymentStatus().toUpperCase();
+
             try {
-                existingRegistration.setPaymentStatus(
-                        PaymentStatus.valueOf(registrationInDto.getPaymentStatus().toUpperCase())
-                );
+                PaymentStatus validPaymentStatus = PaymentStatus.valueOf(paymentStatus);
+                existingRegistration.setPaymentStatus(validPaymentStatus);
+                existingRegistration.setPaid(PaymentStatus.PAID.equals(validPaymentStatus));
             } catch (IllegalArgumentException e) {
                 throw new InvalidPaymentStatusException();
             }
         }
 
-            Registration updateRegistration = registrationRepository.save(existingRegistration);
+        Registration updateRegistration = registrationRepository.save(existingRegistration);
 
         // Mapear -> Setear IDs -> Devolver. Evita que workshopId y userId salgan a 0
-            RegistrationOutDto registrationOutDto = modelMapper.map(updateRegistration, RegistrationOutDto.class);
-            registrationOutDto.setUserId(updateRegistration.getUser().getId());
-            registrationOutDto.setWorkshopId(updateRegistration.getWorkshop().getId());
+        RegistrationOutDto registrationOutDto = modelMapper.map(updateRegistration, RegistrationOutDto.class);
+        registrationOutDto.setUsername(updateRegistration.getUser().getFullName());
+        registrationOutDto.setWorkshopName(updateRegistration.getWorkshop().getName());
+        registrationOutDto.setUserId(updateRegistration.getUser().getId());
+        registrationOutDto.setWorkshopId(updateRegistration.getWorkshop().getId());
         registrationOutDto.setPaymentStatus(updateRegistration.getPaymentStatus().name());
 
-            return registrationOutDto;
-        }
+        return registrationOutDto;
+    }
 
     private Registration buildRegistration(RegistrationInDto registrationInDto, User user, Workshop workshop) {
 
@@ -222,20 +248,20 @@ public class RegistrationService {
     }
 
     private void applyInitialStatus(Registration registration, Workshop workshop) {
-        if (workshop.isOnline()) {
+        if (STATUS_CONFIRMED.equals(workshop.getStatus())) {
             registration.setStatus(STATUS_CONFIRMED);
-            registration.setPaymentStatus(PAYMENT_STATUS_PENDING);
         } else {
-            registration.setStatus(STATUS_CONFIRMED);
-            registration.setPaymentStatus(PAYMENT_STATUS_PENDING);
+            registration.setStatus(STATUS_PENDING);
         }
+
+        registration.setPaymentStatus(PAYMENT_STATUS_PENDING);
     }
 
     private void confirmWorkshopifMinimumReached(Workshop workshop, int totalParticipants) {
         if (!workshop.isOnline()
-        && "PENDING".equals(workshop.getStatus())
-        && workshop.getMinimumParticipants() !=null
-        && totalParticipants >= workshop.getMinimumParticipants()) {
+                && "PENDING".equals(workshop.getStatus())
+                && workshop.getMinimumParticipants() != null
+                && totalParticipants >= workshop.getMinimumParticipants()) {
 
             workshop.setStatus("CONFIRMED");
             workshopRepository.save(workshop);
@@ -243,34 +269,86 @@ public class RegistrationService {
             // Obtiene todas las inscripciones del workshop
             List<Registration> registrations = registrationRepository.findByWorkshop(workshop);
 
-            // Simula envío de mensaje a los participantes
+            // Envío de mail a los participantes
             for (Registration registration : registrations) {
-                simulateWorkshopConfirmationEmail(registration);
+                registration.setStatus(STATUS_CONFIRMED);
+                registrationRepository.save(registration);
+
+                try {
+                    simulateWorkshopConfirmationEmail(registration);
+                } catch (Exception e) {
+                    System.err.println("Error en el envío de email a los usuarios inscritos: " + e.getMessage());
+                }
             }
         }
     }
 
     private void simulateWorkshopConfirmationEmail(Registration registration) {
-        System.out.println("Simulando envío de email de confirmación del workshop presencial para la inscripción con código: " + registration.getConfirmationCode());
+        emailService.sendEmail(
+                registration.getUser().getEmail(),
+                "Confirmación del taller " + registration.getWorkshop().getName(),
+                "Tu inscripción ha quedado confirmada.\n\n"
+                        + "Taller: " + registration.getWorkshop().getName() + "\n"
+                        + "Código de confirmación: " + registration.getConfirmationCode()
+        );
     }
 
-    private void simulateEmailConfirmation(Registration registration) {
-        if (registration.getWorkshop() != null && registration.getWorkshop().isOnline()) {
-            sendOnlineRegistrationConfirmationNotification(registration);
+    private void sendWorkshopRegistrationEmail(Registration registration) {
+        if (STATUS_CONFIRMED.equals(registration.getStatus())) {
+            sendConfirmedWorkshopRegistrationEmail(registration);
         } else {
-            sendPendingWorkshopRegistrationNotification(registration);
+            sendPendingWorkshopRegistrationEmail(registration);
         }
     }
 
-    private void sendOnlineRegistrationConfirmationNotification(Registration registration) {
-        System.out.println("Simulando envío de email de confirmación para la inscripción online con código: "
-                + registration.getConfirmationCode());
+    private void sendConfirmedWorkshopRegistrationEmail(Registration registration) {
+        emailService.sendEmail(
+                registration.getUser().getEmail(),
+                "Inscripción confirmada en " + registration.getWorkshop().getName(),
+                "Tu inscripción está confirmada.\n\n"
+                        + "Taller: " + registration.getWorkshop().getName() + "\n"
+                        + "Código de confirmación: " + registration.getConfirmationCode()
+        );
     }
 
-    private void sendPendingWorkshopRegistrationNotification(Registration registration) {
-        System.out.println("Simulando envío de email de inscripción registrada y pendiente de confirmación del workshop presencial con código: "
-                + registration.getConfirmationCode());
+    private void sendPendingWorkshopRegistrationEmail(Registration registration) {
+        emailService.sendEmail(
+                registration.getUser().getEmail(),
+                "Inscripción registrada en " + registration.getWorkshop().getName(),
+                "Tu inscripción se ha registrado correctamente.\n\n"
+                        + "Taller: " + registration.getWorkshop().getName() + "\n"
+                        + "Código de confirmación: " + registration.getConfirmationCode() + "\n\n"
+                        + "Recibirás más información cuando el taller quede confirmado."
+        );
     }
 
+    private void validateWorkshopAvailableForRegistration(Workshop workshop) throws WorkshopCapacityExceededException {
+        if ("CANCELLED".equals(workshop.getStatus())) {
+            throw new WorkshopCapacityExceededException("No es posible inscribirse a un taller cancelado");
+        }
+
+        if (workshop.getStartDate() != null
+                && workshop.getStartDate().isBefore(java.time.LocalDate.now())) {
+            throw new WorkshopCapacityExceededException("No es posible inscribirse a un taller ya finalizado");
+        }
     }
+
+    private void validateRegistrationOwner(User user) throws AccessDeniedException {
+        String authenticatedUsername = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        boolean isAdmin = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getAuthorities()
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin && !user.getUsername().equals(authenticatedUsername)) {
+            throw new AccessDeniedException();
+        }
+    }
+}
 

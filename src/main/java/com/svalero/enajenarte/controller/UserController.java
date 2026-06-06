@@ -1,9 +1,14 @@
 package com.svalero.enajenarte.controller;
 
+import com.svalero.enajenarte.domain.User;
 import com.svalero.enajenarte.dto.UserInDto;
 import com.svalero.enajenarte.dto.UserOutDto;
+import com.svalero.enajenarte.dto.UserEditInDto;
+import com.svalero.enajenarte.dto.ProgramRegistrationOutDto;
 import com.svalero.enajenarte.dto.UserRegistrationOutDto;
+import com.svalero.enajenarte.exception.AccessDeniedException;
 import com.svalero.enajenarte.exception.ErrorResponse;
+import com.svalero.enajenarte.exception.HasAssociatedRegistrationsException;
 import com.svalero.enajenarte.exception.UserNotFoundException;
 import com.svalero.enajenarte.service.UserService;
 import jakarta.validation.Valid;
@@ -40,6 +45,12 @@ public class UserController {
         return ResponseEntity.ok(usersOutDto);
     }
 
+    @GetMapping("users/me")
+    public ResponseEntity<UserOutDto> getCurrentUser() throws UserNotFoundException {
+        UserOutDto userOutDto = userService.findCurrentUser();
+        return ResponseEntity.ok(userOutDto);
+    }
+
     // GET by id
     @GetMapping("/users/{id}")
     public ResponseEntity<UserOutDto> get(@PathVariable long id) throws UserNotFoundException {
@@ -50,12 +61,26 @@ public class UserController {
     // GET registrations by user id
     @GetMapping("/users/{id}/registrations")
     public ResponseEntity<List<UserRegistrationOutDto>> getUserRegistrations(@PathVariable long id)
-            throws UserNotFoundException {
+            throws UserNotFoundException, AccessDeniedException {
         List<UserRegistrationOutDto> registrationsOutDto = userService.getUserRegistrations(id);
 
         if (registrationsOutDto.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
+        return ResponseEntity.ok(registrationsOutDto);
+    }
+
+    // Get programs registrations
+    @GetMapping("/users/{id}/program-registrations")
+    public ResponseEntity<List<ProgramRegistrationOutDto>> getUserProgramRegistrations(@PathVariable long id)
+            throws UserNotFoundException, AccessDeniedException {
+
+        List<ProgramRegistrationOutDto> registrationsOutDto = userService.getUserProgramRegistrations(id);
+
+        if (registrationsOutDto.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
         return ResponseEntity.ok(registrationsOutDto);
     }
 
@@ -68,15 +93,15 @@ public class UserController {
 
     // PUT
     @PutMapping("/users/{id}")
-    public ResponseEntity<UserOutDto> modifyUser(@PathVariable long id, @Valid @RequestBody UserInDto userInDto)
-            throws UserNotFoundException {
-        UserOutDto updatedUser = userService.modify(id, userInDto);
+    public ResponseEntity<UserOutDto> modifyUser(@PathVariable long id, @Valid @RequestBody UserEditInDto userEditInDto)
+            throws UserNotFoundException, AccessDeniedException {
+        UserOutDto updatedUser = userService.modify(id, userEditInDto);
         return ResponseEntity.ok(updatedUser);
     }
 
     // DELETE
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable long id) throws UserNotFoundException {
+    public ResponseEntity<Void> deleteUser(@PathVariable long id) throws UserNotFoundException, HasAssociatedRegistrationsException {
         userService.delete(id);
         return ResponseEntity.noContent().build();
     }
@@ -84,8 +109,22 @@ public class UserController {
     // 404 - User
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(UserNotFoundException unfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The user does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound(unfe.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    // 409 - User con registros asociados
+    @ExceptionHandler(HasAssociatedRegistrationsException.class)
+    public ResponseEntity<ErrorResponse> handleException(HasAssociatedRegistrationsException hare) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(409, "conflict", "No se puede eliminar: el usuario tiene registros asociados");
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    // 403 - Forbidden
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleException(AccessDeniedException ade) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(403, "forbidden", ade.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
     // 400 - Validaciones
@@ -100,4 +139,6 @@ public class UserController {
         ErrorResponse errorResponse = ErrorResponse.validationError(errors);
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
+
+
 }

@@ -44,7 +44,8 @@ public class AuthController {
         JwtResponseDto jwtResponseDto = new JwtResponseDto(
                 token,
                 user.getUsername(),
-                user.getRole()
+                user.getRole(),
+                user.getId()
         );
 
         return ResponseEntity.ok(jwtResponseDto);

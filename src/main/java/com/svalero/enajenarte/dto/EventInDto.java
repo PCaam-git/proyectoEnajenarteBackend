@@ -13,21 +13,21 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class EventInDto {
 
-    @NotEmpty(message = "title is mandatory")
+    @NotEmpty(message = "El título es obligatorio")
     private String title;
 
-    @NotEmpty(message = "location is mandatory")
+    @NotEmpty(message = "Debes indicar una ubicación")
     private String location;
 
-    @NotNull(message = "eventDate is mandatory")
+    @NotNull(message = "Debes indicar la fecha del evento")
     private LocalDateTime eventDate;
 
-    @Min(value = 0, message = "entryFee must be a positive number")
+    @Min(value = 0, message = "El precio de la entrada debe ser 0 o superior")
     private float entryFee;
 
     private boolean isPublic;
 
-    @Min(value = 0, message = "expectedAttendance must be a positive number")
+    @Min(value = 0, message = "La asistencia esperada debe ser un número positivo")
     private int expectedAttendance;
 
     @Min(value = 1, message = "Speaker ID must be greater than 0")

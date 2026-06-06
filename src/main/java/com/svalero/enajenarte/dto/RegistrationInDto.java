@@ -17,8 +17,8 @@ import java.time.LocalDate;
 @Validated
 public class RegistrationInDto {
 
-    @Min(value = 1, message = "must register at least 1 person")
-    @Max(value = 5, message = "cannot register more than 5 people at once")
+    @Min(value = 1, message = "Debes reservar al menos 1 plaza")
+    @Max(value = 5, message = "No es posible reservar más de 5 plazas en una inscripción")
     private int numberOfTickets;
 
     @Min(value = 1, message = "User ID must be greater than 0")

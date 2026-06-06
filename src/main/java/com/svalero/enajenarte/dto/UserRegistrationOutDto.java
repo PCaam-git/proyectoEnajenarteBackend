@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.LongAccumulator;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserRegistrationOutDto {
+
     private long registrationId;
     private LocalDate registrationDate;
     private String status;

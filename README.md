@@ -1,229 +1,490 @@
-Enajenarte API
-Descripción general
+# enajenArte API
 
-Enajenarte API es una API REST académica desarrollada como parte de la asignatura Acceso a Datos, correspondiente al segundo curso del Grado Superior en Desarrollo de Aplicaciones Multiplataforma.
+API REST desarrollada como backend del proyecto **enajenArte**, una plataforma orientada a la gestión de talleres, programas, eventos, inscripciones y comunicación con usuarios dentro del ámbito de la creatividad, el bienestar emocional y la expresión artística.
 
-La API proporciona el backend de la empresa Enajenarte, que hasta el momento únicamente contaba con una página web estática. Enajenarte es una empresa centrada en la salud emocional, que trabaja a través de distintos enfoques como la expresión artística, la comunicación oral y el autoconocimiento. Para ello organiza eventos, talleres y formaciones, y necesita un sistema que facilite la gestión de estas actividades y la comunicación con sus clientes.
+El proyecto forma parte del Trabajo Fin de Grado del ciclo de Desarrollo de Aplicaciones Multiplataforma. Su objetivo es transformar la presencia digital de enajenArte en una aplicación dinámica, con gestión administrativa, inscripción de usuarios y persistencia de datos.
 
-Esta API permite mostrar los eventos y talleres que la empresa llevará a cabo y gestionar la inscripción de los usuarios en dichas actividades, actuando como base para futuras aplicaciones cliente.
+---
 
-----------------------------
-Modelo de dominio
+## Tecnologías utilizadas
 
-La API se basa en cinco entidades principales, cada una con un propósito bien definido:
+| Tecnología | Uso principal |
+|---|---|
+| Java 21 | Lenguaje principal del backend |
+| Spring Boot | Framework principal para construir la API REST |
+| Spring Web | Exposición de endpoints HTTP |
+| Spring Data JPA | Persistencia y acceso a base de datos |
+| Hibernate | ORM para el mapeo entidad-tabla |
+| MariaDB | Base de datos relacional |
+| Maven | Gestión de dependencias y compilación |
+| Spring Security | Control de acceso por roles |
+| JWT | Autenticación mediante token |
+| ModelMapper | Conversión entre entidades y DTOs |
+| Spring Mail | Envío de correos electrónicos |
 
-Event
+---
 
-Representa los eventos que organiza Enajenarte o en los que participa la empresa o alguno de sus ponentes. Incluye información como título, ubicación, fecha, precio y carácter público del evento.
+## Arquitectura del proyecto
 
-Speaker
+El backend sigue una arquitectura por capas:
 
-Recoge la información de los ponentes que participan en eventos y talleres, incluyendo su especialidad, experiencia y disponibilidad.
+```text
+domain        → Entidades JPA y enums
+repository    → Interfaces de acceso a datos
+service       → Lógica de negocio
+controller    → Endpoints REST
+dto           → Objetos de entrada y salida
+exception     → Excepciones personalizadas y manejador global
+config        → Configuración general, seguridad y JWT
+security      → Filtros y utilidades de autenticación
+```
 
-Workshop
+Esta separación permite mantener una estructura clara, facilitar las pruebas y aislar la lógica de negocio de la capa de exposición REST.
 
-Representa los talleres organizados por Enajenarte. Incluye datos como nombre, descripción, fecha, duración, precio, modalidad (online o presencial) y ponente asociado.
+---
 
-User
+## Modelo de dominio
 
-Almacena la información de los usuarios registrados en la plataforma, que pueden consultar eventos y talleres y realizar inscripciones.
+Las principales entidades del proyecto son:
 
-Registration
+| Entidad | Descripción                                                   |
+|---|---------------------------------------------------------------|
+| `User` | Usuario registrado en la plataforma                           |
+| `Speaker` | Ponente asociado a talleres, programas o eventos              |
+| `Workshop` | Taller puntual con fecha, capacidad, modalidad y estado       |
+| `Program` | Programa de larga duración con fecha de inicio y finalización |
+| `Event` | Evento gestionado desde el panel de administración            |
+| `Registration` | Inscripción de un usuario a un taller                         |
+| `ProgramRegistration` | Inscripción de un usuario a un programa                       |
+| `ContactMessage` | Mensaje enviado desde el formulario de contacto               |
+| `AdminCalendar` | Entrada de calendario administrativo                          |
 
-Relaciona a los usuarios con los talleres a los que se han inscrito, almacenando información adicional como la fecha de inscripción, estado de pago y otros datos asociados al registro.
+---
 
------------------------------
-Funcionalidad disponible
+## Seguridad
 
-La API ofrece operaciones CRUD completas para todas las entidades del dominio:
+La API utiliza autenticación mediante JWT y autorización basada en roles.
 
-- Crear
+### Roles
 
-- Consultar listado
+| Rol | Descripción                                                                                                                                                                                                        |
+|---|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `USER` | Usuario registrado. Puede gestionar su perfil y sus propias inscripciones.                                                                                                                                         |
+| `ADMIN` | Usuario administrador. Puede gestionar usuarios, ponentes, talleres, programas, eventos, inscripciones y calendario. A nivel de API, también existen endpoints administrativos para mensajes de contacto vía email |
 
- - Consultar por identificador
+### Login
 
- - Modificar
+Endpoint:
 
- - Eliminar
+```http
+POST /auth/login
+```
 
-Además, cada entidad dispone de operaciones de filtrado en las peticiones GET, permitiendo aplicar hasta tres filtros diferentes según el recurso.
+Body:
 
-----------------------------
-Gestión de errores
+```json
+{
+  "username": "admin",
+  "password": "123456"
+}
+```
 
-La API gestiona de forma explícita los siguientes tipos de error, devolviendo siempre respuestas estructuradas mediante ErrorResponse:
+La respuesta incluye un token JWT que debe enviarse en las peticiones protegidas:
 
-400 Bad Request
+```http
+Authorization: Bearer <token>
+```
 
-Errores de validación de datos enviados por el cliente.
+---
 
-404 Not Found
+## Endpoints principales
 
-Recurso inexistente o relaciones no encontradas.
+### Autenticación
 
-500 Internal Server Error
+| Método | Endpoint | Acceso |
+|---|---|---|
+| POST | `/auth/login` | Público |
 
-Errores internos del servidor.
+---
 
---------------------------------
-Arquitectura del proyecto
+### Usuarios
 
-El proyecto sigue una arquitectura por capas estricta, lo que permite una separación clara de responsabilidades:
+| Método | Endpoint | Acceso |
+|---|---|---|
+| POST | `/users` | Público |
+| GET | `/users` | ADMIN |
+| GET | `/users/{id}` | ADMIN |
+| GET | `/users/me` | Usuario autenticado |
+| PUT | `/users/{id}` | Usuario autenticado |
+| DELETE | `/users/{id}` | ADMIN |
+| GET | `/users/{id}/registrations` | Usuario propietario o ADMIN |
+| GET | `/users/{id}/program-registrations` | Usuario propietario o ADMIN |
 
- - Domain: entidades del modelo de datos.
+---
 
- - Repository: acceso a datos mediante JPA.
+### Ponentes
 
- - Service: lógica de negocio.
+| Método | Endpoint | Acceso |
+|---|---|---|
+| GET | `/speakers` | Público |
+| GET | `/speakers/{id}` | Público |
+| POST | `/speakers` | ADMIN |
+| PUT | `/speakers/{id}` | ADMIN |
+| DELETE | `/speakers/{id}` | ADMIN |
 
- - Controller: exposición de la API REST.
+---
 
- - DTOs: objetos de entrada y salida para la comunicación con el cliente.
+### Eventos
 
- - Exception: gestión centralizada de errores.
+| Método | Endpoint | Acceso |
+|---|---|---|
+| GET | `/events` | Público |
+| GET | `/events/{id}` | Público |
+| POST | `/events` | ADMIN |
+| PUT | `/events/{id}` | ADMIN |
+| DELETE | `/events/{id}` | ADMIN |
 
-Esta estructura facilita el mantenimiento, la comprensión del proyecto y su evaluación académica.
+---
 
+### Talleres
 
-----------------------------------
-Tecnologías utilizadas
+| Método | Endpoint | Acceso |
+|---|---|---|
+| GET | `/workshops` | Público |
+| GET | `/workshops/{id}` | Público |
+| POST | `/workshops` | ADMIN |
+| PUT | `/workshops/{id}` | ADMIN |
+| DELETE | `/workshops/{id}` | ADMIN |
 
- - Java 21
+---
 
- - Spring Boot
+### Programas
 
- - Maven
+| Método | Endpoint | Acceso |
+|---|---|---|
+| GET | `/programs` | Público |
+| GET | `/programs/{id}` | Público |
+| POST | `/programs` | ADMIN |
+| PUT | `/programs/{id}` | ADMIN |
+| DELETE | `/programs/{id}` | ADMIN |
 
- - JPA / Hibernate
+---
 
- - MariaDB
+### Inscripciones a talleres
 
- - ModelMapper
+| Método | Endpoint | Acceso |
+|---|---|---|
+| POST | `/registrations` | Usuario autenticado |
+| GET | `/registrations` | ADMIN |
+| GET | `/registrations/{id}` | ADMIN |
+| PUT | `/registrations/{id}` | ADMIN |
+| DELETE | `/registrations/{id}` | ADMIN |
 
- - OpenAPI 3.0
+---
 
- - WireMock
+### Inscripciones a programas
 
- - Postman
+| Método | Endpoint | Acceso |
+|---|---|---|
+| POST | `/program-registrations` | Usuario autenticado |
+| GET | `/program-registrations` | ADMIN |
+| GET | `/program-registrations/{id}` | ADMIN |
+| PUT | `/program-registrations/{id}` | ADMIN |
+| DELETE | `/program-registrations/{id}` | ADMIN |
 
+---
 
-----------------------------------------
-Documentación de la API (OpenAPI)
+### Mensajes de contacto
 
-La API está documentada mediante OpenAPI 3.0, que define de forma formal:
+| Método | Endpoint | Acceso |
+|---|---|---|
+| POST | `/contact-messages` | Público |
+| GET | `/contact-messages` | ADMIN |
+| GET | `/contact-messages/{id}` | ADMIN |
+| DELETE | `/contact-messages/{id}` | ADMIN |
 
- - Endpoints disponibles
+---
 
- - Métodos HTTP
+### Calendario administrativo
 
- - Parámetros de entrada
+| Método | Endpoint | Acceso |
+|---|---|---|
+| GET | `/admin-calendar` | ADMIN |
+| GET | `/admin-calendar/{id}` | ADMIN |
+| POST | `/admin-calendar` | ADMIN |
+| PUT | `/admin-calendar/{id}` | ADMIN |
+| DELETE | `/admin-calendar/{id}` | ADMIN |
 
- - Cuerpos de petición
+---
 
- - Respuestas y códigos HTTP
+## Filtros
 
- - Esquemas de datos
+Varios endpoints GET permiten aplicar filtros mediante parámetros de consulta. Algunos ejemplos:
 
- - Errores posibles
+```http
+GET /users?username=ana&email=test&active=true
+GET /events?title=charla&location=zaragoza&isPublic=true
+GET /workshops?name=escritura&isOnline=false&speakerId=1
+GET /programs?name=emo&isOnline=false&speakerId=2
+GET /speakers?firstName=cristina&lastName=garcia&available=true
+GET /registrations?userId=2&workshopId=1&isPaid=true
+```
 
-El fichero OpenAPI refleja fielmente las operaciones implementadas en los controladoresA partir de esta especificación 
-se han generado las colecciones Postman incluidas en el proyecto, garantizando la coherencia entre API real, WireMock y pruebas.
+---
 
+## Lógica de negocio destacada
 
------------------------------------------
-API Mock (WireMock)
+### Talleres y programas
 
-l proyecto incluye un API Mock implementado con WireMock, que permite simular el comportamiento de la API real sin necesidad de ejecutar el backend completo.
+Los talleres y programas pueden tener los siguientes estados:
 
-El proyecto WireMock se encuentra dentro del repositorio, en la carpeta:
-enajenarte/wiremock/enajenarteWiremock
+```text
+PENDING
+CONFIRMED
+CANCELLED
+```
 
-Puesta en marcha de WireMock
+Reglas principales:
 
-WireMock se ejecuta como un servicio independiente en el puerto 8089. No se trata de un proyecto Spring Boot ni Maven, por lo que no se ejecuta mediante mvn spring-boot:run.
+- Una actividad confirmada permite inscripciones confirmadas si hay plazas disponibles.
+- Una actividad pendiente permite registrar inscripciones pendientes hasta alcanzar el mínimo de participantes.
+- Una actividad cancelada no debería admitir nuevas inscripciones.
+- La fecha límite de confirmación se utiliza cuando la actividad está pendiente de alcanzar el número mínimo de participantes.
+- La capacidad máxima controla el número total de plazas disponibles.
 
-Para arrancar WireMock es necesario ejecutar el JAR standalone incluido en el proyecto desde la carpeta correspondiente, indicando el puerto y la ubicación de los stubs.
+---
 
-java -jar .\wiremock-standalone-3.13.2.jar --port 8089 --root-dir .
+### Inscripciones
 
+Las inscripciones incluyen:
 
-Una vez iniciado, WireMock expone los endpoints simulados definidos en las carpetas mappings/ y __files/.
+- usuario;
+- taller o programa asociado;
+- fecha de inscripción;
+- código de confirmación;
+- número de plazas;
+- estado de inscripción;
+- estado de pago;
+- importe abonado;
+- valoración opcional.
 
-Estructura del mock
+Reglas principales:
 
-mappings/: define las rutas simuladas y las condiciones de cada endpoint.
+- Un usuario no puede inscribirse dos veces a la misma actividad.
+- Se controla la capacidad máxima antes de confirmar una inscripción.
+- El número de plazas por inscripción está limitado.
+- El sistema genera automáticamente códigos de confirmación.
+- El estado de pago puede ser `PENDING` o `PAID`.
 
-__files/: contiene las respuestas JSON asociadas a cada mapping.
+---
 
-Las rutas están definidas utilizando identificadores fijos (por ejemplo 1, 400, 999, 500), lo que garantiza un comportamiento determinista y reproducible durante la ejecución de pruebas automáticas.
+### Envío de emails
 
+El backend incluye integración con correo electrónico para notificar al usuario en determinados flujos:
 
------------------------------------------
-Colección Postman
+- confirmación de inscripción;
+- cambios de estado de talleres;
+- cambios de estado de programas;
+- cancelaciones.
 
-El proyecto incluye dos colecciones Postman, ambas generadas a partir del fichero OpenAPI:
+La configuración SMTP se define en `application.properties` mediante variables de entorno para evitar guardar credenciales sensibles en el repositorio.
 
-Colección Postman – API real (8080): Enajenarte RUNNER (8080).postman_collection.json
+---
 
-Esta colección está orientada a la prueba manual de la API real, que se ejecuta mediante Spring Boot en el puerto 8080. Permite verificar el comportamiento real de los endpoints contra la base de datos.
+## Configuración local
 
-Colección Postman – WireMock (8089): Enajenarte RUNNER (8089).postman_collection.json
+El archivo `application.properties` utiliza valores por defecto para entorno local y variables de entorno para entornos externos:
 
-Esta colección está orientada a la ejecución automática con Postman Runner, apuntando al mock WireMock en el puerto 8089. Está diseñada para validar de forma reproducible todas las operaciones y códigos de respuesta definidos.
+```properties
+spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:mariadb://localhost:3307/enajenarte_db}
+spring.datasource.username=${MARIADB_USER:enajenarte_user}
+spring.datasource.password=${MARIADB_PASSWORD:}
 
-Las colecciones se encuentran en la carpeta:
+spring.mail.username=${MAIL_USERNAME:}
+spring.mail.password=${MAIL_PASSWORD:}
+app.mail.from=${MAIL_FROM:}
+app.contact.to=${CONTACT_TO:}
 
-enajenarte/postman/
-Ejecución con Postman Runner
+app.jwt.secret=${JWT_SECRET:}
+```
 
-Para ejecutar la colección de WireMock con Postman Runner:
+---
 
-Abrir Postman y seleccionar Runner.
+## Base de datos local
 
-Elegir la colección correspondiente a WireMock (8089).
+El proyecto utiliza MariaDB. Si se ejecuta mediante Docker Compose, se levanta un contenedor de MariaDB en el puerto local `3307`.
 
-Verificar el uso de variables de colección, como baseUrl e identificadores parametrizados.
+Ejemplo de variables necesarias:
 
-Ejecutar una iteración del Runner.
+```env
+MARIADB_USER=enajenarte_user
+MARIADB_PASSWORD=
+MARIADB_ROOT_PASSWORD=root
+MARIADB_DATABASE=enajenarte_db
+```
 
-El resultado esperado es la ejecución completa de la colección sin errores, validando los distintos casos de éxito y error definidos en el mock.
+---
 
+## Script de datos de prueba
 
----------------------------------------------
-Tests unitarios
+El proyecto incluye un script de datos de prueba en:
 
-Se han desarrollado tests unitarios para las capas Service y Controller, cubriendo los principales flujos de la aplicación.
+```text
+src/main/resources/db/test-data.sql
+```
 
-El proyecto cuenta con aproximadamente 132 tests unitarios, que verifican:
+Este script está pensado para facilitar la revisión del proyecto por parte del evaluador.
 
- - Casos de éxito
+Importante:
 
- - Errores 400 y 404
+```text
+El script elimina e inserta datos de prueba.
+No debe ejecutarse sobre una base de datos con información real de enajenArte.
+Uso recomendado: crear una base separada llamada enajenarte_test_db.
+```
 
- - Funcionamiento de filtros
+Orden recomendado:
 
- - Operaciones CRUD completas
+```sql
+CREATE DATABASE IF NOT EXISTS enajenarte_test_db
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+```
 
- - Ejecución del proyecto
+Después se debe arrancar el backend apuntando temporalmente a `enajenarte_test_db` para que Hibernate cree las tablas y, finalmente, ejecutar el script SQL.
 
-La API se ejecuta por defecto en el puerto 8080.
+---
 
+## Ejecución del backend
 
---------------------------------------------
-**Ejecución del proyecto
+Instalar dependencias y compilar:
 
-La API real se ejecuta por defecto en el puerto 8080 mediante Spring Boot.
+```bash
+mvn clean package
+```
 
-El API Mock (WireMock) se ejecuta de forma independiente en el puerto 8089. Ambos entornos son independientes y pueden utilizarse de forma separada según el tipo de prueba que se desee realizar.**
-Comandos básicos:
+Ejecutar la aplicación:
 
-mvn clean compile
-mvn test
+```bash
 mvn spring-boot:run
+```
 
+La API queda disponible en:
 
----------------------------------------------
-Conclusión
+```text
+http://localhost:8080
+```
 
-Enajenarte API constituye un backend completo para la gestión de eventos y talleres de una empresa dedicada a la salud emocional. El proyecto cumple los requisitos académicos establecidos, presenta una arquitectura clara y dispone de documentación, pruebas y herramientas de validación que permiten demostrar su correcto funcionamiento y defendibilidad ante evaluación docente.
+---
+
+## Compilación y validación
+
+El proyecto se valida principalmente mediante compilación del backend y pruebas manuales de endpoints con Postman.
+
+Compilar el proyecto:
+
+```bash
+mvn clean package
+```
+
+---
+
+## Pruebas rápidas
+
+Endpoints públicos:
+
+```http
+GET http://localhost:8080/events
+GET http://localhost:8080/workshops
+GET http://localhost:8080/programs
+GET http://localhost:8080/speakers
+```
+
+Login:
+
+```http
+POST http://localhost:8080/auth/login
+```
+
+Body:
+
+```json
+{
+  "username": "admin",
+  "password": "123456"
+}
+```
+
+---
+
+## Gestión de errores
+
+La API utiliza un manejador global de excepciones para devolver respuestas estructuradas ante errores de validación, recursos no encontrados, conflictos de negocio o errores internos.
+
+Ejemplo:
+
+```json
+{
+  "code": 404,
+  "title": "not-found",
+  "message": "The workshop does not exist",
+  "errors": {}
+}
+```
+
+Códigos habituales:
+
+| Código | Uso |
+|---|---|
+| 400 | Petición incorrecta o validación fallida |
+| 401 | Usuario no autenticado |
+| 403 | Usuario autenticado sin permisos suficientes |
+| 404 | Recurso no encontrado |
+| 409 | Conflicto de negocio, si se aplica |
+| 500 | Error interno del servidor |
+
+---
+
+## Despliegue
+
+Durante el proyecto se realizaron pruebas de despliegue en AWS utilizando:
+
+- Amazon RDS MariaDB;
+- Elastic Beanstalk;
+- variables de entorno;
+- empaquetado del backend mediante `.jar`.
+
+El despliegue permitió validar la configuración general del entorno, aunque quedó documentada una incidencia de comportamiento en algunas rutas públicas del backend desplegado respecto al comportamiento local del mismo `.jar`.
+
+Como línea futura, se plantea completar un despliegue estable mediante:
+
+- EC2 con Docker Compose;
+- backend Spring Boot;
+- frontend React servido por Nginx;
+- MariaDB en contenedor.
+
+---
+
+## Estado del proyecto
+
+El backend incluye las funcionalidades principales necesarias para la gestión de la plataforma:
+
+- autenticación;
+- roles;
+- CRUD administrativo;
+- talleres;
+- programas;
+- eventos;
+- inscripciones;
+- mensajes de contacto;
+- calendario administrativo;
+- emails;
+- filtros;
+- script de datos de prueba.
+
+Quedan como posibles mejoras futuras:
+
+- bloqueo de fechas para evitar asignar actividades a ponentes ocupados;
+- despliegue público estable;
+- mejora del sistema de documentación API;
+- ampliación de métricas o paneles administrativos.

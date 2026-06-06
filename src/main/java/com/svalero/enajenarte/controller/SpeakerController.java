@@ -3,6 +3,7 @@ package com.svalero.enajenarte.controller;
 import com.svalero.enajenarte.dto.SpeakerInDto;
 import com.svalero.enajenarte.dto.SpeakerOutDto;
 import com.svalero.enajenarte.exception.ErrorResponse;
+import com.svalero.enajenarte.exception.HasAssociatedRegistrationsException;
 import com.svalero.enajenarte.exception.SpeakerNotFoundException;
 import com.svalero.enajenarte.exception.WorkshopNotFoundException;
 import com.svalero.enajenarte.service.SpeakerService;
@@ -65,7 +66,7 @@ public class SpeakerController {
 
     // DELETE
     @DeleteMapping("/speakers/{id}")
-    public ResponseEntity<Void> deleteSpeaker(@PathVariable long id) throws SpeakerNotFoundException {
+    public ResponseEntity<Void> deleteSpeaker(@PathVariable long id) throws SpeakerNotFoundException, HasAssociatedRegistrationsException {
         speakerService.delete(id);
         return ResponseEntity.noContent().build();
     }
@@ -73,15 +74,22 @@ public class SpeakerController {
     // 404 - Speaker
     @ExceptionHandler(SpeakerNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(SpeakerNotFoundException snfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The speaker does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("El ponente no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     // 404 - Workshop (relación)
     @ExceptionHandler(WorkshopNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleException(WorkshopNotFoundException wnfe) {
-        ErrorResponse errorResponse = ErrorResponse.notFound("The workshop does not exist");
+        ErrorResponse errorResponse = ErrorResponse.notFound("El taller no existe");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    // 409 - Speaker con workshops asociados
+    @ExceptionHandler(HasAssociatedRegistrationsException.class)
+    public ResponseEntity<ErrorResponse> handleException(HasAssociatedRegistrationsException hare) {
+        ErrorResponse errorResponse = ErrorResponse.generalError(409, "conflict", "No se puede eliminar: hay actividades asociadas al ponente");
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     // 400 - Validaciones

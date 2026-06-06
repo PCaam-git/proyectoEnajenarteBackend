@@ -1,12 +1,13 @@
 package com.svalero.enajenarte.service;
 
-import ch.qos.logback.core.joran.event.EndEvent;
 import com.svalero.enajenarte.domain.Event;
 import com.svalero.enajenarte.domain.Speaker;
 import com.svalero.enajenarte.dto.EventInDto;
 import com.svalero.enajenarte.dto.EventOutDto;
 import com.svalero.enajenarte.exception.EventNotFoundException;
 import com.svalero.enajenarte.exception.SpeakerNotFoundException;
+import com.svalero.enajenarte.exception.DuplicateEventException;
+import com.svalero.enajenarte.exception.InvalidEventDateException;
 import com.svalero.enajenarte.repository.EventRepository;
 import com.svalero.enajenarte.repository.SpeakerRepository;
 import org.modelmapper.ModelMapper;
@@ -24,22 +25,44 @@ public class EventService {
     @Autowired
     private SpeakerRepository speakerRepository;
     @Autowired
+    private AdminCalendarService adminCalendarService;
+    @Autowired
     private ModelMapper modelMapper;
 
     // POST
-    public EventOutDto add (EventInDto eventInDto)throws SpeakerNotFoundException {
+    public EventOutDto add (EventInDto eventInDto)
+            throws SpeakerNotFoundException, DuplicateEventException, InvalidEventDateException {
         Speaker speaker = speakerRepository.findById(eventInDto.getSpeakerId())
                 .orElseThrow(SpeakerNotFoundException::new);
+
+        validateEventDate(eventInDto);
+
+        boolean duplicatedEventExists = eventRepository.findAll().stream()
+                .anyMatch(event ->
+                        event.getTitle() != null
+                                && eventInDto.getTitle() != null
+                                && event.getTitle().trim().equalsIgnoreCase(eventInDto.getTitle().trim())
+                                && event.getEventDate() != null
+                                && event.getEventDate().equals(eventInDto.getEventDate())
+                );
+
+        if (duplicatedEventExists) {
+            throw new DuplicateEventException();
+        }
 
         Event event = modelMapper.map(eventInDto, Event.class);
         event.setSpeaker(speaker);
 
         Event newEvent = eventRepository.save(event);
 
+        // Crea la entrada en el calendario con los datos del evento
+        adminCalendarService.createEntryFromEvent(newEvent);
+
         // Modificación aplicada: Mapear -> Setear IDs -> Devolver. Evita que speakerId salga a 0
         EventOutDto eventOutDto = modelMapper.map(newEvent, EventOutDto.class);
         if (newEvent.getSpeaker() != null) {
-            eventOutDto.setSpeakerId(newEvent.getSpeaker().getId());
+            eventOutDto.setSpeakerId(event.getSpeaker().getId());
+            eventOutDto.setSpeakerName(newEvent.getSpeaker().getFirstName() + " " + newEvent.getSpeaker().getLastName());
         }
 
         return eventOutDto;
@@ -50,6 +73,7 @@ public class EventService {
         Event event = eventRepository.findById(id)
                 .orElseThrow(EventNotFoundException::new);
 
+        adminCalendarService.deleteEntryFromEvent(event);
         eventRepository.delete(event);
     }
 
@@ -76,6 +100,7 @@ public class EventService {
         for (int i = 0; i < filteredEvents.size(); i++) {
             if (filteredEvents.get(i).getSpeaker() != null) {
                 eventOutDtoList.get(i).setSpeakerId(filteredEvents.get(i).getSpeaker().getId());
+                eventOutDtoList.get(i).setSpeakerName(filteredEvents.get(i).getSpeaker().getFirstName() + " " + filteredEvents.get(i).getSpeaker().getLastName());
             }
         }
 
@@ -92,28 +117,55 @@ public class EventService {
         // Evita que speakerId salga a 0
         if (event.getSpeaker() != null) {
             eventOutDto.setSpeakerId(event.getSpeaker().getId());
+            eventOutDto.setSpeakerName(event.getSpeaker().getFirstName() + " " + event.getSpeaker().getLastName());
         }
 
         return eventOutDto;
     }
 
     // PUT
-    public EventOutDto modify(long id, EventInDto eventInDto) throws EventNotFoundException, SpeakerNotFoundException {
+    public EventOutDto modify(long id, EventInDto eventInDto) throws EventNotFoundException, SpeakerNotFoundException, DuplicateEventException, InvalidEventDateException {
         Event existingEvent = eventRepository.findById(id)
                 .orElseThrow(EventNotFoundException::new);
         Speaker speaker = speakerRepository.findById(eventInDto.getSpeakerId())
                 .orElseThrow(SpeakerNotFoundException::new);
+
+        validateEventDate(eventInDto);
+
+        boolean duplicatedEventExists = eventRepository.findAll().stream()
+                .anyMatch(event ->
+                        event.getId() != id
+                                && event.getTitle() != null
+                                && eventInDto.getTitle() != null
+                                && event.getTitle().trim().equalsIgnoreCase(eventInDto.getTitle().trim())
+                                && event.getEventDate() != null
+                                && event.getEventDate().equals(eventInDto.getEventDate())
+                );
+
+        if (duplicatedEventExists) {
+            throw new DuplicateEventException();
+        }
 
         modelMapper.map(eventInDto, existingEvent);
         existingEvent.setId(id);
         existingEvent.setSpeaker(speaker);
 
         Event updateEvent = eventRepository.save(existingEvent);
+        adminCalendarService.updateEntryFromEvent(updateEvent);
+
         EventOutDto updatedEventOutDto = modelMapper.map(updateEvent, EventOutDto.class);
 
         if (updateEvent.getSpeaker() != null) {
             updatedEventOutDto.setSpeakerId(updateEvent.getSpeaker().getId());
+            updatedEventOutDto.setSpeakerName(updateEvent.getSpeaker().getFirstName() + " " + updateEvent.getSpeaker().getLastName());
         }
         return updatedEventOutDto;
+    }
+
+    private void validateEventDate(EventInDto eventInDto) throws InvalidEventDateException {
+        if (eventInDto.getEventDate() != null
+                && eventInDto.getEventDate().isBefore(java.time.LocalDateTime.now())) {
+            throw new InvalidEventDateException();
+        }
     }
 }

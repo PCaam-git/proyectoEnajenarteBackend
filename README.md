@@ -355,6 +355,18 @@ Después se debe arrancar el backend apuntando temporalmente a `enajenarte_test_
 
 ---
 
+## Colección Postman
+
+El proyecto incluye una colección Postman para facilitar la revisión manual de los endpoints principales de la API.
+
+La colección y el entorno se encuentran en la carpeta:
+
+```text
+postman/
+```
+
+---
+
 ## Ejecución del backend
 
 Instalar dependencias y compilar:

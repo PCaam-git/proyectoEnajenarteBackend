@@ -1,6 +1,0 @@
-name,description,startDate,durationMinutes,price,maxCapacity,isOnline,speakerId
-Oratoria básica,Taller de oratoria y comunicación,2026-05-10,90,80,25,true,1
-Escritura Creativa,Taller de escritura y narrativa,2026-06-20,120,95,20,false,2
-Pintura Intuitiva,Taller de expresión artística,2026-07-15,150,110,15,false,3
-Mindfulness Empresarial,Taller de mindfulness para empresas,2026-08-05,60,75,30,true,1
-Fotografía Consciente,Taller de fotografía y atención plena,2026-09-12,180,120,12,false,4

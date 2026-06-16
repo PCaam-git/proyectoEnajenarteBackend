@@ -1,0 +1,53 @@
+name: enajenarte-tfg
+
+services:
+  db:
+    image: mariadb:11.3.2
+    container_name: enajenarte-tfg-db
+    environment:
+      MYSQL_USER: ${MARIADB_USER}
+      MYSQL_PASSWORD: ${MARIADB_PASSWORD}
+      MYSQL_DATABASE: ${MARIADB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+    ports:
+      - "3308:3306"
+    volumes:
+      - enajenarte_test_data:/var/lib/mysql
+    restart: always
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: enajenarte-tfg-api
+    depends_on:
+      - db
+    environment:
+      SPRING_PROFILES_ACTIVE: prod,tfg
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM: ${MAIL_FROM}
+      CONTACT_TO: ${CONTACT_TO}
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "8080:8080"
+    restart: always
+
+  frontend:
+    build:
+      context: ../proyectoEnajenarteFrontend-main
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+    container_name: enajenarte-tfg-frontend
+    depends_on:
+      - api
+    ports:
+      - "8000:80"
+    restart: always
+
+volumes:
+  enajenarte_test_data:

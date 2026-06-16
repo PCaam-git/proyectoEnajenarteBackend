@@ -1,10 +1,9 @@
 -- ============================================================
 -- SCRIPT DE DATOS DE PRUEBA - enajenArte
--- Base de datos: enajenarte_db
--- Uso recomendado: HeidiSQL / MariaDB
+-- Datos automáticos para entorno Docker TFG
+-- La base de datos se selecciona desde application-prod.properties
+-- mediante la variable MARIADB_DATABASE
 -- ============================================================
-
-USE enajenarte_db;
 
 -- ------------------------------------------------------------
 -- 1. Limpieza de datos

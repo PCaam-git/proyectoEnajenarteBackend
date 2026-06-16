@@ -2,25 +2,27 @@
 
 API REST desarrollada como backend del proyecto **enajenArte**, una plataforma orientada a la gestión de talleres, programas, eventos, inscripciones y comunicación con usuarios dentro del ámbito de la creatividad, el bienestar emocional y la expresión artística.
 
-El proyecto forma parte del Trabajo Fin de Grado del ciclo de Desarrollo de Aplicaciones Multiplataforma. Su objetivo es transformar la presencia digital de enajenArte en una aplicación dinámica, con gestión administrativa, inscripción de usuarios y persistencia de datos.
+El proyecto forma parte del Trabajo Intermodular del ciclo de Desarrollo de Aplicaciones Multiplataforma. El objetivo del proyecto es transformar la presencia digital de enajenArte en una aplicación dinámica, con zona pública, área de usuario, panel de administración y persistencia de datos.
 
 ---
 
 ## Tecnologías utilizadas
 
-| Tecnología | Uso principal |
-|---|---|
-| Java 21 | Lenguaje principal del backend |
-| Spring Boot | Framework principal para construir la API REST |
-| Spring Web | Exposición de endpoints HTTP |
-| Spring Data JPA | Persistencia y acceso a base de datos |
-| Hibernate | ORM para el mapeo entidad-tabla |
-| MariaDB | Base de datos relacional |
-| Maven | Gestión de dependencias y compilación |
-| Spring Security | Control de acceso por roles |
-| JWT | Autenticación mediante token |
-| ModelMapper | Conversión entre entidades y DTOs |
-| Spring Mail | Envío de correos electrónicos |
+| Tecnología      | Uso principal                                      |
+|-----------------|----------------------------------------------------|
+| Java 21         | Lenguaje principal del backend                     |
+| Spring Boot     | Framework principal para construir la API REST     |
+| Spring Web      | Exposición de endpoints HTTP                       |
+| Spring Data JPA | Persistencia y acceso a base de datos              |
+| Hibernate       | ORM para el mapeo entidad-tabla                    |
+| MariaDB         | Base de datos relacional                           |
+| Maven           | Gestión de dependencias y compilación              |
+| Spring Security | Control de acceso por roles                        |
+| JWT             | Autenticación mediante token                       |
+| ModelMapper     | Conversión entre entidades y DTOs                  |
+| Spring Mail     | Envío de correos electrónicos                      |
+| Docker          | Contenerización del backend                        |
+| Docker Compose  | Despliegue conjunto de MariaDB, backend y frontend |
 
 ---
 
@@ -28,7 +30,7 @@ El proyecto forma parte del Trabajo Fin de Grado del ciclo de Desarrollo de Apli
 
 El backend sigue una arquitectura por capas:
 
-```text
+```
 domain        → Entidades JPA y enums
 repository    → Interfaces de acceso a datos
 service       → Lógica de negocio
@@ -39,7 +41,7 @@ config        → Configuración general, seguridad y JWT
 security      → Filtros y utilidades de autenticación
 ```
 
-Esta separación permite mantener una estructura clara, facilitar las pruebas y aislar la lógica de negocio de la capa de exposición REST.
+Esta estructura separa la lógica del proyecto en partes claras y facilita el mantenimiento del código.
 
 ---
 
@@ -76,22 +78,22 @@ La API utiliza autenticación mediante JWT y autorización basada en roles.
 
 Endpoint:
 
-```http
+```
 POST /auth/login
 ```
 
 Body:
 
-```json
+```
 {
   "username": "admin",
   "password": "123456"
 }
 ```
 
-La respuesta incluye un token JWT que debe enviarse en las peticiones protegidas:
+La respuesta devuelve un token JWT. Para acceder a rutas protegidas, debe enviarse en la cabecera:
 
-```http
+```
 Authorization: Bearer <token>
 ```
 
@@ -219,9 +221,13 @@ Authorization: Bearer <token>
 
 ## Filtros
 
-Varios endpoints GET permiten aplicar filtros mediante parámetros de consulta. Algunos ejemplos:
+El backend incluye filtros en varios endpoints GET mediante parámetros de consulta.
 
-```http
+Estos filtros forman parte de la API y pueden probarse desde herramientas como Postman o realizando peticiones HTTP directamente. En la versión actual del frontend no se han añadido controles visuales específicos para todos estos filtros.
+
+Ejemplos de uso en la API:
+
+```
 GET /users?username=ana&email=test&active=true
 GET /events?title=charla&location=zaragoza&isPublic=true
 GET /workshops?name=escritura&isOnline=false&speakerId=1
@@ -236,9 +242,9 @@ GET /registrations?userId=2&workshopId=1&isPaid=true
 
 ### Talleres y programas
 
-Los talleres y programas pueden tener los siguientes estados:
+Los talleres y programas pueden tener tres estados:
 
-```text
+```
 PENDING
 CONFIRMED
 CANCELLED
@@ -248,7 +254,7 @@ Reglas principales:
 
 - Una actividad confirmada permite inscripciones confirmadas si hay plazas disponibles.
 - Una actividad pendiente permite registrar inscripciones pendientes hasta alcanzar el mínimo de participantes.
-- Una actividad cancelada no debería admitir nuevas inscripciones.
+- Una actividad cancelada no debe admitir nuevas inscripciones.
 - La fecha límite de confirmación se utiliza cuando la actividad está pendiente de alcanzar el número mínimo de participantes.
 - La capacidad máxima controla el número total de plazas disponibles.
 
@@ -280,48 +286,78 @@ Reglas principales:
 
 ### Envío de emails
 
-El backend incluye integración con correo electrónico para notificar al usuario en determinados flujos:
+El backend incluye integración con correo electrónico para notificar al usuario en algunos flujos, como:
 
 - confirmación de inscripción;
-- cambios de estado de talleres;
-- cambios de estado de programas;
+- cambios de estado;
 - cancelaciones.
 
-La configuración SMTP se define en `application.properties` mediante variables de entorno para evitar guardar credenciales sensibles en el repositorio.
+La configuración SMTP se define en `application.properties` mediante variables de entorno para evitar guardar datos sensibles en el repositorio.
 
 ---
 
 ## Configuración local
 
-El archivo `application.properties` utiliza valores por defecto para entorno local y variables de entorno para entornos externos:
+El entorno local utiliza el archivo `application.properties`
 
-```properties
-spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:mariadb://localhost:3307/enajenarte_db}
-spring.datasource.username=${MARIADB_USER:enajenarte_user}
-spring.datasource.password=${MARIADB_PASSWORD:}
+En este entorno, el backend trabaja con la base de datos local: 
 
-spring.mail.username=${MAIL_USERNAME:}
-spring.mail.password=${MAIL_PASSWORD:}
-app.mail.from=${MAIL_FROM:}
-app.contact.to=${CONTACT_TO:}
-
-app.jwt.secret=${JWT_SECRET:}
 ```
+enajenarte_db
+```
+La conexión local está configurada para usar MariaDB en: 
+
+```
+localhost:3307
+```
+
+Este es el entorno utilizado durante el desarrollo
 
 ---
 
-## Base de datos local
+## Base de datos local con Docker
 
-El proyecto utiliza MariaDB. Si se ejecuta mediante Docker Compose, se levanta un contenedor de MariaDB en el puerto local `3307`.
+El archivo:
 
-Ejemplo de variables necesarias:
+```
+docker-compose.yml
+```
+levanta únicamente MariaDB para desarrollo local.
 
-```env
+Ejemplo de variables del archivo .env local:
+
+```
 MARIADB_USER=enajenarte_user
 MARIADB_PASSWORD=
-MARIADB_ROOT_PASSWORD=root
+MARIADB_ROOT_PASSWORD=
 MARIADB_DATABASE=enajenarte_db
 ```
+Para levantar solo la base de datos local:
+````
+docker compose up -d
+````
+La base local queda disponible en:
+````
+localhost:3307
+````
+
+---
+
+## Compilación y ejecución local del backend
+
+Compilar el proyecto:
+````
+mvn clean package
+````
+
+Ejecutar el backend:
+````
+mvn spring-boot:run
+````
+La api  queda disponible en:
+````
+http://localhost:8080
+````
 
 ---
 
@@ -329,74 +365,107 @@ MARIADB_DATABASE=enajenarte_db
 
 El proyecto incluye un script de datos de prueba en:
 
-```text
+```
 src/main/resources/db/test-data.sql
 ```
 
-Este script está pensado para facilitar la revisión del proyecto por parte del evaluador.
+Este script está pensado para facilitar la revisión del proyecto.
+
+En el despliegue Docker, los datos se cargan automáticamente sobre una base de datos independiente llamada: 
+````
+enajenarte_test_db
+````
+
+Esta base de datos está separada de la base local de desarrollo:
+````
+enajenarte_db
+````
+
+El script incluye datos de prueba para revisar:
+- Usuarios
+- Ponentes
+- Talleres
+- Programas
+- Eventos
+- Inscripciones
+- Calendario administrativo
 
 Importante:
-
-```text
-El script elimina e inserta datos de prueba.
-No debe ejecutarse sobre una base de datos con información real de enajenArte.
-Uso recomendado: crear una base separada llamada enajenarte_test_db.
-```
-
-Orden recomendado:
-
-```sql
-CREATE DATABASE IF NOT EXISTS enajenarte_test_db
-CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;
-```
-
-Después se debe arrancar el backend apuntando temporalmente a `enajenarte_test_db` para que Hibernate cree las tablas y, finalmente, ejecutar el script SQL.
-
+El script elimina e inserta datos de prueba. 
+No debe ejecutarse sobre una base de datos con información real.
 ---
 
+## Despliegue completo con Docker
+
+El proyecto puede levantarse completo con Docker usando:
+- MariaDB
+- backend Spring Boot
+- frontend React servidocon Nginx.
+
+### Estructura esperada
+
+Los proyectos del backend y del frontend deben descomprimirse en la misma carpeta.
+
+El archivo docker-compose.tfg.yml está en el backend y construye también el frontend usando una ruta relativa a la carpeta del frontend.
+
+### Preparar variables del entorno
+
+Entrar en la carpeta del backend:
+
+````
+cd proyectoEnajenarteBackend-main
+````
+
+Crear el archivo .env a partir del ejemplo en .env.tfg.example
+
+### Levantar el proyecto
+
+Desde la carpeta del backend:
+````
+docker compose -f docker-compose.tfg.yml up --build
+````
+
+Cuando el arranque termine, la aplicación estará disponible en:
+````
+http://localhost:8000
+````
+La API queda disponible en:
+````
+http://localhost:8080
+````
+
+### Reiniciar el contenedor desde cero
+
+Para borrar los contenedores y el volumen de datos de prueba:
+````
+docker compose -f docker-compose.tfg.yml down -v
+````
+
+Para volver a levantarlo:
+````
+docker compose -f docker-compose.tfg.yml up --build
+````
+
+Este proceso vuelve a crear la base de datos enajenarte_test_db y carga de nuevo los datos de prueba.
+
+### Usuarios de prueba
+
+El entorno de prueba incluye usuarios ya creados:
+
+admin / 123456
+usuario1 / 123456
+
+El usuario **admin**  permite acceder al panel de administración.
+
+---
 ## Colección Postman
 
-El proyecto incluye una colección Postman para facilitar la revisión manual de los endpoints principales de la API.
+El proyecto incluye una colección Postman para revisar manualmente los endpoints principales de la API.
 
 La colección y el entorno se encuentran en la carpeta:
 
-```text
+```
 postman/
-```
-
----
-
-## Ejecución del backend
-
-Instalar dependencias y compilar:
-
-```bash
-mvn clean package
-```
-
-Ejecutar la aplicación:
-
-```bash
-mvn spring-boot:run
-```
-
-La API queda disponible en:
-
-```text
-http://localhost:8080
-```
-
----
-
-## Compilación y validación
-
-El proyecto se valida principalmente mediante compilación del backend y pruebas manuales de endpoints con Postman.
-
-Compilar el proyecto:
-
-```bash
-mvn clean package
 ```
 
 ---
@@ -431,11 +500,11 @@ Body:
 
 ## Gestión de errores
 
-La API utiliza un manejador global de excepciones para devolver respuestas estructuradas ante errores de validación, recursos no encontrados, conflictos de negocio o errores internos.
+La API utiliza un manejador global de excepciones para devolver respuestas claras cuando se produce un error.
 
 Ejemplo:
 
-```json
+```
 {
   "code": 404,
   "title": "not-found",
@@ -468,12 +537,11 @@ Durante el proyecto se realizaron pruebas de despliegue en AWS utilizando:
 
 El despliegue permitió validar la configuración general del entorno, aunque quedó documentada una incidencia de comportamiento en algunas rutas públicas del backend desplegado respecto al comportamiento local del mismo `.jar`.
 
-Como línea futura, se plantea completar un despliegue estable mediante:
+Para la entrega final se ha preparado un entorno Docker completo que permite levantar la aplicación con frontend, backend y base de datos desde Docker Compose.
 
-- EC2 con Docker Compose;
-- backend Spring Boot;
-- frontend React servido por Nginx;
-- MariaDB en contenedor.
+El despliegue Docker utiliza el perfil de producción del backend y una base de datos de prueba independiente. Para evitar problemas con los tipos TEXT de MariaDB generados por Hibernate, en el perfil de producción se desactivó el entrecomillado global de identificadores:
+
+spring.jpa.properties.hibernate.globally_quoted_identifiers=false
 
 ---
 
@@ -482,17 +550,20 @@ Como línea futura, se plantea completar un despliegue estable mediante:
 El backend incluye las funcionalidades principales necesarias para la gestión de la plataforma:
 
 - autenticación;
-- roles;
+- roles de usuario y administrador;
 - CRUD administrativo;
-- talleres;
-- programas;
-- eventos;
-- inscripciones;
+- gestión de talleres;
+- gestión de programas;
+- gestión de eventos;
+- gestión de ponentes;
+- inscripciones a talleres;
+- inscripciones a programas;
 - mensajes de contacto;
 - calendario administrativo;
-- emails;
-- filtros;
-- script de datos de prueba.
+- envío de emails;
+- filtros en endpoints del backend;
+- datos de prueba;
+- despliegue Docker completo junto al frontend y MariaDB.
 
 Quedan como posibles mejoras futuras:
 
